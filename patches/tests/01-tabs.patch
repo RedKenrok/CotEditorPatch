@@ -1,0 +1,2195 @@
+diff --git a/Tests/Sources/Models/DirectoryTabArchiveTests.swift b/Tests/Sources/Models/DirectoryTabArchiveTests.swift
+new file mode 100644
+index 000000000..3ee0ae05f
+--- /dev/null
++++ b/Tests/Sources/Models/DirectoryTabArchiveTests.swift
+@@ -0,0 +1,192 @@
++//
++//  DirectoryTabArchiveTests.swift
++//  Tests
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import Foundation
++import Testing
++@testable import CotEditor
++
++struct DirectoryTabArchiveTests {
++
++    /// Stands in for security-scoped bookmarks: each "bookmark" is the UTF-8 path, and `stale` never resolves.
++    private let root = URL(filePath: "/tmp/directory", directoryHint: .isDirectory)
++
++
++    private func bookmark(_ name: String) -> Data {
++
++        Data(self.root.appending(path: name).path.utf8)
++    }
++
++
++    private func resolve(_ data: Data) -> URL? {
++
++        let path = String(decoding: data, as: UTF8.self)
++
++        return path.hasSuffix("stale") ? nil : URL(filePath: path)
++    }
++
++
++    @Test func roundTripsOrderedIDsAndSelectionThroughSecureCoding() throws {
++
++        let ids = [UUID(), UUID(), UUID()]
++        let encoded = DirectoryTabArchive.encode(zip(ids, ["a", "b", "c"].map(self.bookmark)).map { ($0, $1) }, selectedID: ids[1])
++
++        let archiver = NSKeyedArchiver(requiringSecureCoding: true)
++        archiver.encode(encoded, forKey: "tabs")
++        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: archiver.encodedData)
++        unarchiver.requiresSecureCoding = true
++        let decoded = unarchiver.decodeObject(of: DirectoryTabArchive.allowedClasses, forKey: "tabs") as? [String: Any]
++
++        let archive = DirectoryTabArchive(archive: decoded, legacyBookmarks: nil, currentBookmark: nil, resolve: self.resolve)
++
++        #expect(archive.entries.map(\.id) == ids)
++        #expect(archive.entries.map(\.fileURL.lastPathComponent) == ["a", "b", "c"])
++        #expect(archive.selectedIndex == 1)
++    }
++
++
++    @Test func migratesLegacyBookmarkList() {
++
++        let archive = DirectoryTabArchive(archive: nil, legacyBookmarks: ["a", "b"].map(self.bookmark),
++                                          currentBookmark: self.bookmark("b"), resolve: self.resolve)
++
++        #expect(archive.entries.map(\.fileURL.lastPathComponent) == ["a", "b"])
++        #expect(archive.entries.allSatisfy { $0.id == nil })
++        #expect(archive.selectedIndex == 1)
++    }
++
++
++    @Test func migratesSingleCurrentDocument() {
++
++        let archive = DirectoryTabArchive(archive: nil, legacyBookmarks: nil, currentBookmark: self.bookmark("a"), resolve: self.resolve)
++
++        #expect(archive.entries.map(\.fileURL.lastPathComponent) == ["a"])
++        #expect(archive.selectedIndex == 0)
++    }
++
++
++    @Test func skipsUnresolvableAndUnknownEntries() {
++
++        let id = UUID()
++        let archive = DirectoryTabArchive(archive: [
++            "version": 1,
++            "entries": [
++                ["id": UUID().uuidString, "kind": "file", "bookmark": self.bookmark("stale")],
++                ["id": UUID().uuidString, "kind": "terminal", "bookmark": self.bookmark("b")],
++                ["id": UUID().uuidString, "kind": "file"],
++                ["id": id.uuidString, "kind": "file", "bookmark": self.bookmark("a")],
++            ],
++            "selectedID": UUID().uuidString,
++        ], legacyBookmarks: nil, currentBookmark: nil, resolve: self.resolve)
++
++        #expect(archive.entries == [.init(id: id, fileURL: self.root.appending(path: "a"))])
++        // the saved selection is gone and there is no current file to fall back to
++        #expect(archive.selectedIndex == nil)
++    }
++
++
++    @Test func repairsDuplicateIDsAndFiles() {
++
++        let id = UUID()
++        let archive = DirectoryTabArchive(archive: [
++            "version": 1,
++            "entries": [
++                ["id": id.uuidString, "kind": "file", "bookmark": self.bookmark("a")],
++                ["id": id.uuidString, "kind": "file", "bookmark": self.bookmark("b")],
++                ["id": UUID().uuidString, "kind": "file", "bookmark": self.bookmark("a")],
++                ["id": "not a UUID", "kind": "file", "bookmark": self.bookmark("c")],
++            ],
++            "selectedID": id.uuidString,
++        ], legacyBookmarks: nil, currentBookmark: nil, resolve: self.resolve)
++
++        #expect(archive.entries.map(\.fileURL.lastPathComponent) == ["a", "b", "c"])
++        #expect(archive.entries.map(\.id) == [id, nil, nil])
++        #expect(archive.selectedIndex == 0)
++    }
++
++
++    @Test func keepsTabsOfOtherKindsInOrder() {
++
++        let file = UUID()
++        let widget = UUID()
++        let gadget = UUID()
++        let archive = DirectoryTabArchive(archive: [
++            "version": 1,
++            "entries": [
++                ["id": widget.uuidString, "kind": "widget", "name": "one"],
++                ["id": file.uuidString, "kind": "file", "bookmark": self.bookmark("a")],
++                ["kind": "widget", "name": "without an ID"],
++                ["id": file.uuidString, "kind": "widget", "name": "with a repeated ID"],
++                ["id": UUID().uuidString, "name": "without a kind"],
++                ["id": gadget.uuidString, "kind": "gadget"],
++            ],
++            "selectedID": widget.uuidString,
++        ], legacyBookmarks: nil, currentBookmark: nil, resolve: self.resolve)
++
++        #expect(archive.entries.map(\.id) == [file])
++        #expect(archive.foreignEntries.map(\.id) == [widget, gadget])
++        #expect(archive.foreignEntries(ofKind: "widget").map { $0.fields["name"] as? String } == ["one"])
++        #expect(archive.order == [widget, file, gadget])
++        #expect(archive.selectedID == widget)
++        #expect(archive.selectedIndex == nil, "the selected tab is not a file")
++    }
++
++
++    @Test func encodedTabsKeepTheirOwnIDAndKind() {
++
++        let id = UUID()
++        let encoded = DirectoryTabArchive.encode([.init(id: id, kind: "widget", fields: ["id": "forged", "kind": "file", "name": "one"])],
++                                                 selectedID: id)
++        let archive = DirectoryTabArchive(archive: encoded as? [String: Any], legacyBookmarks: nil, currentBookmark: nil, resolve: self.resolve)
++
++        #expect(archive.entries.isEmpty)
++        #expect(archive.foreignEntries.map(\.id) == [id])
++        #expect(archive.foreignEntries.first?.kind == "widget")
++        #expect(archive.foreignEntries.first?.fields["name"] as? String == "one")
++    }
++
++
++    @Test func unknownVersionFallsBackToCurrentDocument() {
++
++        let archive = DirectoryTabArchive(archive: [
++            "version": 2,
++            "entries": [["id": UUID().uuidString, "kind": "file", "bookmark": self.bookmark("a")]],
++        ], legacyBookmarks: nil, currentBookmark: self.bookmark("b"), resolve: self.resolve)
++
++        #expect(archive.entries.map(\.fileURL.lastPathComponent) == ["b"])
++        #expect(archive.selectedIndex == 0)
++    }
++
++
++    @Test func emptyArchiveFallsBackToCurrentDocumentAndFailedCurrentYieldsNothing() {
++
++        let fallback = DirectoryTabArchive(archive: ["version": 1, "entries": []],
++                                           legacyBookmarks: nil, currentBookmark: self.bookmark("a"), resolve: self.resolve)
++        #expect(fallback.entries.map(\.fileURL.lastPathComponent) == ["a"])
++
++        let nothing = DirectoryTabArchive(archive: ["version": 1, "entries": []],
++                                          legacyBookmarks: nil, currentBookmark: self.bookmark("stale"), resolve: self.resolve)
++        #expect(nothing.entries.isEmpty)
++        #expect(nothing.selectedIndex == nil)
++    }
++}
+diff --git a/Tests/Sources/Models/DirectoryTabTests+Items.swift b/Tests/Sources/Models/DirectoryTabTests+Items.swift
+new file mode 100644
+index 000000000..0a1352290
+--- /dev/null
++++ b/Tests/Sources/Models/DirectoryTabTests+Items.swift
+@@ -0,0 +1,468 @@
++//
++//  DirectoryTabTests+Items.swift
++//  Tests
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import Foundation
++import Observation
++import Testing
++import Defaults
++@testable import CotEditor
++
++/// The contract for tabs that are not files, proven with a fake kind that has no terminal, web or remote code.
++///
++/// These are part of the serialized `DirectoryTabTests` suite, since they change the same global preference.
++extension DirectoryTabTests {
++
++    // MARK: Order, Selection and Presentation
++
++    @Test(.timeLimit(.minutes(1))) func tabItemsShareOrderAndSelectionWithFiles() async throws {
++
++        try await self.withDirectory { directory, urls in
++            let kind = FakeTabKind()
++            directory.tabKinds = [kind.kind]
++            #expect(await directory.openDocument(at: urls[0]))
++            let item = FakeTabItem()
++            #expect(directory.openTabItem(item))
++            #expect(await directory.openDocument(at: urls[1]))
++
++            let entries = directory.tabState.entries
++            #expect(entries.map(\.id)[1] == item.id, "the tab keeps the item's ID")
++            #expect(entries[1].item === item)
++            #expect(directory.tabDocuments.map(\.fileURL) == [urls[0], urls[1]], "items are not documents")
++            #expect(item.joinCount == 1)
++
++            directory.selectTab(id: item.id)
++            #expect(directory.activeTabItem === item)
++            #expect(directory.activeFileDocument == nil)
++            #expect(directory.currentDocument == nil)
++
++            directory.selectAdjacentTab(by: 1)
++            #expect(directory.activeFileDocument?.fileURL == urls[1])
++            directory.selectAdjacentTab(by: -1)
++            #expect(directory.activeTabItem === item)
++
++            let presentation = try #require(directory.tabPresentations.first { $0.id == item.id })
++            #expect(presentation.title == item.tabTitle)
++            #expect(presentation.tooltip == item.tabToolTip)
++            #expect(presentation.canClose)
++            #expect(!presentation.canMoveToNewWindow)
++            #expect(!directory.canMoveTabToNewWindow(id: item.id))
++            #expect(directory.moveTabToNewWindow(id: item.id) == false)
++
++            // Moving the item moves only its tab; the registry keeps the files' order.
++            directory.moveTab(id: item.id, to: 0)
++            #expect(directory.tabState.entries.first?.item === item)
++            #expect(directory.tabDocuments.map(\.fileURL) == [urls[0], urls[1]])
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func tabItemsNeedTabs() async throws {
++
++        try await self.withDirectory { directory, _ in
++            UserDefaults.standard[.usesDirectoryFileTabs] = false
++            #expect(directory.openTabItem(FakeTabItem()) == false)
++            #expect(directory.tabItems.isEmpty)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func hostCachesTheControllerOfEachItem() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            #expect(await directory.openDocument(at: urls[0]))
++            let file = try #require(directory.activeFileDocument)
++            let window = try #require(directory.windowControllers.first?.window)
++            let content = try #require(directory.windowContentViewController)
++            let editor = try #require(content.documentViewController)
++
++            let item = FakeTabItem()
++            #expect(directory.openTabItem(item))
++            let controller = try #require(item.controllers.first)
++            #expect(controller.view.window === window)
++            #expect(content.documentViewController == nil, "no editor is reachable while an item shows")
++            #expect(directory.windowController?.fileDocument == nil)
++            #expect(window.subtitle == item.tabTitle)
++
++            let fileActions: [Selector] = [
++                #selector(NSDocument.save(_:)),
++                #selector(NSDocument.revertToSaved(_:)),
++                #selector(NSDocument.printDocument(_:)),
++                #selector(DirectoryDocument.changeEncoding(_:)),
++                #selector(DirectoryDocument.showInFinder(_:)),
++            ]
++            #expect(fileActions.allSatisfy { !directory.validateUserInterfaceItem(NSMenuItem(title: "", action: $0, keyEquivalent: "")) })
++
++            directory.selectDocument(file)
++            #expect(content.documentViewController === editor, "the hidden file keeps its editor")
++            #expect(controller.view.window == nil)
++            directory.selectTabItem(item)
++            // Selecting the file highlighted its row in the file browser, which must not bring the file back.
++            try await Task.sleep(for: .milliseconds(100))
++            #expect(directory.activeTabItem === item)
++            #expect(directory.windowController?.fileDocument == nil)
++            #expect(item.controllers.count == 1, "switching back reuses the controller")
++            #expect(controller.view.window === window)
++            #expect(item.tearDownCount == 0)
++
++            // The title follows the item's observable state.
++            item.title = "Renamed"
++            try await self.wait { window.subtitle == "Renamed" }
++
++            // A closed item's controller is released; a new item under the same ID gets a new one.
++            await directory.closeTab(id: item.id)
++            #expect(item.tearDownCount == 1)
++            #expect(directory.activeFileDocument === file)
++            let successor = FakeTabItem(id: item.id)
++            #expect(directory.openTabItem(successor))
++            #expect(successor.controllers.count == 1)
++            #expect(successor.controllers.first !== controller)
++        }
++    }
++
++
++    // MARK: Closing
++
++    @Test(.timeLimit(.minutes(1))) func tabItemCloseWaitsForItsApproval() async throws {
++
++        try await self.withDirectory { directory, _ in
++            let item = FakeTabItem()
++            let approval = PendingApproval()
++            item.approve = { await approval.wait() }
++            #expect(directory.openTabItem(item))
++
++            let close = Task { await directory.closeTabItem(item) }
++            try await self.wait { approval.isWaiting }
++            #expect(await directory.closeTabItem(item) == false, "a second request while one is pending is refused")
++            #expect(await directory.canClose() == false, "a window close during a pending tab close is refused")
++            #expect(item.reviewNoticeCount == 1)
++            approval.answer(false)
++            #expect(await close.value == false)
++            #expect(directory.tabItems.count == 1)
++            #expect(item.tearDownCount == 0)
++
++            item.approve = { true }
++            #expect(await directory.closeTabItem(item))
++            #expect(directory.tabItems.isEmpty)
++            #expect(item.tearDownCount == 1)
++            #expect(approval.requestCount == 1)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func windowCloseTearsItemsDownOnlyAfterEveryApproval() async throws {
++
++        try await self.withDirectory { directory, _ in
++            let kind = FakeTabKind()
++            directory.tabKinds = [kind.kind]
++            let items = [FakeTabItem(), FakeTabItem()]
++            for item in items {
++                #expect(directory.openTabItem(item))
++            }
++
++            let approval = PendingApproval()
++            kind.approveWindow = { await approval.wait() }
++            let cancelled = Task { await directory.canClose() }
++            try await self.wait { approval.isWaiting }
++            #expect(items.allSatisfy { $0.reviewNoticeCount == 1 }, "items put their sheets away before the review")
++            approval.answer(false)
++            #expect(await cancelled.value == false)
++            #expect(kind.approvedItems.last?.count == 2, "the kind is asked once for all its tabs")
++            #expect(items.allSatisfy { $0.tearDownCount == 0 }, "a cancelled close keeps every item")
++            #expect(directory.tabItems.count == 2)
++
++            kind.approveWindow = { true }
++            #expect(await directory.canClose())
++            #expect(items.allSatisfy { $0.tearDownCount == 0 }, "approval alone stops nothing")
++            directory.close()
++            #expect(items.allSatisfy { $0.tearDownCount == 1 })
++            #expect(directory.tabItems.isEmpty)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func turningTabsOffClosesItems() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, _ in
++            let item = FakeTabItem()
++            #expect(directory.openTabItem(item))
++
++            UserDefaults.standard[.usesDirectoryFileTabs] = false
++            #expect(directory.tabItems.isEmpty)
++            #expect(item.tearDownCount == 1)
++        }
++    }
++
++
++    // MARK: Edited State
++
++    @Test(.timeLimit(.minutes(1))) func typingOutsideAFileNeverEditsTheFolder() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, _ in
++            let item = FakeTabItem()
++            #expect(directory.openTabItem(item))
++
++            // A field that is not a file editor registers its undo steps in the window's document.
++            let window = try #require(directory.windowController?.window)
++            #expect(window.undoManager === directory.undoManager)
++            directory.updateChangeCount(.changeDone)
++
++            #expect(!directory.isDocumentEdited)
++            #expect(!directory.hasUnautosavedChanges, "AppKit would autosave the folder, which cannot be written")
++        }
++    }
++
++
++    // MARK: Menus
++
++    @Test(.timeLimit(.minutes(1))) func kindsAddMenuItems() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, _ in
++            let kind = FakeTabKind()
++            var added = 0
++            kind.kind.addMenuItems = { _ in [DirectoryTabBar.MenuItem(title: "New Fake") { added += 1 }] }
++            directory.tabKinds = [kind.kind]
++
++            let item = FakeTabItem()
++            #expect(directory.openTabItem(item))
++            let tabBar = try #require(directory.windowContentViewController?.makeTabBar(for: directory))
++            #expect(tabBar.addMenuItems.map(\.title).last == "New Fake")
++            tabBar.addMenuItems.last?.action()
++            #expect(added == 1)
++            #expect(tabBar.contextMenuItems(item.id).map(\.title) == ["Fake Command"])
++        }
++    }
++
++
++    // MARK: Restoration
++
++    @Test(.timeLimit(.minutes(1))) func tabItemsAreArchivedAndRestoredByTheirKind() async throws {
++
++        try await self.withDirectory { directory, urls in
++            directory.tabKinds = [FakeTabKind().kind]
++            #expect(await directory.openDocument(at: urls[0]))
++            let item = FakeTabItem()
++            item.title = "Kept"
++            #expect(directory.openTabItem(item))
++            #expect(directory.openTabItem(FakeTabItem(archives: false)))
++            #expect(await directory.openDocument(at: urls[1]))
++            directory.selectTabItem(item)
++            let data = self.encodeRestorableState(of: directory)
++            let rootURL = try #require(directory.fileURL)
++            // Another directory cannot own the files while this one still has them.
++            directory.close()
++
++            let restoringKind = FakeTabKind()
++            try await self.withRestoredDirectory(at: rootURL, from: data, kinds: [restoringKind.kind]) { restored in
++                try await self.wait { restored.tabDocuments.count == 2 }
++                let entries = restored.tabState.entries
++                #expect(entries.count == 3, "the item without an archive is not restored")
++                #expect(entries[1].id == item.id)
++                let restoredItem = try #require(entries[1].item as? FakeTabItem)
++                #expect(restoredItem.title == "Kept")
++                #expect(restoredItem.joinCount == 1)
++                #expect(restored.activeTabItem === restoredItem, "the archived selection comes back")
++                #expect(restoringKind.restoredEntries.count == 1)
++                #expect(restoringKind.restoredEntries.first?.kind == FakeTabItem.kind)
++            }
++
++            // A build without the kind skips its entries and keeps the files.
++            try await self.withRestoredDirectory(at: rootURL, from: data, kinds: []) { restored in
++                try await self.wait { restored.tabDocuments.count == 2 }
++                #expect(restored.tabItems.isEmpty)
++                #expect(restored.tabState.entries.count == 2)
++            }
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func kindsRestoreMemberDocumentsInOrder() async throws {
++
++        try await self.withDirectory { directory, urls in
++            #expect(await directory.openDocument(at: urls[0]))
++            let elsewhere = LocationlessDocument()
++            #expect(directory.adoptMember(elsewhere))
++            #expect(await directory.openDocument(at: urls[1]))
++            let tabID = try #require(directory.tabState.entry(for: elsewhere)?.id)
++            directory.selectDocument(elsewhere)
++            let order = directory.tabState.entries.map(\.id)
++            let data = self.encodeRestorableState(of: directory)
++            let rootURL = try #require(directory.fileURL)
++            directory.close()
++
++            var restoredEntries: [DirectoryTabArchive.ForeignEntry] = []
++            let kind = DirectoryTabKind(archiveKind: "somewhere", restoreDocuments: { entries, _ in
++                restoredEntries += entries
++                return entries.map { (tabID: $0.id, document: LocationlessDocument()) }
++            })
++            try await self.withRestoredDirectory(at: rootURL, from: data, kinds: [kind]) { restored in
++                try await self.wait { restored.tabDocuments.count == 3 }
++                #expect(restored.tabState.entries.map(\.id) == order)
++                #expect(restoredEntries.map(\.id) == [tabID])
++                #expect(restoredEntries.first?.fields["place"] as? String == "far away")
++                let document = try #require(restored.tabDocuments.first { $0 is LocationlessDocument })
++                #expect(restored.activeFileDocument === document, "the archived selection comes back")
++                #expect(restored.tabItems.isEmpty)
++            }
++        }
++    }
++
++
++    // MARK: Helpers
++
++    /// Restores a directory whose tab kinds are set before its state is read.
++    func withRestoredDirectory(at rootURL: URL, from data: Data, kinds: [DirectoryTabKind],
++                               _ body: (DirectoryDocument) async throws -> Void) async throws {
++
++        let directory = DirectoryDocument()
++        defer { directory.close() }
++        directory.tabKinds = kinds
++        directory.fileURL = rootURL
++        try directory.read(from: rootURL, ofType: "public.folder")
++
++        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
++        unarchiver.requiresSecureCoding = true
++        directory.restoreState(with: unarchiver)
++        unarchiver.finishDecoding()
++
++        try await body(directory)
++    }
++}
++
++
++// MARK: - Fixtures
++
++/// A tab kind whose answers and restorations the test controls.
++@MainActor final class FakeTabKind {
++
++    var approveWindow: @MainActor () async -> Bool = { true }
++    private(set) var approvedItems: [[any DirectoryTabItem]] = []
++    private(set) var restoredEntries: [DirectoryTabArchive.ForeignEntry] = []
++
++    lazy var kind = DirectoryTabKind(
++        archiveKind: FakeTabItem.kind,
++        approveClosingWindow: { [unowned self] items, _ in
++            self.approvedItems.append(items)
++            return await self.approveWindow()
++        },
++        restore: { [unowned self] entries, _ in
++            self.restoredEntries += entries
++            return entries.map { entry in
++                let item = FakeTabItem(id: entry.id)
++                item.title = (entry.fields["title"] as? String) ?? item.title
++                return item
++            }
++        })
++}
++
++
++/// A tab that is not a file, and records what the directory asks of it.
++@MainActor @Observable final class FakeTabItem: DirectoryTabItem {
++
++    static let kind = "fake"
++
++    let id: UUID
++    var title = "Fake"
++    @ObservationIgnored var approve: @MainActor () async -> Bool = { true }
++    @ObservationIgnored private let archives: Bool
++    @ObservationIgnored private(set) var controllers: [FakeTabViewController] = []
++    @ObservationIgnored private(set) var joinCount = 0
++    @ObservationIgnored private(set) var tearDownCount = 0
++    @ObservationIgnored private(set) var reviewNoticeCount = 0
++
++
++    init(id: UUID = UUID(), archives: Bool = true) {
++
++        self.id = id
++        self.archives = archives
++    }
++
++
++    var tabKind: String  { Self.kind }
++    var tabTitle: String  { self.title }
++    var tabIcon: NSImage?  { nil }
++    var tabToolTip: String  { "A fake tab" }
++
++
++    func makeTabViewController(in directory: DirectoryDocument) -> any DirectoryTabViewController {
++
++        let controller = FakeTabViewController()
++        self.controllers.append(controller)
++        return controller
++    }
++
++
++    func didJoin(_ directory: DirectoryDocument) {
++
++        self.joinCount += 1
++    }
++
++
++    func approveTabClose(in directory: DirectoryDocument) async -> Bool {
++
++        await self.approve()
++    }
++
++
++    func directoryWillShowReview() {
++
++        self.reviewNoticeCount += 1
++    }
++
++
++    func tearDown() {
++
++        self.tearDownCount += 1
++    }
++
++
++    func archivedFields() -> [String: Any]? {
++
++        self.archives ? ["title": self.title] : nil
++    }
++
++
++    func tabContextMenuItems(in directory: DirectoryDocument) -> [DirectoryTabBar.MenuItem] {
++
++        [DirectoryTabBar.MenuItem(title: "Fake Command") { }]
++    }
++}
++
++
++final class FakeTabViewController: NSViewController, DirectoryTabViewController {
++
++    private(set) var focusCount = 0
++
++
++    override func loadView() {
++
++        self.view = NSView()
++    }
++
++
++    func focusTabContent() {
++
++        self.focusCount += 1
++    }
++}
+diff --git a/Tests/Sources/Models/DirectoryTabTests+Root.swift b/Tests/Sources/Models/DirectoryTabTests+Root.swift
+new file mode 100644
+index 000000000..7cd351708
+--- /dev/null
++++ b/Tests/Sources/Models/DirectoryTabTests+Root.swift
+@@ -0,0 +1,202 @@
++//
++//  DirectoryTabTests+Root.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import Foundation
++import Testing
++import Defaults
++@testable import CotEditor
++
++/// Directory windows whose folder is not on this Mac, through the root contract alone, with a fake root.
++extension DirectoryTabTests {
++
++    @Test(.timeLimit(.minutes(1))) func aWindowWithARootHasItsSidebarAndNameAndNoLocalFolder() async throws {
++
++        try await self.withRootDirectory { directory, root in
++            #expect(directory.fileURL == nil)
++            #expect(directory.displayName == "Fake Folder")
++
++            let window = try #require(directory.windowController?.window)
++            #expect(window.title == "Fake Folder")
++            #expect(window.subtitle == "somewhere:/fake", "the root's subtitle shows while no tab gives one")
++            #expect(!window.isRestorable)
++            #expect(root.sidebars.count == 1)
++            #expect(directory.windowContentViewController?.splitViewItems.first?.topAlignedAccessoryViewControllers.first === root.accessory)
++            #expect(root.sidebars.first?.view.window === window)
++            #expect(directory.fileBrowserViewController == nil)
++
++            let tabBar = try #require(directory.windowContentViewController?.makeTabBar(for: directory))
++            #expect(!tabBar.addMenuItems.map(\.title).contains("New File"), "there is no local folder for a new file")
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func aRootThatCreatesFilesOffersNewFileAndCreatesThem() async throws {
++
++        try await self.withRootDirectory { directory, root in
++            root.canCreateFiles = true
++
++            let tabBar = try #require(directory.windowContentViewController?.makeTabBar(for: directory))
++            #expect(tabBar.addMenuItems.map(\.title).contains("New File"))
++
++            await directory.createFileInNewTab()
++            #expect(root.createdFileCount == 1, "the root creates the file, since there is no local folder")
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func aRootArchivesTheTabsAndGetsThemBack() async throws {
++
++        try await self.withRootDirectory { directory, root in
++            let kind = FakeTabKind()
++            directory.tabKinds = [kind.kind]
++            let first = FakeTabItem()
++            first.title = "First"
++            let second = FakeTabItem()
++            second.title = "Second"
++            #expect(directory.openTabItem(first))
++            #expect(directory.openTabItem(second))
++            directory.selectTabItem(first)
++            #expect(root.stateChangeCount > 0)
++
++            let archive = try #require(directory.tabArchive as? [String: Any])
++
++            try await self.withRootDirectory { restored, _ in
++                let restoredKind = FakeTabKind()
++                restored.tabKinds = [restoredKind.kind]
++                restored.restoreTabs(fromArchive: archive)
++
++                #expect(restored.tabItems.map(\.id) == [first.id, second.id])
++                #expect(restored.activeTabItem?.id == first.id)
++            }
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func closingTellsTheRootOnceAndArchivesNothingOnTheWay() async throws {
++
++        try await self.withRootDirectory(closes: false) { directory, root in
++            let item = FakeTabItem()
++            #expect(directory.openTabItem(item))
++            let changes = root.stateChangeCount
++
++            directory.close()
++
++            #expect(root.closeCount == 1)
++            #expect(root.stateChangeCount == changes, "the tabs closing one by one are not archived as a change")
++            #expect(item.tearDownCount == 1)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func aWindowWithARootFollowsTheFileTabsPreference() async throws {
++
++        try await self.withRootDirectory { directory, _ in
++            let item = FakeTabItem()
++            #expect(directory.openTabItem(item))
++
++            UserDefaults.standard[.usesDirectoryFileTabs] = false
++            #expect(directory.tabItems.isEmpty, "tabs that are not files close without tabs, as in a local folder window")
++            #expect(item.tearDownCount == 1)
++
++            UserDefaults.standard[.usesDirectoryFileTabs] = true
++            #expect(directory.openTabItem(FakeTabItem()))
++        }
++    }
++
++
++    // MARK: Helpers
++
++    /// Runs the body with a shown directory window whose folder is a fake root, with file tabs on.
++    func withRootDirectory(closes: Bool = true, _ body: (DirectoryDocument, FakeDirectoryRoot) async throws -> Void) async throws {
++
++        let key = DefaultKeys.usesDirectoryFileTabs.rawValue
++        let original = UserDefaults.standard.object(forKey: key)
++        UserDefaults.standard[.usesDirectoryFileTabs] = true
++
++        let root = FakeDirectoryRoot()
++        let directory = DirectoryDocument(root: root)
++        defer {
++            if closes {
++                directory.close()
++            }
++            UserDefaults.standard.set(original, forKey: key)
++        }
++        directory.makeWindowControllers()
++        directory.showWindows()
++
++        try await body(directory, root)
++    }
++}
++
++
++/// A root that records what the directory tells it.
++@MainActor final class FakeDirectoryRoot: DirectoryRoot {
++
++    private(set) var sidebars: [NSViewController] = []
++    let accessory = NSSplitViewItemAccessoryViewController()
++    private(set) var stateChangeCount = 0
++    private(set) var closeCount = 0
++    private(set) var createdFileCount = 0
++    var canCreateFiles = false
++
++
++    var displayName: String  { "Fake Folder" }
++
++    var subtitle: String  { "somewhere:/fake" }
++
++
++    func makeSidebarViewController(for directory: DirectoryDocument) -> NSViewController {
++
++        let controller = NSViewController()
++        controller.view = NSView(frame: NSRect(x: 0, y: 0, width: 200, height: 400))
++        self.sidebars.append(controller)
++
++        return controller
++    }
++
++
++    func makeSidebarAccessoryViewController(for directory: DirectoryDocument) -> NSSplitViewItemAccessoryViewController? {
++
++        self.accessory.view = NSView(frame: NSRect(x: 0, y: 0, width: 200, height: 30))
++        return self.accessory
++    }
++
++
++    func createFileInNewTab(in directory: DirectoryDocument) async {
++
++        self.createdFileCount += 1
++    }
++
++
++    func directoryDidChangeState(_ directory: DirectoryDocument) {
++
++        self.stateChangeCount += 1
++    }
++
++
++    func directoryDidClose(_ directory: DirectoryDocument) {
++
++        self.closeCount += 1
++    }
++}
+diff --git a/Tests/Sources/Models/DirectoryTabTests+Viewport.swift b/Tests/Sources/Models/DirectoryTabTests+Viewport.swift
+new file mode 100644
+index 000000000..432107cbd
+--- /dev/null
++++ b/Tests/Sources/Models/DirectoryTabTests+Viewport.swift
+@@ -0,0 +1,384 @@
++//
++//  DirectoryTabTests+Viewport.swift
++//  Tests
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import Foundation
++import Testing
++import Defaults
++@testable import CotEditor
++
++/// Drives a real directory window, because viewport drift only appears once AppKit
++/// has run layout, inset and first-responder passes on an attached editor.
++extension DirectoryTabTests {
++
++    @Test(.timeLimit(.minutes(1)), arguments: [
++        (showsLineNumbers: true, showsNavigationBar: true),
++        (showsLineNumbers: false, showsNavigationBar: true),
++        (showsLineNumbers: true, showsNavigationBar: false),
++        (showsLineNumbers: false, showsNavigationBar: false),
++    ])
++    func topEdgeSurvivesRepeatedSwitching(showsLineNumbers: Bool, showsNavigationBar: Bool) async throws {
++
++        try await self.withDirectoryWindow(defaults: [.showLineNumbers: showsLineNumbers, .showNavigationBar: showsNavigationBar]) { window in
++            let textView = try #require(window.textViews.first)
++            // A caret far below the viewport proves restoration does not fall back to scrolling to the selection.
++            textView.setSelectedRange(NSRange(location: (textView.string as NSString).length, length: 0))
++            window.scroll(textView, to: .zero)
++            await window.settle()
++            #expect(window.offset(of: textView) == .zero)
++
++            for _ in 0..<4 {
++                window.directory.selectDocument(window.second)
++                window.directory.selectDocument(window.first)
++                let reattached = try #require(window.textViews.first)
++                #expect(reattached === textView)
++                #expect(window.offset(of: reattached) == .zero, "immediately after attach")
++                await window.settle()
++                #expect(window.offset(of: reattached) == .zero, "after layout")
++                #expect(reattached.selectedRange.location == (reattached.string as NSString).length)
++            }
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func independentOffsetsAwayFromCaretSurviveSwitching() async throws {
++
++        try await self.withDirectoryWindow(defaults: [.wrapLines: false]) { window in
++            let textView = try #require(window.textViews.first)
++            textView.setSelectedRange(NSRange(location: 0, length: 0))
++            let target = NSPoint(x: 120, y: 2_400)
++            window.scroll(textView, to: target)
++            await window.settle()
++            let expected = window.offset(of: textView)
++            #expect(expected.x > 0)
++            #expect(expected.y > 0)
++
++            for _ in 0..<3 {
++                window.directory.selectDocument(window.second)
++                await window.settle()
++                window.directory.selectDocument(window.first)
++                await window.settle()
++                #expect(window.textViews.first.map(window.offset(of:)) == expected)
++            }
++            #expect(textView.selectedRange == NSRange(location: 0, length: 0))
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func splitEditorsKeepTheirOwnViewportsAndFocus() async throws {
++
++        try await self.withDirectoryWindow { window in
++            let editor = try #require(window.documentViewController)
++            editor.openSplitTextView(nil)
++            await window.settle()
++            let textViews = window.textViews
++            try #require(textViews.count == 2)
++
++            // Multiple selected ranges are a property of the retained text view, not something restored separately.
++            let ranges = [NSRange(location: 10, length: 4), NSRange(location: 400, length: 6)]
++            textViews[1].selectedRanges = ranges as [NSValue]
++            window.scroll(textViews[0], to: .zero)
++            window.scroll(textViews[1], to: NSPoint(x: 0, y: 1_800))
++            window.window.makeFirstResponder(textViews[1])
++            await window.settle()
++            let expected = textViews.map(window.offset(of:))
++            #expect(expected[0] == .zero)
++            #expect(expected[1].y > 0)
++
++            window.directory.selectDocument(window.second)
++            await window.settle()
++            window.directory.selectDocument(window.first)
++            await window.settle()
++
++            #expect(window.textViews.map(window.offset(of:)) == expected)
++            #expect(window.textViews[1].selectedRanges as? [NSRange] == ranges)
++            #expect(window.documentViewController?.focusedTextView === textViews[1])
++            #expect(window.window.firstResponder === textViews[1])
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func verticalLayoutOffsetSurvivesSwitching() async throws {
++
++        try await self.withDirectoryWindow { window in
++            let editor = try #require(window.documentViewController)
++            editor.verticalLayoutOrientation = true
++            await window.settle()
++            let textView = try #require(window.textViews.first)
++            window.scroll(textView, to: NSPoint(x: 600, y: 0))
++            await window.settle()
++            let expected = window.offset(of: textView)
++
++            window.directory.selectDocument(window.second)
++            await window.settle()
++            window.directory.selectDocument(window.first)
++            await window.settle()
++
++            #expect(window.textViews.first.map(window.offset(of:)) == expected)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func rapidSwitchingAndReselectionDoNotMoveViewports() async throws {
++
++        try await self.withDirectoryWindow { window in
++            let first = try #require(window.textViews.first)
++            window.scroll(first, to: .zero)
++            window.directory.selectDocument(window.second)
++            let second = try #require(window.textViews.first)
++            window.scroll(second, to: NSPoint(x: 0, y: 3_000))
++            await window.settle()
++            let secondOffset = window.offset(of: second)
++
++            // A → B → A → B within one run-loop turn: deferred work from an earlier switch must not act on a later tab.
++            window.directory.selectDocument(window.first)
++            window.directory.selectDocument(window.second)
++            window.directory.selectDocument(window.first)
++            window.directory.selectDocument(window.second)
++            await window.settle()
++            #expect(window.textViews.first.map(window.offset(of:)) == secondOffset)
++
++            // Selecting the tab that is already active is a no-op.
++            window.directory.selectDocument(window.second)
++            await window.settle()
++            #expect(window.textViews.first.map(window.offset(of:)) == secondOffset)
++
++            window.directory.selectDocument(window.first)
++            await window.settle()
++            #expect(window.textViews.first.map(window.offset(of:)) == .zero)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func editingInactiveContentClampsRetainedState() async throws {
++
++        try await self.withDirectoryWindow { window in
++            let textView = try #require(window.textViews.first)
++            let length = (textView.string as NSString).length
++            textView.setSelectedRange(NSRange(location: length - 10, length: 5))
++            window.scroll(textView, to: NSPoint(x: 0, y: 1_000_000))
++            await window.settle()
++
++            window.directory.selectDocument(window.second)
++            await window.settle()
++            // Shrink the hidden document so both the retained selection and the stored offset are out of range.
++            let document = try #require(window.first as? Document)
++            document.textStorage.replaceCharacters(in: NSRange(location: 0, length: document.textStorage.length), with: "short")
++            window.directory.selectDocument(window.first)
++            await window.settle()
++
++            let reattached = try #require(window.textViews.first)
++            #expect(NSMaxRange(reattached.selectedRange) <= (reattached.string as NSString).length)
++            let clip = try #require(reattached.enclosingScrollView?.contentView)
++            #expect(clip.bounds == clip.constrainBoundsRect(clip.bounds))
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func closingReleasesRetainedEditorState() async throws {
++
++        try await self.withDirectoryWindow { window in
++            let textView = try #require(window.textViews.first)
++            window.scroll(textView, to: NSPoint(x: 0, y: 2_000))
++            window.directory.selectDocument(window.second)
++            await window.settle()
++
++            #expect(await window.directory.closeDocument(window.first))
++            #expect(await window.directory.openDocument(at: window.urls[0]))
++            await window.settle()
++
++            let reopened = try #require(window.textViews.first)
++            #expect(reopened !== textView)
++            // A new editor must start at the top edge under the toolbar and tab bar, not scrolled under them.
++            #expect(window.offset(of: reopened) == .zero)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func renamingInactiveFileKeepsItsEditor() async throws {
++
++        try await self.withDirectoryWindow { window in
++            let textView = try #require(window.textViews.first)
++            window.scroll(textView, to: NSPoint(x: 0, y: 1_500))
++            await window.settle()
++            let expected = window.offset(of: textView)
++            window.directory.selectDocument(window.second)
++
++            let node = try #require(window.directory.fileNode?.node(at: window.urls[0]))
++            try window.directory.renameItem(at: node, with: "renamed.txt")
++            try await self.wait { window.first.fileURL?.lastPathComponent == "renamed.txt" }
++
++            window.directory.selectDocument(window.first)
++            await window.settle()
++            #expect(window.textViews.first === textView)
++            #expect(window.textViews.first.map(window.offset(of:)) == expected)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func sidebarFocusIsNotStolenBySwitching() async throws {
++
++        try await self.withDirectoryWindow { window in
++            let sidebarView = try #require((window.window.contentViewController as? NSSplitViewController)?.splitViewItems.first?.viewController.view)
++            let outlineView = try #require(Self.firstDescendant(of: sidebarView) { $0 is NSOutlineView })
++            window.window.makeFirstResponder(outlineView)
++
++            window.directory.selectDocument(window.second)
++            await window.settle()
++            #expect(window.window.firstResponder === outlineView)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func emptyHostShowsPlaceholderAndRestoresEditor() async throws {
++
++        try await self.withDirectoryWindow { window in
++            #expect(await window.directory.closeDocument(window.second))
++            #expect(await window.directory.closeDocument(window.first))
++            await window.settle()
++            #expect(window.directory.activeFileDocument == nil)
++            #expect(window.documentViewController == nil)
++
++            #expect(await window.directory.openDocument(at: window.urls[1]))
++            await window.settle()
++            #expect(window.documentViewController?.document === window.directory.activeFileDocument)
++        }
++    }
++
++
++    // MARK: Private Methods
++
++    private static func firstDescendant(of view: NSView, where predicate: (NSView) -> Bool) -> NSView? {
++
++        for subview in view.subviews {
++            if predicate(subview) { return subview }
++            if let found = Self.firstDescendant(of: subview, where: predicate) { return found }
++        }
++        return nil
++    }
++
++
++    /// Opens two long files in a visible directory window with file tabs enabled.
++    private func withDirectoryWindow(defaults overrides: [DefaultKey<Bool>: Bool] = [:], _ body: (DirectoryWindowFixture) async throws -> Void) async throws {
++
++        let keys = [DefaultKeys.usesDirectoryFileTabs] + overrides.keys
++        let originals = keys.map { UserDefaults.standard.object(forKey: $0.rawValue) }
++        UserDefaults.standard[.usesDirectoryFileTabs] = true
++        for (key, value) in overrides {
++            UserDefaults.standard[key] = value
++        }
++
++        let rootURL = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
++        try FileManager.default.createDirectory(at: rootURL, withIntermediateDirectories: true)
++        let longLine = String(repeating: "horizontal content ", count: 40)
++        let contents = (0..<600).map { "line \($0) \(longLine)" }.joined(separator: "\n")
++        let urls = ["first.txt", "second.txt"].map { rootURL.appending(path: $0, directoryHint: .notDirectory) }
++        for url in urls {
++            try Data(contents.utf8).write(to: url)
++        }
++
++        let directory = DirectoryDocument()
++        defer {
++            directory.close()
++            for (key, original) in zip(keys, originals) {
++                UserDefaults.standard.set(original, forKey: key.rawValue)
++            }
++            try? FileManager.default.removeItem(at: rootURL)
++        }
++        directory.fileURL = rootURL
++        try directory.read(from: rootURL, ofType: "public.folder")
++        directory.makeWindowControllers()
++        directory.showWindows()
++
++        try #require(await directory.openDocument(at: urls[0]))
++        try #require(await directory.openDocument(at: urls[1]))
++        let root = try #require(directory.fileNode)
++        let firstNode = try #require(root.node(at: urls[0]))
++        let secondNode = try #require(root.node(at: urls[1]))
++        let first = try #require(directory.openedDocument(at: firstNode))
++        let second = try #require(directory.openedDocument(at: secondNode))
++        directory.selectDocument(first)
++
++        let window = try #require(directory.windowControllers.first?.window)
++        let fixture = DirectoryWindowFixture(directory: directory, window: window, urls: urls, first: first, second: second)
++        await fixture.settle()
++
++        try await body(fixture)
++    }
++}
++
++
++@MainActor private struct DirectoryWindowFixture {
++
++    let directory: DirectoryDocument
++    let window: NSWindow
++    let urls: [URL]
++    let first: DataDocument
++    let second: DataDocument
++
++
++    var documentViewController: DocumentViewController? {
++
++        (self.window.contentViewController as? WindowContentViewController)?.documentViewController
++    }
++
++
++    var textViews: [EditorTextView] {
++
++        self.documentViewController?.textViews ?? []
++    }
++
++
++    /// Lets AppKit run layout, display and deferred main-queue work.
++    func settle() async {
++
++        for _ in 0..<3 {
++            self.window.layoutIfNeeded()
++            self.window.displayIfNeeded()
++            try? await Task.sleep(for: .milliseconds(50))
++        }
++    }
++
++
++    /// The clip-view position measured from the inset-adjusted top-left, where `.zero` is the very top.
++    func offset(of textView: NSTextView) -> NSPoint {
++
++        guard let clip = textView.enclosingScrollView?.contentView else { return NSPoint(x: CGFloat.nan, y: CGFloat.nan) }
++
++        return NSPoint(x: clip.bounds.origin.x + clip.contentInsets.left,
++                       y: clip.bounds.origin.y + clip.contentInsets.top)
++    }
++
++
++    func scroll(_ textView: NSTextView, to offset: NSPoint) {
++
++        guard let scrollView = textView.enclosingScrollView else { return }
++
++        let clip = scrollView.contentView
++        var bounds = clip.bounds
++        bounds.origin = NSPoint(x: offset.x - clip.contentInsets.left, y: offset.y - clip.contentInsets.top)
++        clip.scroll(to: clip.constrainBoundsRect(bounds).origin)
++        scrollView.reflectScrolledClipView(clip)
++    }
++}
+diff --git a/Tests/Sources/Models/DirectoryTabTests.swift b/Tests/Sources/Models/DirectoryTabTests.swift
+new file mode 100644
+index 000000000..ebefc6e9a
+--- /dev/null
++++ b/Tests/Sources/Models/DirectoryTabTests.swift
+@@ -0,0 +1,878 @@
++//
++//  DirectoryTabTests.swift
++//  Tests
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import Foundation
++import Testing
++import Defaults
++@testable import CotEditor
++
++/// Every test here changes the global file-tabs preference, so the suite (including its extensions
++/// in other files) must not interleave with itself.
++@Suite(.serialized) @MainActor struct DirectoryTabTests {
++
++    // MARK: Tab State
++
++    @Test func tabStatePreservesIdentityAndNeighborSelection() {
++
++        let state = DirectoryTabState()
++        let first = Document()
++        let second = Document()
++        let third = Document()
++        let firstID = state.insert(first).id
++        let secondID = state.insert(second).id
++        let thirdID = state.insert(third).id
++        #expect(state.selectedID == nil, "inserting never selects")
++        #expect(state.insert(first).id == firstID)
++        #expect(state.entries.map(\.id) == [firstID, secondID, thirdID])
++        state.select(secondID)
++        state.remove(first)
++        #expect(state.selectedID == secondID)
++        state.remove(second)
++        #expect(state.selectedID == thirdID)
++        state.remove(third)
++        #expect(state.selectedID == nil)
++        state.reconcile(with: [first, second])
++        #expect(state.entries.count == 2)
++        #expect(state.entry(for: first) != nil)
++    }
++
++
++    @Test func tabStateMovesEntriesWithoutChangingSelection() {
++
++        let state = DirectoryTabState()
++        let ids = [Document(), Document(), Document()].map { state.insert($0).id }
++        state.select(ids[1])
++
++        state.move(ids[2], to: 0)
++        #expect(state.entries.map(\.id) == [ids[2], ids[0], ids[1]])
++        state.move(ids[2], to: 99)
++        #expect(state.entries.map(\.id) == [ids[0], ids[1], ids[2]], "the index is clamped")
++        state.move(UUID(), to: 0)
++        #expect(state.entries.map(\.id) == [ids[0], ids[1], ids[2]], "an unknown tab moves nothing")
++        #expect(state.selectedID == ids[1])
++    }
++
++
++    @Test func tabStateArrangesEntriesByArchivedOrder() {
++
++        let state = DirectoryTabState()
++        let ids = [Document(), Document(), Document()].map { state.insert($0).id }
++        state.select(ids[1])
++
++        state.arrange(by: [ids[2], UUID(), ids[0]])
++        #expect(state.entries.map(\.id) == [ids[2], ids[0], ids[1]], "unknown IDs are ignored and unlisted tabs follow")
++        #expect(state.selectedID == ids[1])
++    }
++
++
++    @Test func dragPositionsDecideTheDropIndexAndPullOut() {
++
++        let ids = [UUID(), UUID(), UUID()]
++        let frames = [ids[0]: CGRect(x: 0, y: 0, width: 100, height: 26),
++                      ids[1]: CGRect(x: 100, y: 0, width: 100, height: 26),
++                      ids[2]: CGRect(x: 200, y: 0, width: 100, height: 26)]
++
++        // Dragging the first tab: it passes a neighbor once its middle passes the neighbor's middle.
++        #expect(DirectoryTabBar.dropIndex(for: ids[0], midX: 140, order: ids, frames: frames) == 0)
++        #expect(DirectoryTabBar.dropIndex(for: ids[0], midX: 160, order: ids, frames: frames) == 1)
++        #expect(DirectoryTabBar.dropIndex(for: ids[0], midX: 260, order: ids, frames: frames) == 2)
++        #expect(DirectoryTabBar.dropIndex(for: ids[2], midX: -20, order: ids, frames: frames) == 0)
++
++        #expect(!DirectoryTabBar.isPulledOut(CGPoint(x: 50, y: 15)))
++        #expect(!DirectoryTabBar.isPulledOut(CGPoint(x: 50, y: DirectoryTabBar.height + DirectoryTabBar.pullOutDistance - 1)))
++        #expect(DirectoryTabBar.isPulledOut(CGPoint(x: 50, y: DirectoryTabBar.height + DirectoryTabBar.pullOutDistance + 1)))
++        #expect(DirectoryTabBar.isPulledOut(CGPoint(x: 50, y: -DirectoryTabBar.pullOutDistance - 1)))
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func movedTabsKeepTheirOrder() async throws {
++
++        // With a window, so that the preference observer reconciles the tabs when they are turned back on.
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            for url in urls {
++                #expect(await directory.openDocument(at: url))
++            }
++            let ids = directory.tabState.entries.map(\.id)
++            let selected = directory.tabState.selectedID
++
++            directory.moveTab(id: ids[2], to: 0)
++            #expect(directory.tabState.entries.map(\.id) == [ids[2], ids[0], ids[1]])
++            #expect(directory.tabState.selectedID == selected, "moving a tab does not select it")
++
++            // Across turning tabs off and on, with every file kept open by its unsaved changes.
++            for document in directory.tabDocuments {
++                document.updateChangeCount(.changeDone)
++            }
++            UserDefaults.standard[.usesDirectoryFileTabs] = false
++            UserDefaults.standard[.usesDirectoryFileTabs] = true
++            #expect(directory.tabState.entries.map(\.id) == [ids[2], ids[0], ids[1]])
++            for document in directory.tabDocuments {
++                document.updateChangeCount(.changeCleared)
++            }
++
++            // Across a relaunch; the files must be closed first, or they would still belong to this window.
++            let data = self.encodeRestorableState(of: directory)
++            directory.close()
++            try await self.withRestoredDirectory(at: urls[0].deletingLastPathComponent(), from: data) { restored in
++                try await self.wait { restored.tabDocuments.count == urls.count }
++                #expect(restored.tabState.entries.map(\.id) == [ids[2], ids[0], ids[1]])
++            }
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func tabMovesToANewWindowWithItsDocument() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            #expect(await directory.openDocument(at: urls[0]))
++            #expect(await directory.openDocument(at: urls[1]))
++            let document = try #require(directory.activeFileDocument as? Document)
++            let directoryWindow = try #require(directory.windowControllers.first?.window)
++            let textView = try #require((directoryWindow.contentViewController as? WindowContentViewController)?.documentViewController?.focusedTextView)
++            textView.insertText("edited ", replacementRange: NSRange(location: 0, length: 0))
++            textView.selectedRanges = [NSValue(range: NSRange(location: 2, length: 3))]
++            let id = try #require(directory.tabState.selectedID)
++            let visibleFrame = try #require(directoryWindow.screen?.visibleFrame)
++            let topLeft = NSPoint(x: visibleFrame.minX + 120, y: visibleFrame.maxY - 40)
++
++            #expect(directory.canMoveTabToNewWindow(id: id))
++            #expect(directory.moveTabToNewWindow(id: id, topLeft: topLeft))
++            defer { document.close() }
++
++            #expect(directory.tabDocuments.map(\.fileURL) == [urls[0]])
++            #expect(directory.activeFileDocument?.fileURL == urls[0], "the neighbor takes over the selection")
++            #expect(document.directoryDocument == nil)
++
++            let window = try #require(document.windowControllers.first?.window)
++            #expect(window !== directoryWindow)
++            #expect(window.isVisible)
++            #expect(abs(window.frame.minX - topLeft.x) < 1, "the window opens where the tab was let go")
++            #expect(document.textStorage.string.hasPrefix("edited "), "the edited document itself moves")
++            #expect(document.undoManager?.canUndo == true, "and so does its undo history")
++            let movedTextView = try #require((window.contentViewController as? WindowContentViewController)?.documentViewController?.focusedTextView)
++            #expect(movedTextView.string.hasPrefix("edited "))
++            #expect(movedTextView.selectedRange() == NSRange(location: 2, length: 3), "the selection is carried over")
++
++            // The last tab can leave too; the folder window stays.
++            let last = try #require(directory.activeFileDocument)
++            #expect(directory.moveTabToNewWindow(id: try #require(directory.tabState.selectedID)))
++            defer { last.close() }
++            #expect(directory.tabDocuments.isEmpty)
++            #expect(directoryWindow.isVisible)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func adjacentSelectionWrapsAround() async throws {
++
++        try await self.withDirectory { directory, urls in
++            for url in urls {
++                #expect(await directory.openDocument(at: url))
++            }
++            let ids = directory.tabState.entries.map(\.id)
++            #expect(directory.tabState.selectedID == ids[2])
++
++            directory.selectAdjacentTab(by: 1)
++            #expect(directory.tabState.selectedID == ids[0])
++            #expect(directory.currentDocument === directory.tabState.entries[0].document)
++            directory.selectAdjacentTab(by: -1)
++            #expect(directory.tabState.selectedID == ids[2])
++            directory.selectAdjacentTab(by: -4)
++            #expect(directory.tabState.selectedID == ids[1])
++        }
++    }
++
++
++    // MARK: Preference
++
++    @Test(.timeLimit(.minutes(1))) func directoryFileTabsRespectPreference() async throws {
++
++        try await self.withDirectory(files: ["first.txt", "second.txt", "third.txt", "fourth.txt"]) { document, urls in
++            let didOpenFirst = await document.openDocument(at: urls[0])
++            let didOpenSecond = await document.openDocument(at: urls[1])
++            #expect(didOpenFirst)
++            #expect(didOpenSecond)
++            let firstDocument = try #require(self.member(at: urls[0], in: document))
++            let secondDocument = try #require(self.member(at: urls[1], in: document))
++            #expect(document.currentDocument === secondDocument)
++            #expect(document.tabDocuments.map(\.fileURL) == [urls[0], urls[1]])
++
++            document.selectDocument(firstDocument)
++            #expect(document.currentDocument === firstDocument)
++
++            let didCloseFirst = await document.closeDocument(firstDocument)
++            #expect(didCloseFirst)
++            #expect(self.member(at: urls[0], in: document) == nil)
++            #expect(document.currentDocument === secondDocument)
++            #expect(document.tabDocuments.map(\.fileURL) == [urls[1]])
++
++            let didCloseSecond = await document.closeDocument(secondDocument)
++            #expect(didCloseSecond)
++            #expect(document.currentDocument == nil)
++            #expect(document.tabDocuments.isEmpty)
++
++            UserDefaults.standard[.usesDirectoryFileTabs] = false
++            let didOpenThird = await document.openDocument(at: urls[2])
++            let didOpenFourth = await document.openDocument(at: urls[3])
++            #expect(didOpenThird)
++            #expect(didOpenFourth)
++            let fourthDocument = try #require(self.member(at: urls[3], in: document))
++            #expect(document.currentDocument === fourthDocument)
++            // Unused documents are closed when tabs are disabled.
++            #expect(self.member(at: urls[2], in: document) == nil)
++            #expect(document.tabDocuments.isEmpty)
++
++            let didCloseFourth = await document.closeDocument(fourthDocument)
++            #expect(didCloseFourth)
++            #expect(document.currentDocument == nil)
++            #expect(document.tabDocuments.isEmpty)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func openingInactivePreviewReusesDocument() async throws {
++
++        try await self.withDirectory { directory, urls in
++            let previewURL = urls[0].deletingLastPathComponent().appending(path: "image.png")
++            try Data([0x89, 0x50, 0x4e, 0x47]).write(to: previewURL)
++            #expect(await directory.openDocument(at: previewURL))
++            let preview = try #require(directory.tabDocuments.first)
++            #expect(preview is PreviewDocument)
++            #expect(await directory.openDocument(at: urls[0]))
++            #expect(await directory.openDocument(at: previewURL))
++            #expect(directory.tabDocuments.filter { $0 === preview }.count == 1)
++            #expect(directory.currentDocument === preview)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func togglingPreferenceKeepsIdentitiesAndEditedFiles() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            for url in urls {
++                #expect(await directory.openDocument(at: url))
++            }
++            let members = try urls.map { try #require(self.member(at: $0, in: directory)) }
++            members[0].updateChangeCount(.changeDone)
++            let ids = directory.tabState.entries.map(\.id)
++
++            // The unedited inactive file goes; the edited one and the visible one stay owned.
++            UserDefaults.standard[.usesDirectoryFileTabs] = false
++            #expect(self.member(at: urls[0], in: directory) === members[0])
++            #expect(self.member(at: urls[1], in: directory) == nil)
++            #expect(directory.activeFileDocument === members[2])
++
++            UserDefaults.standard[.usesDirectoryFileTabs] = true
++            #expect(directory.tabDocuments.map(ObjectIdentifier.init) == [members[0], members[2]].map(ObjectIdentifier.init))
++            #expect(directory.tabState.entries.map(\.id) == [ids[0], ids[2]])
++            #expect(directory.tabState.selectedID == ids[2])
++            #expect(directory.activeFileDocument === members[2])
++        }
++    }
++
++
++    // MARK: Ownership and Closing
++
++    @Test(.timeLimit(.minutes(1))) func externallyClosedMembersAreReconciled() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            #expect(await directory.openDocument(at: urls[0]))
++            #expect(await directory.openDocument(at: urls[1]))
++            let first = try #require(self.member(at: urls[0], in: directory))
++            let second = try #require(self.member(at: urls[1], in: directory))
++
++            // AppKit's Close All closes members directly, newest first.
++            second.close()
++            #expect(second.directoryDocument == nil)
++            #expect(directory.tabDocuments.map(ObjectIdentifier.init) == [ObjectIdentifier(first)])
++            #expect(directory.activeFileDocument === first)
++            #expect(self.member(at: urls[1], in: directory) == nil)
++
++            first.close()
++            #expect(directory.tabDocuments.isEmpty)
++            #expect(directory.activeFileDocument == nil)
++            #expect(directory.currentDocument == nil)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func directoryConfirmsEditedMembersBeforeClosing() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            #expect(await directory.openDocument(at: urls[0]))
++            #expect(await directory.openDocument(at: urls[1]))
++            let first = try #require(self.member(at: urls[0], in: directory) as? Document)
++            first.textStorage.replaceCharacters(in: NSRange(0..<0), with: "edited ")
++            first.updateChangeCount(.changeDone)
++            #expect(first.hasUnautosavedChanges)
++
++            // Close All asks the directory, not its window; with autosave in place the member saves instead of prompting.
++            #expect(await directory.canClose())
++            #expect(!first.hasUnautosavedChanges)
++            #expect(try String(contentsOf: urls[0], encoding: .utf8).hasPrefix("edited "))
++            #expect(directory.tabDocuments.count == 2, "confirmation alone never removes members")
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func overlappingCloseRequestsAreRefused() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            #expect(await directory.openDocument(at: urls[0]))
++            let first = try #require(self.member(at: urls[0], in: directory) as? Document)
++            first.textStorage.replaceCharacters(in: NSRange(0..<0), with: "edited ")
++            first.updateChangeCount(.changeDone)
++
++            // The member answers only when the test says so, so the requests below overlap the first one
++            // however fast saving is on this machine.
++            let approval = PendingApproval()
++            let approveMemberClose = directory.approveMemberClose
++            directory.approveMemberClose = { _ in await approval.wait() }
++            let windowClose = Task { await directory.canClose() }
++            try await self.wait { approval.isWaiting }
++            #expect(await directory.canClose() == false)
++            #expect(await directory.closeDocument(first) == false)
++            approval.answer(true)
++            #expect(await windowClose.value)
++            #expect(directory.tabDocuments.count == 1)
++            #expect(approval.requestCount == 1, "the refused requests never asked the member")
++            directory.approveMemberClose = approveMemberClose
++
++            // Once the request finishes, closing works again.
++            #expect(await directory.closeDocument(first))
++            #expect(directory.tabDocuments.isEmpty)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func windowCloseClosesEveryMember() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            #expect(await directory.openDocument(at: urls[0]))
++            #expect(await directory.openDocument(at: urls[1]))
++            let members = try urls[0...1].map { try #require(self.member(at: $0, in: directory)) }
++            let window = try #require(directory.windowControllers.first?.window)
++
++            // The close button sends performClose(nil), which must stay a window close with tabs on.
++            window.performClose(nil)
++            try await self.wait { directory.windowControllers.isEmpty }
++            #expect(members.allSatisfy { NSDocumentController.shared.documents.contains($0) == false })
++            #expect(directory.tabDocuments.isEmpty)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func inactiveMemberSheetsUseTheDirectoryWindow() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            #expect(await directory.openDocument(at: urls[0]))
++            #expect(await directory.openDocument(at: urls[1]))
++            let inactive = try #require(self.member(at: urls[0], in: directory))
++            let window = try #require(directory.windowControllers.first?.window)
++
++            #expect(inactive.windowController == nil)
++            #expect(inactive.windowForSheet === window)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func trashAndDetachRemoveTabs() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            for url in urls {
++                #expect(await directory.openDocument(at: url))
++            }
++            let root = try #require(directory.fileNode)
++            let trashed = try #require(self.member(at: urls[0], in: directory))
++            try directory.trashItem(try #require(root.node(at: urls[0])))
++            #expect(!directory.tabDocuments.contains { $0 === trashed })
++            #expect(trashed.directoryDocument == nil)
++
++            let detached = try #require(self.member(at: urls[1], in: directory))
++            directory.openInWindow(at: try #require(root.node(at: urls[1])))
++            defer { detached.close() }
++            #expect(!directory.tabDocuments.contains { $0 === detached })
++            #expect(detached.directoryDocument == nil)
++            #expect(detached.windowController != nil)
++            #expect(detached.windowController !== directory.windowControllers.first)
++
++            // Closing the detached document's own window no longer affects the directory.
++            detached.close()
++            #expect(directory.tabDocuments.count == 1)
++            #expect(directory.activeFileDocument === self.member(at: urls[2], in: directory))
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func renamingKeepsTabIdentity() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            #expect(await directory.openDocument(at: urls[0]))
++            #expect(await directory.openDocument(at: urls[1]))
++            let renamed = try #require(self.member(at: urls[0], in: directory))
++            let id = try #require(directory.tabState.entry(for: renamed)?.id)
++            let node = try #require(directory.fileNode?.node(at: urls[0]))
++
++            try directory.renameItem(at: node, with: "renamed.txt")
++            try await self.wait { renamed.fileURL?.lastPathComponent == "renamed.txt" }
++
++            #expect(directory.tabState.entry(for: renamed)?.id == id)
++            #expect(directory.tabDocuments.filter { $0 === renamed }.count == 1)
++            #expect(directory.tabPresentations.first { $0.id == id }?.title == "renamed.txt")
++        }
++    }
++
++
++    // MARK: Restoration
++
++    @Test(.timeLimit(.minutes(1))) func restorationReopensTabsInOrderWithTheirIdentities() async throws {
++
++        try await self.withDirectory { directory, urls in
++            for url in urls {
++                #expect(await directory.openDocument(at: url))
++            }
++            directory.selectDocument(try #require(self.member(at: urls[1], in: directory)))
++            let ids = directory.tabState.entries.map(\.id)
++            let data = self.encodeRestorableState(of: directory)
++            directory.close()
++
++            try await self.withRestoredDirectory(at: urls[0].deletingLastPathComponent(), from: data) { restored in
++                try await self.wait { restored.tabDocuments.count == urls.count && restored.activeFileDocument != nil }
++                #expect(restored.tabDocuments.map(\.fileURL?.lastPathComponent) == urls.map(\.lastPathComponent))
++                #expect(restored.tabState.entries.map(\.id) == ids)
++                #expect(restored.activeFileDocument?.fileURL?.lastPathComponent == urls[1].lastPathComponent)
++                #expect(restored.tabState.selectedID == ids[1])
++            }
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func userSelectionDuringRestorationWins() async throws {
++
++        try await self.withDirectory { directory, urls in
++            for url in urls {
++                #expect(await directory.openDocument(at: url))
++            }
++            let data = self.encodeRestorableState(of: directory)  // the last file is selected
++            directory.close()
++
++            try await self.withRestoredDirectory(at: urls[0].deletingLastPathComponent(), from: data) { restored in
++                try await self.wait { !restored.tabDocuments.isEmpty }
++                let first = try #require(restored.tabDocuments.first)
++                restored.selectDocument(first)
++
++                try await self.wait { restored.tabDocuments.count == urls.count }
++                for _ in 0..<5 { await Task.yield() }
++                #expect(restored.activeFileDocument === first)
++                #expect(restored.tabState.selectedID == restored.tabState.entry(for: first)?.id)
++            }
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func closingCancelsRestoration() async throws {
++
++        try await self.withDirectory { directory, urls in
++            for url in urls {
++                #expect(await directory.openDocument(at: url))
++            }
++            let data = self.encodeRestorableState(of: directory)
++            directory.close()
++
++            try await self.withRestoredDirectory(at: urls[0].deletingLastPathComponent(), from: data) { restored in
++                restored.close()
++                for _ in 0..<10 { await Task.yield() }
++                #expect(restored.tabDocuments.isEmpty)
++                #expect(urls.allSatisfy { NSDocumentController.shared.document(for: $0) == nil })
++            }
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func editedFilesHiddenWithTabsOffAreArchived() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            #expect(await directory.openDocument(at: urls[0]))
++            #expect(await directory.openDocument(at: urls[1]))
++            try #require(self.member(at: urls[0], in: directory)).updateChangeCount(.changeDone)
++            UserDefaults.standard[.usesDirectoryFileTabs] = false
++            let data = self.encodeRestorableState(of: directory)
++            directory.close()
++
++            // With tabs still off, only the visible file returns.
++            try await self.withRestoredDirectory(at: urls[0].deletingLastPathComponent(), from: data) { restored in
++                try await self.wait { restored.currentDocument != nil }
++                #expect(restored.currentDocument?.fileURL?.lastPathComponent == urls[1].lastPathComponent)
++                #expect(self.member(at: urls[0], in: restored) == nil)
++            }
++
++            // Turning tabs on before relaunching brings the hidden edited file back as a tab.
++            UserDefaults.standard[.usesDirectoryFileTabs] = true
++            try await self.withRestoredDirectory(at: urls[0].deletingLastPathComponent(), from: data) { restored in
++                try await self.wait { restored.tabDocuments.count == 2 && restored.activeFileDocument != nil }
++                #expect(restored.tabDocuments.map(\.fileURL?.lastPathComponent) == urls[0...1].map(\.lastPathComponent))
++                #expect(restored.activeFileDocument?.fileURL?.lastPathComponent == urls[1].lastPathComponent)
++            }
++        }
++    }
++
++
++    // MARK: Commands and Presentation
++
++    @Test(.timeLimit(.minutes(1))) func emptyHostDisablesFileCommands() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            let actions: [Selector] = [
++                #selector(NSDocument.save(_:)),
++                #selector(NSDocument.printDocument(_:)),
++                #selector(NSDocument.revertToSaved(_:)),
++                #selector(DirectoryDocument.showInFinder(_:)),
++                #selector(DirectoryDocument.copyPath(_:)),
++                #selector(DirectoryDocument.changeEncoding(_:)),
++                #selector(DirectoryDocument.toggleEditable(_:)),
++            ]
++            let validates = { (action: Selector) in
++                directory.validateUserInterfaceItem(NSMenuItem(title: "", action: action, keyEquivalent: ""))
++            }
++            #expect(directory.activeFileDocument == nil)
++            #expect(actions.allSatisfy { !validates($0) })
++
++            #expect(await directory.openDocument(at: urls[0]))
++            #expect(validates(#selector(DirectoryDocument.showInFinder(_:))))
++            #expect(validates(#selector(DirectoryDocument.copyPath(_:))))
++
++            let active = try #require(directory.activeFileDocument)
++            #expect(await directory.closeDocument(active))
++            #expect(actions.allSatisfy { !validates($0) })
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func keyboardCommandsSelectAndCloseTabs() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            for url in urls {
++                #expect(await directory.openDocument(at: url))
++            }
++            let window = try #require(directory.windowControllers.first?.window as? DocumentWindow)
++            let ids = directory.tabState.entries.map(\.id)
++
++            #expect(window.validateUserInterfaceItem(NSMenuItem(title: "", action: #selector(NSWindow.selectNextTab(_:)), keyEquivalent: "")))
++            window.selectNextTab(nil)
++            #expect(directory.tabState.selectedID == ids[0])
++            window.selectPreviousTab(nil)
++            #expect(directory.tabState.selectedID == ids[2])
++
++            let event = try #require(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: .command, timestamp: 0,
++                                                      windowNumber: window.windowNumber, context: nil,
++                                                      characters: "2", charactersIgnoringModifiers: "2", isARepeat: false, keyCode: 19))
++            #expect(window.performKeyEquivalent(with: event))
++            #expect(directory.tabState.selectedID == ids[1])
++
++            // File > Close closes the selected tab and leaves the window open.
++            let closeItem = NSMenuItem(title: "Close", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
++            window.performClose(closeItem)
++            try await self.wait { directory.tabState.entries.count == 2 }
++            #expect(directory.tabState.entries.map(\.id) == [ids[0], ids[2]])
++            #expect(directory.tabState.selectedID == ids[2])
++            #expect(window.isVisible)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func newFileOpensInANewTabNextToTheSelectedFile() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            let rootURL = urls[0].deletingLastPathComponent()
++            let folderURL = rootURL.appending(path: "folder", directoryHint: .isDirectory)
++            try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: true)
++            let nestedURL = folderURL.appending(path: "nested.txt")
++            try Data("nested".utf8).write(to: nestedURL)
++            try directory.read(from: rootURL, ofType: "public.folder")
++
++            // Without a selected file, the new file goes into the directory itself.
++            await directory.createFileInNewTab()
++            let first = try #require(directory.activeFileDocument?.fileURL)
++            #expect(first.deletingLastPathComponent().standardizedFileURL == rootURL.standardizedFileURL)
++            #expect(first.lastPathComponent.hasPrefix("Untitled"))
++            #expect(try Data(contentsOf: first).isEmpty)
++
++            // Next to the file in the selected tab.
++            #expect(await directory.openDocument(at: nestedURL))
++            await directory.createFileInNewTab()
++            let second = try #require(directory.activeFileDocument?.fileURL)
++            #expect(second.deletingLastPathComponent().standardizedFileURL == folderURL.standardizedFileURL)
++            #expect(directory.tabDocuments.map(\.fileURL) == [first, nestedURL, second])
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func windowMenuSwitchesTabsWithCommandShiftBrackets() async throws {
++
++        let windowMenu = try #require(NSApp.windowsMenu)
++        let previous = try #require(windowMenu.items.first { $0.action == #selector(NSWindow.selectPreviousTab(_:)) })
++        let next = try #require(windowMenu.items.first { $0.action == #selector(NSWindow.selectNextTab(_:)) })
++        #expect(previous.keyEquivalent == "{" && previous.keyEquivalentModifierMask == .command, "⌘⇧[")
++        #expect(next.keyEquivalent == "}" && next.keyEquivalentModifierMask == .command, "⌘⇧]")
++        #expect(windowMenu.items.count { $0.action == #selector(NSWindow.selectNextTab(_:)) } == 1)
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            for url in urls {
++                #expect(await directory.openDocument(at: url))
++            }
++            let window = try #require(directory.windowControllers.first?.window as? DocumentWindow)
++            let ids = directory.tabState.entries.map(\.id)
++            #expect(window.validateUserInterfaceItem(next))
++
++            // The menu items send their actions to the window, which walks the file tabs.
++            #expect(NSApp.sendAction(try #require(next.action), to: window, from: next))
++            #expect(directory.tabState.selectedID == ids[0], "wraps around from the last tab")
++            #expect(NSApp.sendAction(try #require(previous.action), to: window, from: previous))
++            #expect(directory.tabState.selectedID == ids[2])
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func closeWindowClosesTheWholeWindow() async throws {
++
++        let fileMenu = try #require(NSApp.mainMenu?.items.lazy.compactMap(\.submenu)
++            .first { $0.items.contains { $0.action == #selector(NSWindow.performClose(_:)) } })
++        let items = fileMenu.items
++        let closeIndex = try #require(items.firstIndex { $0.action == #selector(NSWindow.performClose(_:)) })
++        // AppKit places its Close All alternate directly after Close.
++        let closeWindow = try #require(items[(closeIndex + 1)...].first { !$0.isAlternate })
++        #expect(closeWindow.action == #selector(DocumentWindow.closeWindow(_:)), "Close Window follows Close")
++        #expect(closeWindow.keyEquivalent == "w" && closeWindow.keyEquivalentModifierMask == [.command, .shift])
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            #expect(await directory.openDocument(at: urls[0]))
++            #expect(await directory.openDocument(at: urls[1]))
++            let window = try #require(directory.windowControllers.first?.window as? DocumentWindow)
++
++            window.closeWindow(nil)
++            try await self.wait { directory.windowControllers.isEmpty }
++            #expect(directory.tabDocuments.isEmpty)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func tabBarSpaceFollowsPreferenceNotOpenFiles() async throws {
++        
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            let contentItem = try #require((directory.windowControllers.first?.contentViewController as? NSSplitViewController)?
++                .splitViewItems.first { $0.behavior == .default })
++            let tabBar = try #require(contentItem.topAlignedAccessoryViewControllers.first)
++            
++            // Reserved while the window is still empty, so opening the first file cannot push the editor down.
++            #expect(directory.tabDocuments.isEmpty)
++            #expect(!tabBar.isHidden)
++            #expect(await directory.openDocument(at: urls[0]))
++            #expect(!tabBar.isHidden)
++            
++            UserDefaults.standard[.usesDirectoryFileTabs] = false
++            #expect(tabBar.isHidden)
++            UserDefaults.standard[.usesDirectoryFileTabs] = true
++            #expect(!tabBar.isHidden)
++        }
++    }
++    
++    
++    @Test(.timeLimit(.minutes(1))) func adoptedDocumentsWithoutAFileJoinTheTabs() async throws {
++
++        try await self.withDirectory { directory, urls in
++            #expect(await directory.openDocument(at: urls[0]))
++            let document = LocationlessDocument()
++
++            #expect(directory.adoptMember(document))
++            #expect(directory.activeFileDocument === document)
++            #expect(directory.tabDocuments.count == 2)
++            #expect(NSDocumentController.shared.documents.contains { $0 === document })
++            #expect(directory.adoptMember(document, select: false))
++            #expect(directory.tabDocuments.count == 2, "adopting a member again adds nothing")
++
++            let entryID = try #require(directory.tabState.entry(for: document)?.id)
++            let presentation = try #require(directory.tabPresentations.last)
++            #expect(presentation.title == "Somewhere")
++            #expect(presentation.tooltip == "far away")
++            #expect(presentation.badgeSymbolName == "globe")
++
++            // The document chooses its own archive kind; the archive keeps it in tab order.
++            let unarchiver = try NSKeyedUnarchiver(forReadingFrom: self.encodeRestorableState(of: directory))
++            unarchiver.requiresSecureCoding = true
++            // DirectoryDocument's key for its tab archive
++            let raw = unarchiver.decodeObject(of: DirectoryTabArchive.allowedClasses, forKey: "directoryTabsV1") as? [String: Any]
++            let archive = DirectoryTabArchive(archive: raw, legacyBookmarks: nil, currentBookmark: nil) { bookmark in
++                var isStale = false
++                return try? URL(resolvingBookmarkData: bookmark, options: .withSecurityScope, bookmarkDataIsStale: &isStale)
++            }
++            #expect(archive.order == directory.tabState.entries.map(\.id))
++            #expect(archive.foreignEntries(ofKind: "somewhere").map(\.id) == [entryID])
++            #expect(archive.foreignEntries.first?.fields["place"] as? String == "far away")
++            #expect(archive.selectedID == entryID)
++
++            #expect(await directory.closeDocument(document))
++            #expect(directory.tabDocuments.count == 1)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func presentationsDescribeTabsForAccessibility() async throws {
++
++        try await self.withDirectory { directory, urls in
++            #expect(await directory.openDocument(at: urls[0]))
++            try #require(directory.activeFileDocument).updateChangeCount(.changeDone)
++            let presentation = try #require(directory.tabPresentations.first)
++
++            #expect(presentation.title == urls[0].lastPathComponent)
++            #expect(presentation.isModified)
++            #expect(presentation.tooltip == urls[0].path)
++            #expect(DirectoryTabBar.closeLabel(for: presentation).contains(presentation.title))
++        }
++    }
++}
++
++
++// MARK: - Fixtures
++
++/// A document that has no file, and describes and archives itself in its own way.
++final class LocationlessDocument: DataDocument {
++
++    override var tabTitle: String  { "Somewhere" }
++    override var tabToolTip: String  { "far away" }
++    override var tabBadgeSymbolName: String?  { "globe" }
++    override var tabArchiveRepresentation: (kind: String, fields: [String: Any])?  { ("somewhere", ["place": "far away"]) }
++}
++
++
++/// A close approval that stays pending until the test answers it.
++@MainActor final class PendingApproval {
++
++    private var continuation: CheckedContinuation<Bool, Never>?
++    private(set) var requestCount = 0
++
++    var isWaiting: Bool { self.continuation != nil }
++
++
++    func wait() async -> Bool {
++
++        self.requestCount += 1
++        return await withCheckedContinuation { self.continuation = $0 }
++    }
++
++
++    func answer(_ approves: Bool) {
++
++        self.continuation?.resume(returning: approves)
++        self.continuation = nil
++    }
++}
++
++
++extension DirectoryTabTests {
++
++    /// Runs the body with a directory of small text files and file tabs enabled, then restores the preference.
++    func withDirectory(files: [String] = ["first.txt", "second.txt", "third.txt"], makesWindow: Bool = false,
++                       _ body: (DirectoryDocument, [URL]) async throws -> Void) async throws {
++
++        let key = DefaultKeys.usesDirectoryFileTabs.rawValue
++        let original = UserDefaults.standard.object(forKey: key)
++        UserDefaults.standard[.usesDirectoryFileTabs] = true
++
++        let rootURL = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
++        try FileManager.default.createDirectory(at: rootURL, withIntermediateDirectories: true)
++        let urls = files.map { rootURL.appending(path: $0, directoryHint: .notDirectory) }
++        for url in urls {
++            try Data("test".utf8).write(to: url)
++        }
++
++        let directory = DirectoryDocument()
++        defer {
++            directory.close()
++            UserDefaults.standard.set(original, forKey: key)
++            try? FileManager.default.removeItem(at: rootURL)
++        }
++        directory.fileURL = rootURL
++        try directory.read(from: rootURL, ofType: "public.folder")
++        if makesWindow {
++            directory.makeWindowControllers()
++            directory.showWindows()
++        }
++
++        try await body(directory, urls)
++    }
++
++
++    /// Runs the body with a new directory restored from archived restorable state.
++    func withRestoredDirectory(at rootURL: URL, from data: Data, _ body: (DirectoryDocument) async throws -> Void) async throws {
++
++        let directory = DirectoryDocument()
++        defer { directory.close() }
++        directory.fileURL = rootURL
++        try directory.read(from: rootURL, ofType: "public.folder")
++
++        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
++        unarchiver.requiresSecureCoding = true
++        directory.restoreState(with: unarchiver)
++        unarchiver.finishDecoding()
++
++        try await body(directory)
++    }
++
++
++    func encodeRestorableState(of directory: DirectoryDocument) -> Data {
++
++        // AppKit may add encoding work to the background queue, as it does for documents without a file,
++        // so the archive is finished only after that work, as AppKit's own restoration does.
++        let archiver = NSKeyedArchiver(requiringSecureCoding: true)
++        let queue = OperationQueue()
++        directory.encodeRestorableState(with: archiver, backgroundQueue: queue)
++        queue.waitUntilAllOperationsAreFinished()
++        archiver.finishEncoding()
++
++        return archiver.encodedData
++    }
++
++
++    func member(at fileURL: URL, in directory: DirectoryDocument) -> DataDocument? {
++
++        guard let node = directory.fileNode?.node(at: fileURL) else { return nil }
++
++        return directory.openedDocument(at: node)
++    }
++
++
++    /// Polls until the condition holds, letting the main run loop and file presenters make progress.
++    func wait(timeout: Duration = .seconds(5), until condition: () -> Bool) async throws {
++
++        let deadline = ContinuousClock.now + timeout
++        while !condition() {
++            guard ContinuousClock.now < deadline else {
++                Issue.record("Timed out waiting for condition")
++                return
++            }
++            try await Task.sleep(for: .milliseconds(20))
++        }
++    }
++}
+diff --git a/Tests/Sources/Models/EditorCounterTests.swift b/Tests/Sources/Models/EditorCounterTests.swift
+index 97b57d36c..406eaffc4 100644
+--- a/Tests/Sources/Models/EditorCounterTests.swift
++++ b/Tests/Sources/Models/EditorCounterTests.swift
+@@ -230,11 +230,13 @@ import LineEnding
+         
+         #expect(result.formattedValue(type: .characters) == nil)
+         
++        // Counts are grouped in the user's locale, such as “1,000” in English and “1.000” in Dutch.
++        let thousand = 1000.formatted()
+         result.characters.entire = 1000
+-        #expect(result.formattedValue(type: .characters) == "1,000")
++        #expect(result.formattedValue(type: .characters) == thousand)
+         
+         result.characters.selected = 100
+-        #expect(result.formattedValue(type: .characters) == "1,000 (100)")
++        #expect(result.formattedValue(type: .characters) == "\(thousand) (100)")
+         
+         result.characters.entire = nil
+         #expect(result.formattedValue(type: .characters) == nil)
+diff --git a/Tests/Sources/Models/URLDetectorTests.swift b/Tests/Sources/Models/URLDetectorTests.swift
+index 86451b781..c326df5de 100644
+--- a/Tests/Sources/Models/URLDetectorTests.swift
++++ b/Tests/Sources/Models/URLDetectorTests.swift
+@@ -153,12 +153,15 @@ import ValueRange
+     
+     /// Waits until the given condition is satisfied.
+     ///
++    /// The detector waits up to three quarters of a second after an edit, at utility priority, so the
++    /// default timeout leaves room for a busy machine, such as while the whole test plan runs in parallel.
++    ///
+     /// - Parameters:
+     ///   - timeout: The maximum duration to wait.
+     ///   - interval: The interval between condition checks.
+     ///   - condition: The condition to evaluate.
+     /// - Returns: `true` if the condition was satisfied; otherwise, `false`.
+-    private func waitFor(timeout: Duration = .seconds(2), interval: Duration = .milliseconds(20), _ condition: @escaping () -> Bool) async -> Bool {
++    private func waitFor(timeout: Duration = .seconds(10), interval: Duration = .milliseconds(20), _ condition: @escaping () -> Bool) async -> Bool {
+         
+         let clock = ContinuousClock()
+         let deadline = clock.now.advanced(by: timeout)

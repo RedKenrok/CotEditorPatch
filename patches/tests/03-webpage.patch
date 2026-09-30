@@ -1,0 +1,1331 @@
+diff --git a/Tests/Sources/Models/DirectoryTabTests+WebPage.swift b/Tests/Sources/Models/DirectoryTabTests+WebPage.swift
+new file mode 100644
+index 000000000..935cf7295
+--- /dev/null
++++ b/Tests/Sources/Models/DirectoryTabTests+WebPage.swift
+@@ -0,0 +1,634 @@
++//
++//  DirectoryTabTests+WebPage.swift
++//  Tests
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import Foundation
++import Testing
++import WebKit
++import Defaults
++@testable import CotEditor
++
++/// Webpage tabs in directory windows, with real WebKit against a local HTTP server and scripted prompts.
++///
++/// These are part of the serialized `DirectoryTabTests` suite: they change the same global preference,
++/// and also the global webpage prompts. No test contacts a website other than the local server.
++extension DirectoryTabTests {
++
++    // MARK: Tabs
++
++    @Test(.timeLimit(.minutes(1))) func webPageTabsJoinTheTabsWithoutAFile() async throws {
++
++        try await self.withWebPages { directory, urls, server, _ in
++            #expect(await directory.openDocument(at: urls[0]))
++            let session = try #require(directory.openWebPageTab())
++            let controller = try #require(session.controller)
++            let window = try #require(directory.windowControllers.first?.window)
++
++            #expect(directory.tabState.entries.map(\.id).last == session.id)
++            #expect(directory.activeWebPageSession === session)
++            #expect(directory.activeFileDocument == nil)
++            #expect(directory.windowController?.fileDocument == nil)
++            #expect(session.title == "Webpage")
++            #expect(window.subtitle == "Webpage")
++            #expect((window.firstResponder as? NSTextView)?.delegate === controller.addressField, "a new tab starts in its address field")
++
++            let fileActions: [Selector] = [
++                #selector(NSDocument.save(_:)),
++                #selector(NSDocument.revertToSaved(_:)),
++                #selector(DirectoryDocument.changeEncoding(_:)),
++                #selector(DirectoryDocument.showInFinder(_:)),
++            ]
++            #expect(fileActions.allSatisfy { !directory.validateUserInterfaceItem(NSMenuItem(title: "", action: $0, keyEquivalent: "")) })
++            #expect(directory.validateUserInterfaceItem(NSMenuItem(title: "", action: #selector(DirectoryDocument.newWebPageTab(_:)), keyEquivalent: "")))
++            #expect(!directory.canMoveTabToNewWindow(id: session.id))
++
++            let tabBar = try #require(directory.windowContentViewController?.makeTabBar(for: directory))
++            #expect(tabBar.addMenuItems.map(\.title).contains("New Webpage"))
++            #expect(tabBar.contextMenuItems(session.id).map(\.title) == ["Clear Website Data…"])
++            #expect(server.count("/") == 0, "a new tab loads nothing")
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func openingAWebPageOffersToTurnTabsOn() async throws {
++
++        try await self.withWebPages { directory, _, _, prompts in
++            UserDefaults.standard[.usesDirectoryFileTabs] = false
++
++            prompts.enablesTabs = false
++            await directory.requestWebPageTab()
++            #expect(prompts.enableRequestCount == 1)
++            #expect(!UserDefaults.standard[.usesDirectoryFileTabs], "Cancel does nothing")
++            #expect(directory.webPageSessions.isEmpty)
++
++            prompts.enablesTabs = true
++            await directory.requestWebPageTab()
++            #expect(UserDefaults.standard[.usesDirectoryFileTabs])
++            #expect(directory.webPageSessions.count == 1)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func pagesFollowNavigationAndSurviveTabSwitches() async throws {
++
++        try await self.withWebPages { directory, urls, server, _ in
++            server.route("/a", .page("<title>Page A</title><a id=link href='/b'>B</a>"))
++            server.route("/b", .page("<title>Page B</title>"))
++            server.route("/r", .redirect("/b"))
++            #expect(await directory.openDocument(at: urls[0]))
++            let file = try #require(directory.activeFileDocument)
++            let window = try #require(directory.windowControllers.first?.window)
++            let session = try #require(directory.openWebPageTab())
++            let controller = try #require(session.controller)
++
++            controller.submitAddress(server.url("/a").absoluteString)
++            try await self.wait { session.title == "Page A" && !session.isLoading }
++            #expect(session.currentURL == server.url("/a"))
++            #expect(session.tabToolTip == server.url("/a").absoluteString)
++            try await self.wait { window.subtitle == "Page A" }
++            #expect(controller.addressField.stringValue == server.url("/a").absoluteString)
++
++            _ = try await self.evaluate("document.getElementById('link').click()", in: controller.webView)
++            try await self.wait { session.title == "Page B" && !session.isLoading }
++            #expect(session.canGoBack)
++
++            // Switching tabs keeps the same web view and history, and reloads nothing.
++            let webView = controller.webView
++            directory.selectDocument(file)
++            #expect(webView.window == nil)
++            directory.selectTabItem(session)
++            #expect(session.controller === controller)
++            #expect(controller.webView === webView)
++            #expect(webView.window === window)
++            #expect(session.canGoBack)
++            #expect(server.count("/a") == 1)
++            #expect(server.count("/b") == 1)
++
++            // Redirects update the address.
++            controller.load(server.url("/r"))
++            try await self.wait { session.currentURL == server.url("/b") && !session.isLoading }
++            #expect(controller.addressField.stringValue == server.url("/b").absoluteString)
++
++            // The address the user is editing is left alone.
++            window.makeFirstResponder(controller.addressField)
++            controller.addressField.currentEditor()?.string = "typing"
++            controller.load(server.url("/a"))
++            try await self.wait { session.currentURL == server.url("/a") && !session.isLoading }
++            #expect(controller.addressField.currentEditor()?.string == "typing")
++        }
++    }
++
++
++    // MARK: Failures and Retry
++
++    @Test(.timeLimit(.minutes(1))) func aFailedNavigationKeepsTheFormAndRetriesOnlyItsOwnRequest() async throws {
++
++        try await self.withWebPages { directory, _, server, _ in
++            server.route("/form", .page("<title>Form</title><input id=field>"))
++            server.route("/next", .drop)
++            let session = try #require(directory.openWebPageTab())
++            let controller = try #require(session.controller)
++
++            controller.load(server.url("/form"))
++            try await self.wait { session.title == "Form" && !session.isLoading }
++            _ = try await self.evaluate("document.getElementById('field').value = 'kept'", in: controller.webView)
++
++            _ = try await self.evaluate("location.href = '/next'", in: controller.webView)
++            try await self.wait { session.failure != nil }
++            let failure = try #require(session.failure)
++            #expect(failure.url == server.url("/next"), "the failure names the page that failed")
++            #expect(failure.isRetryable)
++            #expect(failure.keepsPreviousPage)
++            // Nothing replaces the page afterwards, such as an error document.
++            try await Task.sleep(for: .milliseconds(300))
++            #expect(controller.webView.url == server.url("/form"))
++            #expect(session.currentURL == server.url("/form"))
++            #expect(try await self.evaluate("document.getElementById('field').value", in: controller.webView) == "kept")
++
++            // Retry asks for the failed page, never for the page that is showing.
++            server.route("/next", .page("<title>Next</title>"))
++            let attempts = server.count("/next")
++            controller.retry()
++            try await self.wait { session.title == "Next" && !session.isLoading }
++            #expect(server.count("/next") > attempts)
++            #expect(server.count("/form") == 1)
++            #expect(session.failure == nil)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func aFailedFormSubmissionIsNeverRetried() async throws {
++
++        try await self.withWebPages { directory, _, server, _ in
++            server.route("/form", .page("<title>Form</title><form id=form method=post action='/submit'><input name=a value=1></form>"))
++            server.route("/submit", .drop)
++            let session = try #require(directory.openWebPageTab())
++            let controller = try #require(session.controller)
++
++            controller.load(server.url("/form"))
++            try await self.wait { session.title == "Form" && !session.isLoading }
++            _ = try await self.evaluate("document.getElementById('form').submit()", in: controller.webView)
++            try await self.wait { session.failure != nil }
++            #expect(session.failure?.isRetryable == false)
++
++            let posts = server.count("/submit", method: "POST")
++            controller.retry()
++            try await Task.sleep(for: .milliseconds(300))
++            #expect(server.count("/submit", method: "POST") == posts)
++            #expect(server.count("/submit", method: "GET") == 0, "a form is never rebuilt from its address")
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func resubmittingAFormAsksFirst() async throws {
++
++        try await self.withWebPages { directory, _, server, prompts in
++            server.route("/form", .page("<title>Form</title><form id=form method=post action='/result'><input name=a value=1></form>"))
++            server.route("/result", .page("<title>Result</title><a id=link href='/other'>other</a>"))
++            server.route("/other", .page("<title>Other</title>"))
++            let session = try #require(directory.openWebPageTab())
++            let controller = try #require(session.controller)
++
++            controller.load(server.url("/form"))
++            try await self.wait { session.title == "Form" && !session.isLoading }
++            _ = try await self.evaluate("document.getElementById('form').submit()", in: controller.webView)
++            try await self.wait { session.title == "Result" && !session.isLoading }
++            #expect(server.count("/result", method: "POST") == 1)
++
++            // Cancel sends nothing and keeps the page.
++            prompts.resubmits = false
++            controller.webView.reload()
++            try await self.wait { prompts.resubmissionRequests.count == 1 }
++            try await Task.sleep(for: .milliseconds(300))
++            #expect(server.count("/result", method: "POST") == 1)
++            #expect(session.title == "Result")
++
++            prompts.resubmits = true
++            controller.webView.reload()
++            try await self.wait { server.count("/result", method: "POST") == 2 }
++            #expect(prompts.resubmissionRequests.count == 2)
++
++            // Going back to the result may come from the page cache; it must never resend without asking.
++            _ = try await self.evaluate("document.getElementById('link').click()", in: controller.webView)
++            try await self.wait { session.title == "Other" && !session.isLoading }
++            prompts.resubmits = false
++            controller.webView.goBack()
++            try await Task.sleep(for: .milliseconds(500))
++            #expect(server.count("/result", method: "POST") == 2)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func refusedDestinationsKeepThePage() async throws {
++
++        try await self.withWebPages { directory, _, server, _ in
++            server.route("/a", .page("<title>Page A</title>"))
++            server.route("/to-public", .redirect("http://8.8.8.8/"))
++            server.route("/opener", .page("<title>Opener</title><script>window.open('/popped')</script>"))
++            let session = try #require(directory.openWebPageTab())
++            let controller = try #require(session.controller)
++
++            controller.load(server.url("/a"))
++            try await self.wait { session.title == "Page A" && !session.isLoading }
++
++            // a link to public HTTP
++            _ = try await self.evaluate("location.href = 'http://example.com/'", in: controller.webView)
++            try await self.wait { session.notice != nil }
++            #expect(session.notice?.message.contains("example.com") == true)
++            #expect(session.currentURL == server.url("/a"))
++            #expect(session.failure == nil, "a refusal is not a load failure")
++
++            // a redirect to public HTTP
++            session.dismissMessages()
++            controller.load(server.url("/to-public"))
++            try await self.wait { session.notice != nil && !session.isLoading }
++            #expect(session.notice?.message.contains("8.8.8.8") == true)
++            #expect(session.failure == nil)
++
++            // typed public HTTP, which never reaches WebKit
++            session.dismissMessages()
++            controller.submitAddress("http://example.com/")
++            #expect(session.notice?.message.contains("example.com") == true)
++
++            // a script that opens a window without a user gesture gets none
++            controller.load(server.url("/opener"))
++            try await self.wait { session.title == "Opener" && !session.isLoading }
++            try await Task.sleep(for: .milliseconds(300))
++            #expect(server.count("/popped") == 0)
++            #expect(session.currentURL == server.url("/opener"))
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func aContentProcessFailureReloadsNothing() async throws {
++
++        try await self.withWebPages { directory, _, server, _ in
++            server.route("/a", .page("<title>Page A</title>"))
++            let session = try #require(directory.openWebPageTab())
++            let controller = try #require(session.controller)
++            controller.load(server.url("/a"))
++            try await self.wait { session.title == "Page A" && !session.isLoading }
++
++            controller.webViewWebContentProcessDidTerminate(controller.webView)
++            #expect(session.lifecycle == .contentProcessEnded)
++            try await Task.sleep(for: .milliseconds(300))
++            #expect(server.count("/a") == 1)
++            #expect(directory.activeWebPageSession === session, "the tab stays usable")
++        }
++    }
++
++
++    // MARK: Closing and Restoration
++
++    @Test(.timeLimit(.minutes(1))) func closingWebPagesNeverAsksAndACancelledCloseKeepsThem() async throws {
++
++        try await self.withWebPages { directory, _, server, prompts in
++            server.route("/a", .page("<title>Page A</title>"))
++            let blocker = FakeTabKind()
++            directory.tabKinds = [.webPage, blocker.kind]
++            let session = try #require(directory.openWebPageTab())
++            let controller = try #require(session.controller)
++            controller.load(server.url("/a"))
++            try await self.wait { session.title == "Page A" && !session.isLoading }
++            #expect(directory.openTabItem(FakeTabItem()))
++
++            // Another tab's review cancels the window close; every webview stays loaded.
++            blocker.approveWindow = { false }
++            #expect(await directory.canClose() == false)
++            #expect(session.lifecycle == .active)
++            #expect(controller.webView.url == server.url("/a"))
++
++            // A second webpage closes at once, without asking.
++            let other = try #require(directory.openWebPageTab())
++            #expect(await directory.closeTabItem(other))
++            #expect(other.lifecycle == .closed)
++            #expect(await directory.closeTabItem(other) == false, "a closed tab cannot close twice")
++            #expect(prompts.totalRequestCount == 0)
++
++            blocker.approveWindow = { true }
++            #expect(await directory.canClose())
++            #expect(session.lifecycle == .active, "approval alone stops nothing")
++            directory.close()
++            #expect(session.lifecycle == .closed)
++            #expect(controller.webView.navigationDelegate == nil)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func restoredWebPagesLoadNothingUntilAsked() async throws {
++
++        try await self.withWebPages { directory, urls, server, _ in
++            server.route("/a", .page("<title>Page A</title>"))
++            #expect(await directory.openDocument(at: urls[0]))
++            let session = try #require(directory.openWebPageTab())
++            try #require(session.controller).load(server.url("/a"))
++            try await self.wait { session.title == "Page A" && !session.isLoading }
++            #expect(directory.openWebPageTab() != nil, "an empty tab")
++            #expect(await directory.openDocument(at: urls[1]))
++            directory.selectTabItem(session)
++            let order = directory.tabState.entries.map(\.id)
++            let data = self.encodeRestorableState(of: directory)
++            let rootURL = try #require(directory.fileURL)
++            directory.close()
++
++            try await self.withRestoredDirectory(at: rootURL, from: data, kinds: DirectoryTabKind.registered) { restored in
++                try await self.wait { restored.tabDocuments.count == 2 }
++                #expect(restored.tabState.entries.map(\.id) == order)
++                let pages = restored.webPageSessions
++                #expect(pages.count == 2)
++                let page = try #require(restored.activeWebPageSession)
++                #expect(page.id == session.id)
++                #expect(page.lifecycle == .restored)
++                #expect(page.title == "Page A")
++                #expect(page.restoredURL == server.url("/a"))
++                #expect(pages[1].lifecycle == .empty)
++
++                restored.makeWindowControllers()
++                restored.showWindows()
++                let controller = try #require(page.controller)
++                try await Task.sleep(for: .milliseconds(300))
++                #expect(server.count("/a") == 1, "restoring contacts no website")
++                #expect(!controller.webView.canGoBack, "history starts empty")
++
++                controller.load(try #require(page.restoredURL))
++                try await self.wait { server.count("/a") == 2 && !page.isLoading }
++                #expect(page.lifecycle == .active)
++            }
++        }
++    }
++
++
++    // MARK: Website Dialogs
++
++    @Test(.timeLimit(.minutes(1))) func dialogsNameTheFrameThatAsked() async throws {
++
++        try await self.withWebPages { directory, _, server, prompts in
++            // A second server on the IPv6 loopback address is another origin.
++            let other = try WebPageTestServer(host: "::1")
++            try await other.start()
++            defer { other.stop() }
++            server.route("/a", .page("<title>Page A</title>"))
++            server.route("/parent", .page("<title>Parent</title><iframe src='\(other.url("/child").absoluteString)'></iframe>"))
++            other.route("/child", .page("<script>alert('from the child')</script>"))
++            let session = try #require(directory.openWebPageTab())
++            let controller = try #require(session.controller)
++            prompts.dialogResponse = .acknowledged
++
++            controller.load(server.url("/a"))
++            try await self.wait { session.title == "Page A" && !session.isLoading }
++            _ = try await self.evaluate("alert('hello'); 'done'", in: controller.webView)
++            let dialog = try #require(prompts.dialogs.last)
++            #expect(dialog.kind == .alert)
++            #expect(dialog.message == "hello")
++            #expect(dialog.origin == "http://127.0.0.1:\(server.port)")
++
++            controller.load(server.url("/parent"))
++            try await self.wait { prompts.dialogs.count == 2 }
++            #expect(prompts.dialogs.last?.message == "from the child")
++            #expect(prompts.dialogs.last?.origin == "http://[::1]:\(other.port)", "the child frame's own origin, not the page's")
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func dialogsOfHiddenTabsOrDuringAReviewAreAnsweredSafely() async throws {
++
++        try await self.withWebPages { directory, urls, server, prompts in
++            server.route("/a", .page("<title>Page A</title>"))
++            #expect(await directory.openDocument(at: urls[0]))
++            let file = try #require(directory.activeFileDocument)
++            let session = try #require(directory.openWebPageTab())
++            let controller = try #require(session.controller)
++            controller.load(server.url("/a"))
++            try await self.wait { session.title == "Page A" && !session.isLoading }
++
++            // a tab in the background
++            directory.selectDocument(file)
++            #expect(try await self.evaluate("String(confirm('background'))", in: controller.webView) == "false")
++            #expect(try await self.evaluate("String(prompt('background', 'x'))", in: controller.webView) == "null")
++            #expect(prompts.dialogs.isEmpty, "nothing is shown, and no tab is selected to show it")
++            #expect(directory.activeFileDocument === file)
++
++            // A pending dialog is dismissed and answered once before a review starts.
++            directory.selectTabItem(session)
++            let blocker = FakeTabKind()
++            directory.tabKinds = [.webPage, blocker.kind]
++            #expect(directory.openTabItem(FakeTabItem()))
++            directory.selectTabItem(session)
++            let answer = Task { try await self.evaluate("String(confirm('pending'))", in: controller.webView) }
++            try await self.wait { prompts.pendingHandle != nil }
++            #expect(controller.dialogPresenter.isPresenting)
++
++            let review = PendingApproval()
++            blocker.approveWindow = { await review.wait() }
++            let close = Task { await directory.canClose() }
++            try await self.wait { review.isWaiting }
++            #expect(try await answer.value == "false", "the dismissed confirmation is cancelled, although the prompt answered OK late")
++            #expect(!controller.dialogPresenter.isPresenting)
++
++            // during the review
++            #expect(try await self.evaluate("String(confirm('during review'))", in: controller.webView) == "false")
++            #expect(prompts.dialogs.map(\.message) == ["pending"])
++            review.answer(false)
++            #expect(await close.value == false)
++            #expect(session.lifecycle == .active, "dismissal neither closes nor navigates the page")
++            #expect(session.currentURL == server.url("/a"))
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func switchingAwayDismissesADialog() async throws {
++
++        try await self.withWebPages { directory, urls, server, prompts in
++            server.route("/a", .page("<title>Page A</title>"))
++            #expect(await directory.openDocument(at: urls[0]))
++            let file = try #require(directory.activeFileDocument)
++            let session = try #require(directory.openWebPageTab())
++            let controller = try #require(session.controller)
++            controller.load(server.url("/a"))
++            try await self.wait { session.title == "Page A" && !session.isLoading }
++
++            let answer = Task { try await self.evaluate("String(prompt('name?', 'x'))", in: controller.webView) }
++            try await self.wait { prompts.pendingHandle != nil }
++            directory.selectDocument(file)
++            #expect(try await answer.value == "null")
++            #expect(!controller.dialogPresenter.isPresenting)
++        }
++    }
++
++
++    // MARK: Website Data
++
++    @Test(.timeLimit(.minutes(1))) func clearingWebsiteDataAsksAndRemovesCookies() async throws {
++
++        try await self.withWebPages { directory, _, server, prompts in
++            server.route("/cookie", .page("<title>Cookie</title>", headers: ["Set-Cookie": "fixture=1; Path=/"]))
++            let session = try #require(directory.openWebPageTab())
++            let controller = try #require(session.controller)
++            controller.load(server.url("/cookie"))
++            try await self.wait { session.title == "Cookie" && !session.isLoading }
++
++            let store = WKWebsiteDataStore.default().httpCookieStore
++            try await self.waitAsync { await store.allCookies().contains { $0.name == "fixture" } }
++
++            prompts.clearsData = false
++            await directory.clearWebsiteData()
++            #expect(prompts.clearRequestCount == 1)
++            #expect(await store.allCookies().contains { $0.name == "fixture" }, "Cancel keeps the data")
++
++            prompts.clearsData = true
++            await directory.clearWebsiteData()
++            #expect(await !store.allCookies().contains { $0.name == "fixture" })
++        }
++    }
++
++
++    // MARK: Transport
++
++    @Test func onlyLocalNetworkingIsAllowed() throws {
++
++        let transport = try #require(Bundle.main.object(forInfoDictionaryKey: "NSAppTransportSecurity") as? [String: Any])
++        #expect(transport["NSAllowsLocalNetworking"] as? Bool == true)
++        #expect(transport["NSAllowsArbitraryLoads"] == nil)
++        #expect(transport["NSAllowsArbitraryLoadsInWebContent"] == nil)
++        #expect(transport["NSExceptionDomains"] == nil)
++    }
++
++
++    // MARK: Helpers
++
++    /// Runs the body with a directory window, scripted webpage prompts and a local HTTP server.
++    func withWebPages(_ body: (DirectoryDocument, [URL], WebPageTestServer, ScriptedWebPagePrompts) async throws -> Void) async throws {
++
++        let prompts = ScriptedWebPagePrompts()
++        let originalPrompts = WebPagePrompts.current
++        WebPagePrompts.current = prompts
++        defer { WebPagePrompts.current = originalPrompts }
++
++        let server = try WebPageTestServer()
++        try await server.start()
++        defer { server.stop() }
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            // Dialogs show only on the frontmost window while the app is not active, which an untitled
++            // document the app opened at launch would be; only this serialized suite opens windows.
++            for document in NSDocumentController.shared.documents
++            where type(of: document) == Document.self && document.fileURL == nil && !document.isDocumentEdited && (document as? Document)?.directoryDocument == nil {
++                document.close()
++            }
++            directory.windowController?.window?.orderFrontRegardless()
++            try await body(directory, urls, server, prompts)
++        }
++    }
++
++
++    /// Runs a script in the page's main frame and returns its result as a string.
++    func evaluate(_ script: String, in webView: WKWebView) async throws -> String? {
++
++        try await withCheckedThrowingContinuation { continuation in
++            webView.evaluateJavaScript(script) { result, error in
++                if let error = error as? WKError, error.code == .javaScriptResultTypeIsUnsupported {
++                    // a script that ends in `undefined`, such as a click
++                    continuation.resume(returning: nil)
++                } else if let error {
++                    continuation.resume(throwing: error)
++                } else {
++                    continuation.resume(returning: result.map { "\($0)" })
++                }
++            }
++        }
++    }
++
++
++    /// Polls until the asynchronous condition holds.
++    func waitAsync(timeout: Duration = .seconds(5), until condition: () async -> Bool) async throws {
++
++        let deadline = ContinuousClock.now + timeout
++        while await !condition() {
++            guard ContinuousClock.now < deadline else {
++                Issue.record("Timed out waiting for condition")
++                return
++            }
++            try await Task.sleep(for: .milliseconds(20))
++        }
++    }
++}
++
++
++// MARK: - Fixtures
++
++/// Webpage prompts that answer as the test says, and record what was asked.
++@MainActor final class ScriptedWebPagePrompts: WebPagePrompting {
++
++    var enablesTabs = true
++    var resubmits = false
++    var clearsData = true
++    /// The answer to website dialogs, or `nil` to keep each one on screen until it is dismissed.
++    var dialogResponse: WebPageDialog.Response?
++
++    private(set) var enableRequestCount = 0
++    private(set) var resubmissionRequests: [URL?] = []
++    private(set) var clearRequestCount = 0
++    private(set) var dialogs: [WebPageDialog] = []
++    private(set) var pendingHandle: WebPageDialogHandle?
++
++    var totalRequestCount: Int  { self.enableRequestCount + self.resubmissionRequests.count + self.clearRequestCount + self.dialogs.count }
++
++
++    func confirmEnablingTabs(window: NSWindow?) async -> Bool {
++
++        self.enableRequestCount += 1
++        return self.enablesTabs
++    }
++
++
++    func confirmResubmission(to url: URL?, window: NSWindow?) async -> Bool {
++
++        self.resubmissionRequests.append(url)
++        return self.resubmits
++    }
++
++
++    func confirmClearingWebsiteData(window: NSWindow?) async -> Bool {
++
++        self.clearRequestCount += 1
++        return self.clearsData
++    }
++
++
++    func present(_ dialog: WebPageDialog, window: NSWindow, handle: WebPageDialogHandle) async -> WebPageDialog.Response {
++
++        self.dialogs.append(dialog)
++        if let dialogResponse { return dialogResponse }
++
++        return await withCheckedContinuation { continuation in
++            self.pendingHandle = handle
++            // After a dismissal the prompt reports an answer the user never gave;
++            // the presenter must answer the page with the safe response regardless.
++            handle.dismissHandler = { [weak self] in
++                self?.pendingHandle = nil
++                continuation.resume(returning: .confirmed(true))
++            }
++        }
++    }
++}
+diff --git a/Tests/Sources/Models/WebPageNavigationPolicyTests.swift b/Tests/Sources/Models/WebPageNavigationPolicyTests.swift
+new file mode 100644
+index 000000000..f9d9c23f7
+--- /dev/null
++++ b/Tests/Sources/Models/WebPageNavigationPolicyTests.swift
+@@ -0,0 +1,165 @@
++//
++//  WebPageNavigationPolicyTests.swift
++//  Tests
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import Foundation
++import Testing
++@testable import CotEditor
++
++/// Which addresses webpage tabs accept, from typed text and from URLs of every other origin.
++struct WebPageNavigationPolicyTests {
++
++    private typealias Policy = WebPageNavigationPolicy
++
++
++    // MARK: Typed Addresses
++
++    @Test func typedAddressesWithoutSchemeUseHTTPS() throws {
++
++        #expect(try Policy.url(fromTypedAddress: "example.com").get().absoluteString == "https://example.com")
++        #expect(try Policy.url(fromTypedAddress: "  example.com/path?q=1  ").get().absoluteString == "https://example.com/path?q=1")
++        #expect(try Policy.url(fromTypedAddress: "localhost:3000").get().absoluteString == "https://localhost:3000",
++                "a local server is entered with http:// explicitly")
++        #expect(try Policy.url(fromTypedAddress: "http://localhost:3000/app").get().absoluteString == "http://localhost:3000/app")
++        #expect(try Policy.url(fromTypedAddress: "HTTPS://Example.com").get().host() == "Example.com")
++    }
++
++
++    @Test func typedTextThatIsNotAnAddressIsRefused() {
++
++        #expect(Policy.url(fromTypedAddress: "") == .failure(.invalidAddress))
++        #expect(Policy.url(fromTypedAddress: "   ") == .failure(.invalidAddress))
++        #expect(Policy.url(fromTypedAddress: "how to write swift") == .failure(.invalidAddress), "the field is not a search field")
++        #expect(Policy.url(fromTypedAddress: "https://") == .failure(.invalidAddress))
++        #expect(Policy.url(fromTypedAddress: "exa mple.com") == .failure(.invalidAddress))
++    }
++
++
++    @Test func otherSchemesAreUnsupported() {
++
++        #expect(Policy.url(fromTypedAddress: "ftp://example.com") == .failure(.unsupportedScheme("ftp")))
++        #expect(Policy.url(fromTypedAddress: "mailto:someone@example.com") == .failure(.unsupportedScheme("mailto")))
++        #expect(Policy.url(fromTypedAddress: "javascript:alert(1)") == .failure(.unsupportedScheme("javascript")))
++        #expect(Policy.url(fromTypedAddress: "file:///etc/hosts") == .failure(.unsupportedScheme("file")))
++        #expect(Policy.url(fromTypedAddress: "data:text/html,hi") == .failure(.unsupportedScheme("data")))
++    }
++
++
++    @Test func embeddedCredentialsAreRefusedEverywhere() {
++
++        #expect(Policy.url(fromTypedAddress: "https://user:secret@example.com") == .failure(.embeddedCredentials))
++        #expect(Policy.url(fromTypedAddress: "user@example.com") == .failure(.embeddedCredentials))
++        #expect(Policy.refusal(for: URL(string: "http://user@localhost:3000")!) == .embeddedCredentials)
++    }
++
++
++    // MARK: Local HTTP
++
++    @Test(arguments: [
++        "http://localhost",
++        "http://localhost:3000/path",
++        "http://LOCALHOST.",
++        "http://127.0.0.1:8080",
++        "http://127.255.0.1",
++        "http://10.1.2.3",
++        "http://172.16.0.1",
++        "http://172.31.255.255",
++        "http://192.168.1.20:5173",
++        "http://169.254.10.1",
++        "http://devbox",
++        "http://devbox:8000",
++        "http://printer.local",
++        "http://my-mac.local.:3000",
++        "http://[::1]:3000",
++        "http://[fe80::1%25en0]:8080/",
++        "http://[fd12:3456::1]",
++        "http://[::ffff:192.168.0.1]",
++        "http://0x7f.1/",
++        "http://2130706433/",
++    ])
++    func localHTTPIsAllowed(address: String) throws {
++
++        let url = try #require(URL(string: address))
++        #expect(Policy.refusal(for: url) == nil)
++    }
++
++
++    @Test(arguments: [
++        "http://example.com",
++        "http://localhost.example.com",
++        "http://10.0.0.1.example.com",
++        "http://app.test",
++        "http://foo.localhost",
++        "http://dev.internal",
++        "http://172.32.0.1",
++        "http://8.8.8.8",
++        "http://100.64.0.1",
++        "http://0.0.0.0",
++        "http://[2001:db8::1]",
++        "http://[::ffff:8.8.8.8]",
++        "http://134744072/",
++        "http://0x08080808/",
++    ])
++    func publicHTTPRequiresHTTPS(address: String) throws {
++
++        let url = try #require(URL(string: address))
++        #expect({ if case .requiresHTTPS = Policy.refusal(for: url) { true } else { false } }())
++        #expect(Policy.refusal(for: try #require(URL(string: address.replacing("http://", with: "https://")))) == nil,
++                "the same host is fine over HTTPS")
++    }
++
++
++    @Test func malformedNumericHostsAreInvalid() throws {
++
++        #expect(Policy.refusal(for: try #require(URL(string: "http://256.1.1.1"))) == .invalidAddress)
++        #expect(Policy.refusal(for: try #require(URL(string: "http://1.2.3.4.5"))) == .invalidAddress)
++        #expect(Policy.refusal(for: try #require(URL(string: "http://example.123"))) == .invalidAddress)
++    }
++
++
++    @Test func hostsAreParsedStructurally() {
++
++        #expect(WebPageNavigationPolicy.Host("10.0.0.1") == .ipv4(0x0a00_0001))
++        #expect(WebPageNavigationPolicy.Host("10.1") == .ipv4(0x0a00_0001), "shortened forms are read as WebKit reads them")
++        #expect(WebPageNavigationPolicy.Host("012.0.0.1") == .ipv4(0x0a00_0001), "a leading zero means octal")
++        #expect(WebPageNavigationPolicy.Host("localhost.example.com") == .name(["localhost", "example", "com"]))
++        #expect(WebPageNavigationPolicy.Host("fe80::1%en0")?.isLocal == true)
++        #expect(WebPageNavigationPolicy.Host("[::1]")?.isLocal == true)
++        #expect(WebPageNavigationPolicy.Host("a..b") == nil)
++        #expect(WebPageNavigationPolicy.Host("bad host") == nil)
++    }
++
++
++    // MARK: Frames
++
++    @Test func subframesMayShowTheirOwnContent() throws {
++
++        #expect(Policy.allowsSubframe(try #require(URL(string: "about:blank"))))
++        #expect(Policy.allowsSubframe(try #require(URL(string: "about:srcdoc"))))
++        #expect(Policy.allowsSubframe(try #require(URL(string: "data:text/html,hi"))))
++        #expect(Policy.allowsSubframe(try #require(URL(string: "https://example.com/embed"))))
++        #expect(Policy.allowsSubframe(try #require(URL(string: "http://localhost:3000/embed"))))
++        #expect(!Policy.allowsSubframe(try #require(URL(string: "http://example.com/embed"))))
++        #expect(!Policy.allowsSubframe(try #require(URL(string: "file:///etc/hosts"))))
++    }
++}
+diff --git a/Tests/Sources/Models/WebPageSessionTests.swift b/Tests/Sources/Models/WebPageSessionTests.swift
+new file mode 100644
+index 000000000..1f4362297
+--- /dev/null
++++ b/Tests/Sources/Models/WebPageSessionTests.swift
+@@ -0,0 +1,300 @@
++//
++//  WebPageSessionTests.swift
++//  Tests
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import Foundation
++import Testing
++@testable import CotEditor
++
++/// The webpage session's navigation state and archive, driven by fake navigation events without WebKit.
++@MainActor struct WebPageSessionTests {
++
++    private let pageA = URL(string: "https://example.com/a")!
++    private let pageB = URL(string: "https://example.com/b")!
++    private let failure = URLError(.cannotConnectToHost)
++
++
++    // MARK: Presentation
++
++    @Test func titleFallsBackToTheHostAndThenToWebpage() {
++
++        let session = WebPageSession()
++        #expect(session.title == "Webpage")
++        #expect(session.lifecycle == .empty)
++
++        session.willLoad()
++        session.didUpdate(url: self.pageA, title: "", isLoading: true, canGoBack: false, canGoForward: false)
++        #expect(session.title == "example.com")
++
++        session.didUpdate(url: self.pageA, title: "  A\n page \t title ", isLoading: false, canGoBack: false, canGoForward: false)
++        #expect(session.title == "A page title", "titles become one line")
++
++        #expect(WebPageSession.sanitizedTitle(String(repeating: "x", count: 500))?.count == 201)
++    }
++
++
++    // MARK: Navigation Generations
++
++    @Test func onlyTheNewestNavigationChangesTheState() {
++
++        let session = WebPageSession()
++        let old = Token()
++        let new = Token()
++
++        session.didDecide(url: self.pageA, isSafeToRepeat: true)
++        session.didStartProvisionalNavigation(old.token, url: self.pageA)
++        session.didDecide(url: self.pageB, isSafeToRepeat: true)
++        session.didStartProvisionalNavigation(new.token, url: self.pageB)
++
++        // The old load's late failure must neither show a banner nor stop the new load.
++        session.didFail(old.token, error: self.failure)
++        #expect(session.failure == nil)
++        #expect(session.isLoading)
++
++        session.didFinish(old.token)
++        #expect(session.isLoading, "a stale completion does not end the newer load")
++
++        session.didFinish(new.token)
++        #expect(!session.isLoading)
++    }
++
++
++    @Test func cancellationsAreNotFailures() {
++
++        let session = WebPageSession()
++        let navigation = Token()
++
++        session.didStartProvisionalNavigation(navigation.token, url: self.pageA)
++        session.didFail(navigation.token, error: URLError(.cancelled))
++        #expect(session.failure == nil, "Stop and superseded loads end in a cancellation")
++
++        session.didStartProvisionalNavigation(navigation.token, url: self.pageA)
++        session.didFail(navigation.token, error: NSError(domain: "WebKitErrorDomain", code: 102))
++        #expect(session.failure == nil, "a policy refusal is not a load failure")
++        #expect(!session.isLoading)
++    }
++
++
++    @Test func stopEndsLoadingWithoutAFailure() {
++
++        let session = WebPageSession()
++        let navigation = Token()
++
++        session.didStartProvisionalNavigation(navigation.token, url: self.pageA)
++        session.didStop()
++        #expect(!session.isLoading)
++
++        session.didFail(navigation.token, error: self.failure)
++        #expect(session.failure == nil, "the stopped navigation's late callback changes nothing")
++    }
++
++
++    // MARK: Retry
++
++    @Test func onlyAPairedGETIsRetryable() throws {
++
++        let session = WebPageSession()
++
++        // a GET whose decision asked for the address that started
++        let get = Token()
++        session.didDecide(url: self.pageB, isSafeToRepeat: true)
++        session.didStartProvisionalNavigation(get.token, url: self.pageB)
++        session.didFail(get.token, error: self.failure)
++        let getFailure = try #require(session.failure)
++        #expect(getFailure.isRetryable)
++        #expect(getFailure.url == self.pageB, "Retry requests the failed page, not the one showing")
++        #expect(getFailure.keepsPreviousPage)
++
++        // a POST
++        let post = Token()
++        session.didDecide(url: self.pageB, isSafeToRepeat: false)
++        session.didStartProvisionalNavigation(post.token, url: self.pageB)
++        session.didFail(post.token, error: self.failure)
++        #expect(session.failure?.isRetryable == false)
++
++        // a navigation whose decision named another address is ambiguous
++        let ambiguous = Token()
++        session.didDecide(url: self.pageA, isSafeToRepeat: true)
++        session.didStartProvisionalNavigation(ambiguous.token, url: self.pageB)
++        session.didFail(ambiguous.token, error: self.failure)
++        #expect(session.failure?.isRetryable == false)
++
++        // a navigation without any decision
++        let undecided = Token()
++        session.didStartProvisionalNavigation(undecided.token, url: self.pageB)
++        session.didFail(undecided.token, error: self.failure)
++        #expect(session.failure?.isRetryable == false)
++    }
++
++
++    @Test func aRedirectIsRetryableOnlyIfEveryRequestWas() throws {
++
++        let session = WebPageSession()
++
++        let getChain = Token()
++        session.didDecide(url: self.pageA, isSafeToRepeat: true)
++        session.didStartProvisionalNavigation(getChain.token, url: self.pageA)
++        session.didDecide(url: self.pageB, isSafeToRepeat: true)
++        session.didReceiveRedirect(getChain.token, url: self.pageB)
++        session.didFail(getChain.token, error: self.failure)
++        #expect(session.failure?.isRetryable == true)
++        #expect(session.failure?.url == self.pageB, "the redirect's target is what failed")
++
++        let postChain = Token()
++        session.didDecide(url: self.pageA, isSafeToRepeat: false)
++        session.didStartProvisionalNavigation(postChain.token, url: self.pageA)
++        session.didDecide(url: self.pageB, isSafeToRepeat: true)
++        session.didReceiveRedirect(postChain.token, url: self.pageB)
++        session.didFail(postChain.token, error: self.failure)
++        #expect(session.failure?.isRetryable == false, "a form submission is never rebuilt from its redirect")
++    }
++
++
++    @Test func aFailureAfterCommitDoesNotClaimThePreviousPage() {
++
++        let session = WebPageSession()
++        let navigation = Token()
++
++        session.didDecide(url: self.pageB, isSafeToRepeat: true)
++        session.didStartProvisionalNavigation(navigation.token, url: self.pageB)
++        session.didCommit(navigation.token)
++        session.didFail(navigation.token, error: self.failure)
++        #expect(session.failure?.keepsPreviousPage == false)
++    }
++
++
++    @Test func processTerminationRetriesNothing() {
++
++        let session = WebPageSession()
++        let navigation = Token()
++
++        session.willLoad()
++        session.didStartProvisionalNavigation(navigation.token, url: self.pageA)
++        session.contentProcessDidTerminate()
++        #expect(session.lifecycle == .contentProcessEnded)
++        #expect(!session.isLoading)
++        #expect(session.failure == nil)
++
++        session.didFail(navigation.token, error: self.failure)
++        #expect(session.failure == nil, "callbacks of the ended process are ignored")
++    }
++
++
++    @Test func closedSessionsIgnoreLateCallbacks() {
++
++        let session = WebPageSession()
++        let navigation = Token()
++
++        session.didStartProvisionalNavigation(navigation.token, url: self.pageA)
++        session.close()
++        session.didFail(navigation.token, error: self.failure)
++        session.didUpdate(url: self.pageB, title: "Late", isLoading: true, canGoBack: true, canGoForward: false)
++        session.show(.init(message: "late"))
++
++        #expect(session.lifecycle == .closed)
++        #expect(session.failure == nil)
++        #expect(session.notice == nil)
++        #expect(session.currentURL == nil)
++    }
++
++
++    // MARK: Archive
++
++    @Test func archiveKeepsOnlyAnAllowedAddressAndTitle() throws {
++
++        #expect(WebPageTabArchive.fields(for: .init(id: UUID(), url: nil, title: "Ignored")).isEmpty, "an empty tab archives no address")
++
++        let fields = WebPageTabArchive.fields(for: .init(id: UUID(), url: self.pageA, title: "A"))
++        #expect(fields["url"] as? String == self.pageA.absoluteString)
++        #expect(fields["title"] as? String == "A")
++        #expect(fields.keys.sorted() == ["title", "url"], "nothing but the address and title")
++
++        let publicHTTP = try #require(URL(string: "http://example.com/"))
++        #expect(WebPageTabArchive.fields(for: .init(id: UUID(), url: publicHTTP, title: "A"))["url"] == nil)
++        let credentials = try #require(URL(string: "https://user:secret@example.com/"))
++        #expect(WebPageTabArchive.fields(for: .init(id: UUID(), url: credentials, title: "A"))["url"] == nil)
++    }
++
++
++    @Test func archiveDecodingSkipsMalformedEntries() throws {
++
++        let ids = (0..<7).map { _ in UUID() }
++        func entry(_ index: Int, _ fields: [String: Any], kind: String = WebPageTabArchive.kind) -> DirectoryTabArchive.ForeignEntry {
++            DirectoryTabArchive.ForeignEntry(id: ids[index], kind: kind, fields: fields as NSDictionary)
++        }
++
++        let archive = WebPageTabArchive(entries: [
++            entry(0, ["url": "http://localhost:3000/", "title": "Local"]),
++            entry(1, [:]),
++            entry(2, ["url": "http://example.com/"]),
++            entry(3, ["url": 42]),
++            entry(4, ["url": "https://user:pw@example.com/"]),
++            entry(5, ["url": "https://example.com/", "title": 7]),
++            entry(6, ["url": "https://example.com/"], kind: "terminal"),
++        ])
++
++        #expect(archive.webPages.map(\.id) == [ids[0], ids[1], ids[5]])
++        #expect(archive.webPages[0].url?.absoluteString == "http://localhost:3000/")
++        #expect(archive.webPages[0].title == "Local")
++        #expect(archive.webPages[1].url == nil, "an empty tab comes back empty")
++        #expect(archive.webPages[2].title == nil, "a title that is not a string is dropped")
++    }
++
++
++    @Test func restoredSessionsLoadNothingByThemselves() {
++
++        let session = WebPageSession(id: UUID(), restoring: self.pageA, title: "A")
++        #expect(session.lifecycle == .restored)
++        #expect(session.address == self.pageA)
++        #expect(session.title == "A")
++
++        // A restored tab's empty web view reports nothing until it loads.
++        session.didUpdate(url: nil, title: nil, isLoading: false, canGoBack: false, canGoForward: false)
++        #expect(session.title == "A")
++
++        #expect(WebPageSession(id: UUID(), restoring: nil, title: "ignored").lifecycle == .empty)
++    }
++
++
++    // MARK: Dialogs
++
++    @Test func dialogOriginsNameTheFrameNotThePage() {
++
++        #expect(WebPageDialog.origin(protocol: "https", host: "example.com", port: 443) == "https://example.com")
++        #expect(WebPageDialog.origin(protocol: "http", host: "localhost", port: 3000) == "http://localhost:3000")
++        #expect(WebPageDialog.origin(protocol: "http", host: "::1", port: 0) == "http://[::1]")
++        #expect(WebPageDialog.origin(protocol: "http", host: "[::1]", port: 8080) == "http://[::1]:8080")
++        #expect(WebPageDialog.origin(protocol: "", host: "", port: 0) == nil)
++
++        #expect(WebPageDialog(kind: .alert, message: "", origin: nil).safeResponse == .acknowledged)
++        #expect(WebPageDialog(kind: .confirmation, message: "", origin: nil).safeResponse == .confirmed(false))
++        #expect(WebPageDialog(kind: .textInput(defaultText: "x"), message: "", origin: nil).safeResponse == .text(nil))
++    }
++}
++
++
++/// An object whose identity stands for one WebKit navigation.
++private final class Token {
++
++    @MainActor var token: WebPageSession.NavigationToken  { .init(self) }
++}
+diff --git a/Tests/Sources/Models/WebPageTestServer.swift b/Tests/Sources/Models/WebPageTestServer.swift
+new file mode 100644
+index 000000000..4607c7b2d
+--- /dev/null
++++ b/Tests/Sources/Models/WebPageTestServer.swift
+@@ -0,0 +1,208 @@
++//
++//  WebPageTestServer.swift
++//  Tests
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import Foundation
++import Network
++
++/// A small HTTP/1.1 server on a loopback address for webpage tests, which counts every request.
++///
++/// It serves canned responses per path, never listens beyond the loopback interface, and closes each
++/// connection after one response, so that every request WebKit makes arrives as a request of its own.
++final class WebPageTestServer: @unchecked Sendable {
++
++    enum Response: Sendable {
++
++        case page(String, headers: [String: String] = [:])
++        case redirect(String)
++        case status(Int)
++        /// Closes the connection without answering, which WebKit reports as a failed load.
++        case drop
++    }
++
++
++    struct Request: Sendable, Equatable {
++
++        var method: String
++        var path: String
++    }
++
++
++    private let listener: NWListener
++    private let queue = DispatchQueue(label: "WebPageTestServer")
++    private let lock = NSLock()
++    private var routes: [String: Response] = [:]
++    private var requests: [Request] = []
++
++    private(set) var port: UInt16 = 0
++
++
++    /// The loopback address the server listens on.
++    let host: String
++
++
++    /// Makes a server on a loopback address, `127.0.0.1` or `::1`.
++    init(host: String = "127.0.0.1") throws {
++
++        self.host = host
++        let parameters = NWParameters.tcp
++        parameters.requiredLocalEndpoint = .hostPort(host: NWEndpoint.Host(host), port: .any)
++        parameters.allowLocalEndpointReuse = true
++        self.listener = try NWListener(using: parameters)
++    }
++
++
++    /// Starts listening on a free port of `127.0.0.1`.
++    func start() async throws {
++
++        let listener = self.listener
++        let queue = self.queue
++        self.port = try await withCheckedThrowingContinuation { continuation in
++            let once = NSLock()
++            nonisolated(unsafe) var resumed = false
++            listener.stateUpdateHandler = { state in
++                once.lock()
++                defer { once.unlock() }
++                guard !resumed else { return }
++                switch state {
++                    case .ready:
++                        resumed = true
++                        continuation.resume(returning: listener.port?.rawValue ?? 0)
++                    case .failed(let error):
++                        resumed = true
++                        continuation.resume(throwing: error)
++                    default:
++                        break
++                }
++            }
++            listener.newConnectionHandler = { [weak self] connection in
++                self?.handle(connection)
++            }
++            listener.start(queue: queue)
++        }
++    }
++
++
++    deinit {
++        self.listener.cancel()
++    }
++
++
++    func stop() {
++
++        self.listener.cancel()
++    }
++
++
++    /// The address of a path on the server, such as `http://127.0.0.1:port/path`.
++    func url(_ path: String) -> URL {
++
++        let host = self.host.contains(":") ? "[\(self.host)]" : self.host
++
++        return URL(string: "http://\(host):\(self.port)\(path)")!
++    }
++
++
++    func route(_ path: String, _ response: Response) {
++
++        self.lock.withLock { self.routes[path] = response }
++    }
++
++
++    /// How many requests reached the path, optionally only those with the method.
++    func count(_ path: String, method: String? = nil) -> Int {
++
++        self.lock.withLock { self.requests.count { $0.path == path && (method == nil || $0.method == method) } }
++    }
++
++
++    // MARK: Private Methods
++
++    private func handle(_ connection: NWConnection) {
++
++        connection.start(queue: self.queue)
++        self.receive(on: connection, buffer: Data())
++    }
++
++
++    private func receive(on connection: NWConnection, buffer: Data) {
++
++        connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { [weak self] data, _, isComplete, error in
++            guard let self else { return connection.cancel() }
++
++            var buffer = buffer
++            if let data { buffer.append(data) }
++
++            guard let headerEnd = buffer.range(of: Data("\r\n\r\n".utf8)) else {
++                if isComplete || error != nil { connection.cancel() } else { self.receive(on: connection, buffer: buffer) }
++                return
++            }
++
++            let head = String(decoding: buffer[..<headerEnd.lowerBound], as: UTF8.self)
++            let lines = head.components(separatedBy: "\r\n")
++            let requestLine = lines.first?.split(separator: " ") ?? []
++            let contentLength = lines.dropFirst()
++                .first { $0.lowercased().hasPrefix("content-length:") }
++                .flatMap { Int($0.split(separator: ":", maxSplits: 1)[1].trimmingCharacters(in: .whitespaces)) } ?? 0
++            guard buffer.count - headerEnd.upperBound >= contentLength else {
++                return self.receive(on: connection, buffer: buffer)
++            }
++
++            let method = requestLine.first.map(String.init) ?? ""
++            let target = requestLine.dropFirst().first.map(String.init) ?? "/"
++            let path = String(target.split(separator: "?", maxSplits: 1).first ?? "/")
++
++            let response: Response? = self.lock.withLock {
++                self.requests.append(Request(method: method, path: path))
++                return self.routes[path]
++            }
++            self.respond(response ?? .status(404), on: connection)
++        }
++    }
++
++
++    private func respond(_ response: Response, on connection: NWConnection) {
++
++        let status: String
++        var headers: [String: String] = ["Connection": "close", "Cache-Control": "no-store"]
++        var body = ""
++        switch response {
++            case .page(let html, let extra):
++                status = "200 OK"
++                headers["Content-Type"] = "text/html; charset=utf-8"
++                headers.merge(extra) { $1 }
++                body = html
++            case .redirect(let location):
++                status = "302 Found"
++                headers["Location"] = location
++            case .status(let code):
++                status = "\(code) Status"
++            case .drop:
++                return connection.cancel()
++        }
++        headers["Content-Length"] = String(body.utf8.count)
++
++        let head = "HTTP/1.1 \(status)\r\n" + headers.map { "\($0): \($1)\r\n" }.joined() + "\r\n"
++        connection.send(content: Data((head + body).utf8), completion: .contentProcessed { _ in connection.cancel() })
++    }
++}

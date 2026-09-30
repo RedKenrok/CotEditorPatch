@@ -1,0 +1,2728 @@
+diff --git a/Configurations/CotEditor.xcconfig b/Configurations/CotEditor.xcconfig
+index dd3b9db25..7aa31cd21 100644
+--- a/Configurations/CotEditor.xcconfig
++++ b/Configurations/CotEditor.xcconfig
+@@ -35,7 +35,7 @@ EXCLUDED_SOURCE_FILE_NAMES = $(inherited) Sparkle*
+ // A separate identity keeps a development install from replacing, or sharing preferences and
+ // saved window state with, a regular CotEditor installation. Anyone distributing this app must
+ // replace it with an identifier in a domain they control.
+-PRODUCT_BUNDLE_IDENTIFIER = local.coteditor-tabs.CotEditor-Shell
++PRODUCT_BUNDLE_IDENTIFIER = local.coteditor-tabs.CotEditor-Web
+ 
+ // Code signing may need to override any predefined values.
+ // Therefore, it should be included at the end.
+diff --git a/CotEditor/Info.plist b/CotEditor/Info.plist
+index 7754ba670..6cd19518d 100644
+--- a/CotEditor/Info.plist
++++ b/CotEditor/Info.plist
+@@ -130,6 +130,14 @@
+ 	<string>public.app-category.productivity</string>
+ 	<key>LSMinimumSystemVersion</key>
+ 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
++	<!-- Webpage tabs accept HTTP only for local development servers. App Transport Security already
++	     allows IP addresses and localhost; this admits unqualified names and names under .local too.
++	     Arbitrary loads stay disabled. -->
++	<key>NSAppTransportSecurity</key>
++	<dict>
++		<key>NSAllowsLocalNetworking</key>
++		<true/>
++	</dict>
+ 	<key>NSAppleEventsUsageDescription</key>
+ 	<string>${PRODUCT_NAME} needs your approval to control other applications with AppleScript.</string>
+ 	<key>NSAppleScriptEnabled</key>
+diff --git a/CotEditor/Localizables/WebPages.xcstrings b/CotEditor/Localizables/WebPages.xcstrings
+new file mode 100644
+index 000000000..4d43c060b
+--- /dev/null
++++ b/CotEditor/Localizables/WebPages.xcstrings
+@@ -0,0 +1,517 @@
++{
++  "sourceLanguage" : "en",
++  "strings" : {
++    "WebPageDialog.ok" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "OK"
++          }
++        }
++      }
++    },
++    "WebPageDialog.origin" : {
++      "comment" : "title of a JavaScript dialog; %@ is the website’s origin, such as https://example.com",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "The website “%@” says:"
++          }
++        }
++      }
++    },
++    "WebPageDialog.unknownOrigin" : {
++      "comment" : "title of a JavaScript dialog whose origin is not known",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "A website of unknown origin says:"
++          }
++        }
++      }
++    },
++    "WebPageFailure.message" : {
++      "comment" : "first %@ is the address that failed, second %@ the reason",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "“%1$@” couldn’t be opened: %2$@"
++          }
++        }
++      }
++    },
++    "WebPageFailure.notRetried" : {
++      "comment" : "explanation after a failed form submission or other request that is not repeated automatically",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "The request was not sent again. To try again, go back and submit it again."
++          }
++        }
++      }
++    },
++    "WebPageMenu.clearWebsiteData" : {
++      "comment" : "context menu item of a webpage tab",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Clear Website Data…"
++          }
++        }
++      }
++    },
++    "WebPageMenu.newWebPage" : {
++      "comment" : "menu item in the tab strip’s add menu",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "New Webpage"
++          }
++        }
++      }
++    },
++    "WebPageMenu.newWebPageTab" : {
++      "comment" : "File menu item opening a webpage tab in the folder window",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "New Webpage Tab"
++          }
++        }
++      }
++    },
++    "WebPagePlaceholder.editAddress" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Edit Address"
++          }
++        }
++      }
++    },
++    "WebPagePlaceholder.empty.message" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "HTTPS addresses open anywhere. HTTP works for local development servers, such as http://localhost:3000."
++          }
++        }
++      }
++    },
++    "WebPagePlaceholder.empty.title" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Enter a website address"
++          }
++        }
++      }
++    },
++    "WebPagePlaceholder.failed.title" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "The webpage couldn’t be opened"
++          }
++        }
++      }
++    },
++    "WebPagePlaceholder.load" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Load Webpage"
++          }
++        }
++      }
++    },
++    "WebPagePlaceholder.processEnded.message" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "The page and anything entered on it are gone. Reloading loads it again."
++          }
++        }
++      }
++    },
++    "WebPagePlaceholder.processEnded.title" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "The webpage stopped"
++          }
++        }
++      }
++    },
++    "WebPagePlaceholder.restored.message" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Webpages are not loaded again by themselves after CotEditor quits."
++          }
++        }
++      }
++    },
++    "WebPagePrompt.cancel" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Cancel"
++          }
++        }
++      }
++    },
++    "WebPagePrompt.clearData.button" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Clear Website Data"
++          }
++        }
++      }
++    },
++    "WebPagePrompt.clearData.information" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Cookies and data stored by every website are removed, including websites open in other tabs. You may be signed out of them."
++          }
++        }
++      }
++    },
++    "WebPagePrompt.clearData.message" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Clear all website data?"
++          }
++        }
++      }
++    },
++    "WebPagePrompt.enableTabs.button" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Enable Tabs and Open Webpage"
++          }
++        }
++      }
++    },
++    "WebPagePrompt.enableTabs.information" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Webpage tabs appear next to file tabs, which are turned off. Turning on file tabs applies to all folder windows."
++          }
++        }
++      }
++    },
++    "WebPagePrompt.enableTabs.message" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Webpages open as tabs"
++          }
++        }
++      }
++    },
++    "WebPagePrompt.resubmit.button" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Send Again"
++          }
++        }
++      }
++    },
++    "WebPagePrompt.resubmit.information" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "This page was made by submitting a form. Showing it again sends the form again, which may repeat an action such as a purchase."
++          }
++        }
++      }
++    },
++    "WebPagePrompt.resubmit.message" : {
++      "comment" : "%@ is the website’s host name",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Send the form to “%@” again?"
++          }
++        }
++      }
++    },
++    "WebPagePrompt.resubmitUnknown.message" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Send the form again?"
++          }
++        }
++      }
++    },
++    "WebPageRefusal.embeddedCredentials" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Addresses with a user name or password aren’t supported."
++          }
++        }
++      }
++    },
++    "WebPageRefusal.invalidAddress" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Enter a website address, such as https://example.com."
++          }
++        }
++      }
++    },
++    "WebPageRefusal.requiresHTTPS" : {
++      "comment" : "%@ is a host name",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "“%@” requires HTTPS. HTTP is only supported for local development servers."
++          }
++        }
++      }
++    },
++    "WebPageRefusal.unsupportedScheme" : {
++      "comment" : "%@ is a URL scheme such as mailto",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Webpage tabs can’t open “%@:” addresses."
++          }
++        }
++      }
++    },
++    "WebPageSession.defaultTitle" : {
++      "comment" : "name of a webpage tab that shows no page yet",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Webpage"
++          }
++        }
++      }
++    },
++    "WebPageTab.accessibilityLabel" : {
++      "comment" : "accessibility label of a webpage tab's content (%@ is the page title)",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Webpage: %@"
++          }
++        }
++      }
++    },
++    "WebPageView.address.accessibilityLabel" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Address"
++          }
++        }
++      }
++    },
++    "WebPageView.address.placeholder" : {
++      "comment" : "placeholder of the address field of a webpage tab",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Website Address"
++          }
++        }
++      }
++    },
++    "WebPageView.back" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Back"
++          }
++        }
++      }
++    },
++    "WebPageView.content.accessibilityLabel" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Webpage Content"
++          }
++        }
++      }
++    },
++    "WebPageView.dismissMessage" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Dismiss"
++          }
++        }
++      }
++    },
++    "WebPageView.downloadUnsupported" : {
++      "comment" : "message shown when a link or response in a webpage tab would download a file",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Webpage tabs can’t download files."
++          }
++        }
++      }
++    },
++    "WebPageView.forward" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Forward"
++          }
++        }
++      }
++    },
++    "WebPageView.navigationBar.accessibilityLabel" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Navigation"
++          }
++        }
++      }
++    },
++    "WebPageView.reload" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Reload"
++          }
++        }
++      }
++    },
++    "WebPageView.retry" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Try Again"
++          }
++        }
++      }
++    },
++    "WebPageView.stop" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Stop"
++          }
++        }
++      }
++    }
++  },
++  "version" : "1.0"
++}
+\ No newline at end of file
+diff --git a/CotEditor/Sources/Application/AppDelegate.swift b/CotEditor/Sources/Application/AppDelegate.swift
+index 0fc6e70b6..f4d142f30 100644
+--- a/CotEditor/Sources/Application/AppDelegate.swift
++++ b/CotEditor/Sources/Application/AppDelegate.swift
+@@ -164,6 +164,7 @@ extension Logger {
+         DocumentWindow.addTabNavigationMenuItems(to: NSApp.mainMenu!)
+         TerminalSettings.registerDefaults()
+         TerminalMenu.install(in: NSApp.mainMenu!)
++        WebPageMenu.install(in: NSApp.mainMenu!)
+         
+         #if SPARKLE
+         UpdaterManager.shared.setup()
+diff --git a/CotEditor/Sources/Document/DirectoryDocument+Actions.swift b/CotEditor/Sources/Document/DirectoryDocument+Actions.swift
+index 9606b7714..8e6f8f32a 100644
+--- a/CotEditor/Sources/Document/DirectoryDocument+Actions.swift
++++ b/CotEditor/Sources/Document/DirectoryDocument+Actions.swift
+@@ -32,6 +32,7 @@ extension DirectoryDocument {
+     override func validateUserInterfaceItem(_ item: any NSValidatedUserInterfaceItem) -> Bool {
+         
+         if let isValid = self.validateTerminalItem(item) { return isValid }
++        if let isValid = self.validateWebPageItem(item) { return isValid }
+         
+         switch item.action {
+             case #selector(saveAs):
+diff --git a/CotEditor/Sources/Document/DirectoryTabItem.swift b/CotEditor/Sources/Document/DirectoryTabItem.swift
+index 7ec8a7083..48e0ff9f6 100644
+--- a/CotEditor/Sources/Document/DirectoryTabItem.swift
++++ b/CotEditor/Sources/Document/DirectoryTabItem.swift
+@@ -134,6 +134,6 @@ extension DirectoryTabItem {
+     /// The kinds of tabs besides files that this app has, in the order of the “+” menu.
+     static var registered: [DirectoryTabKind] {
+ 
+-        [.terminal]
++        [.terminal, .webPage]
+     }
+ }
+diff --git a/CotEditor/Sources/WebPages/WebPage+DirectoryDocument.swift b/CotEditor/Sources/WebPages/WebPage+DirectoryDocument.swift
+new file mode 100644
+index 000000000..11194f23a
+--- /dev/null
++++ b/CotEditor/Sources/WebPages/WebPage+DirectoryDocument.swift
+@@ -0,0 +1,225 @@
++//
++//  WebPage+DirectoryDocument.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import WebKit
++import Defaults
++
++
++/// Webpage tabs in a directory window.
++///
++/// Webpages are tabs that are not files (see `DirectoryTabItem`). Closing one never asks: WebKit offers
++/// no public way to let a page object to its tab closing, so they add a teardown but no approval to the
++/// window's close handling, and a page's `beforeunload` handler does not run when its tab, window or
++/// the app closes.
++extension DirectoryDocument {
++
++    var webPageSessions: [WebPageSession] {
++
++        self.tabItems.compactMap { $0 as? WebPageSession }
++    }
++
++
++    var activeWebPageSession: WebPageSession? {
++
++        self.activeTabItem as? WebPageSession
++    }
++
++
++    /// Opens a webpage tab, first offering to turn file tabs on if they are off.
++    func requestWebPageTab() async {
++
++        guard !self.isClosed else { return }
++
++        if !UserDefaults.standard[.usesDirectoryFileTabs] {
++            guard await WebPagePrompts.current.confirmEnablingTabs(window: self.windowForSheet) else { return }
++            guard !self.isClosed else { return }
++            // Reuses the file-tab transition: the preference observer reconciles every directory window.
++            UserDefaults.standard[.usesDirectoryFileTabs] = true
++        }
++
++        self.openWebPageTab()
++    }
++
++
++    /// Opens and selects an empty webpage tab, with the keyboard focus in its address field.
++    ///
++    /// - Returns: The new session, or `nil` if the window cannot have webpage tabs now.
++    @discardableResult func openWebPageTab() -> WebPageSession? {
++
++        let session = WebPageSession()
++        guard self.openTabItem(session) else { return nil }
++        self.windowContentViewController?.focusActiveTab()
++
++        return session
++    }
++
++
++    /// Removes every website's cookies and stored data after asking, for every tab in every window.
++    func clearWebsiteData() async {
++
++        guard await WebPagePrompts.current.confirmClearingWebsiteData(window: self.windowForSheet) else { return }
++
++        let store = WKWebsiteDataStore.default()
++        await store.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast)
++    }
++}
++
++
++// MARK: - Tab Contract
++
++extension WebPageSession: DirectoryTabItem {
++
++    var tabKind: String  { WebPageTabArchive.kind }
++
++    var tabTitle: String  { self.title }
++
++    var tabIcon: NSImage?  { NSImage(systemSymbolName: "globe", accessibilityDescription: nil) }
++
++    var tabToolTip: String  { self.address?.absoluteString ?? Self.defaultTitle }
++
++    var tabAccessibilityLabel: String {
++
++        String(localized: "WebPageTab.accessibilityLabel", defaultValue: "Webpage: \(self.title)", table: "WebPages",
++               comment: "accessibility label of a webpage tab's content (%@ is the page title)")
++    }
++
++
++    func makeTabViewController(in directory: DirectoryDocument) -> any DirectoryTabViewController {
++
++        let controller = WebPageViewController(session: self, directoryDocument: directory)
++        self.controller = controller
++        return controller
++    }
++
++
++    func directoryWillShowReview() {
++
++        self.controller?.dialogPresenter.dismiss()
++    }
++
++
++    func tearDown() {
++
++        self.controller?.tearDown()
++        self.close()
++    }
++
++
++    func archivedFields() -> [String: Any]? {
++
++        WebPageTabArchive.fields(for: .init(id: self.id, url: self.address, title: self.pageTitle))
++    }
++
++
++    func tabContextMenuItems(in directory: DirectoryDocument) -> [DirectoryTabBar.MenuItem] {
++
++        [
++            .init(title: String(localized: "WebPageMenu.clearWebsiteData", defaultValue: "Clear Website Data…", table: "WebPages",
++                                comment: "context menu item of a webpage tab"),
++                  systemImage: "trash") { [weak directory] in
++                Task { await directory?.clearWebsiteData() }
++            },
++        ]
++    }
++}
++
++
++extension DirectoryTabKind {
++
++    /// Webpage tabs.
++    ///
++    /// Restored webpages are placeholders that show their address; nothing is loaded until the user
++    /// asks, so restoring a folder window contacts no website.
++    static let webPage = DirectoryTabKind(
++        archiveKind: WebPageTabArchive.kind,
++        restore: { entries, _ in
++            WebPageTabArchive(entries: entries).webPages.map { entry in
++                WebPageSession(id: entry.id, restoring: entry.url, title: entry.title)
++            }
++        },
++        addMenuItems: { [$0.newWebPageMenuItem] })
++}
++
++
++// MARK: - Main Menu
++
++@MainActor enum WebPageMenu {
++
++    /// Adds New Webpage Tab to the File menu, after New Shell Tab or else after New Tab.
++    ///
++    /// Like New Shell Tab, it has no default shortcut; users can assign one in the Shortcuts settings.
++    static func install(in mainMenu: NSMenu) {
++
++        guard
++            let fileMenu = mainMenu.items.lazy.compactMap(\.submenu)
++                .first(where: { $0.items.contains { $0.action == #selector(NSWindow.performClose(_:)) } })
++        else { return assertionFailure() }
++
++        let anchor = fileMenu.items.firstIndex { $0.action == #selector(DirectoryDocument.newTerminalTab(_:)) }
++            ?? fileMenu.items.firstIndex { $0.action == Selector(("newDocumentAsTab:")) }
++        guard let anchor else { return }
++
++        let item = NSMenuItem(title: String(localized: "WebPageMenu.newWebPageTab", defaultValue: "New Webpage Tab", table: "WebPages",
++                                            comment: "File menu item opening a webpage tab in the folder window"),
++                              action: #selector(DirectoryDocument.newWebPageTab(_:)), keyEquivalent: "")
++        item.image = NSImage(systemSymbolName: "globe", accessibilityDescription: nil)
++        fileMenu.insertItem(item, at: anchor + 1)
++    }
++}
++
++
++extension DirectoryDocument {
++
++    @IBAction func newWebPageTab(_ sender: Any?) {
++
++        Task {
++            await self.requestWebPageTab()
++        }
++    }
++
++
++    /// Validates the webpage commands.
++    ///
++    /// - Returns: The validation result, or `nil` for other commands.
++    func validateWebPageItem(_ item: any NSValidatedUserInterfaceItem) -> Bool? {
++
++        switch item.action {
++            case #selector(newWebPageTab(_:)):
++                !self.isClosed
++            default:
++                nil
++        }
++    }
++
++
++    /// The entry of the tab strip's “+” menu that opens a webpage tab.
++    var newWebPageMenuItem: DirectoryTabBar.MenuItem {
++
++        .init(title: String(localized: "WebPageMenu.newWebPage", defaultValue: "New Webpage", table: "WebPages",
++                            comment: "menu item in the tab strip’s add menu"),
++              systemImage: "globe") { [weak self] in
++            Task { await self?.requestWebPageTab() }
++        }
++    }
++}
+diff --git a/CotEditor/Sources/WebPages/WebPageNavigationPolicy.swift b/CotEditor/Sources/WebPages/WebPageNavigationPolicy.swift
+new file mode 100644
+index 000000000..9ce0ef2da
+--- /dev/null
++++ b/CotEditor/Sources/WebPages/WebPageNavigationPolicy.swift
+@@ -0,0 +1,251 @@
++//
++//  WebPageNavigationPolicy.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import Foundation
++import Darwin
++
++
++/// Which web addresses a webpage tab may show.
++///
++/// HTTPS is accepted everywhere, HTTP only for local development servers. This describes what the
++/// feature supports; it is not a security boundary, since DNS decides where a name leads. It applies
++/// to typed addresses, links, redirects, history navigation, new-window requests and restored tabs.
++/// Subresources, fetches and WebSockets are governed by App Transport Security and WebKit instead.
++enum WebPageNavigationPolicy {
++
++    /// Why an address is not shown.
++    enum Refusal: Error, Equatable {
++
++        /// The text is not a web address.
++        case invalidAddress
++        /// The address uses a scheme other than HTTPS or HTTP.
++        case unsupportedScheme(String)
++        /// An HTTP address that is not a local development server.
++        case requiresHTTPS(host: String)
++        /// The address carries a user name or password.
++        case embeddedCredentials
++    }
++
++
++    // MARK: Addresses
++
++    /// Turns what the user typed into an address to load.
++    ///
++    /// An address without a scheme gets HTTPS, including local ones such as `localhost:3000`; a local
++    /// development server is entered with `http://` explicitly. The field takes addresses only, so text
++    /// with spaces is refused rather than searched for.
++    ///
++    /// - Parameter text: The typed text.
++    /// - Returns: The address, or why it cannot be loaded.
++    static func url(fromTypedAddress text: String) -> Result<URL, Refusal> {
++
++        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
++
++        guard !text.isEmpty, !text.contains(where: { $0.isWhitespace || $0.isNewline }) else { return .failure(.invalidAddress) }
++
++        let hasScheme = text.firstMatch(of: /^[A-Za-z][A-Za-z0-9+.\-]*:\/\//) != nil
++            || text.firstMatch(of: /^(?i:about|data|javascript|file|mailto|blob|ftp|tel|sms):/) != nil
++        let candidate = hasScheme ? text : "https://" + text
++
++        guard let url = URL(string: candidate, encodingInvalidCharacters: false) else { return .failure(.invalidAddress) }
++
++        if let refusal = self.refusal(for: url) { return .failure(refusal) }
++
++        return .success(url)
++    }
++
++
++    /// Checks an address that a tab is about to show.
++    ///
++    /// - Parameter url: The address.
++    /// - Returns: Why it may not be shown, or `nil` if it may.
++    static func refusal(for url: URL) -> Refusal? {
++
++        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
++              let scheme = components.scheme?.lowercased()
++        else { return .invalidAddress }
++
++        guard scheme == "https" || scheme == "http" else { return .unsupportedScheme(scheme) }
++
++        guard components.user == nil, components.password == nil else { return .embeddedCredentials }
++
++        guard let host = components.host, !host.isEmpty else { return .invalidAddress }
++
++        guard let classification = Host(host) else { return .invalidAddress }
++
++        if scheme == "http", !classification.isLocal {
++            return .requiresHTTPS(host: host)
++        }
++
++        return nil
++    }
++
++
++    /// Whether a frame inside a page may show an address.
++    ///
++    /// Pages build frames from `about:`, `data:` and `blob:` content of their own; those are allowed,
++    /// since they reach no server. Anything else follows the same rules as the page itself.
++    static func allowsSubframe(_ url: URL) -> Bool {
++
++        switch url.scheme?.lowercased() {
++            case "about", "data", "blob": true
++            default: self.refusal(for: url) == nil
++        }
++    }
++
++
++    // MARK: Hosts
++
++    /// A host name or IP address, parsed by its structure rather than by matching text.
++    ///
++    /// Names are classified by their labels, so that `localhost.example.com` and `10.0.0.1.example.com`
++    /// are ordinary qualified names. Numeric hosts are parsed as WebKit's URL parser reads them, including
++    /// shortened and hexadecimal IPv4 forms, since WebKit would otherwise turn such a name into an address.
++    enum Host: Equatable {
++
++        case ipv4(UInt32)
++        case ipv6([UInt8])
++        case name([String])
++
++
++        /// Parses a host as it appears in a URL, with or without the brackets around an IPv6 address.
++        ///
++        /// - Returns: The host, or `nil` if it is not a valid host.
++        init?(_ text: String) {
++
++            var text = text
++            if text.hasPrefix("["), text.hasSuffix("]") {
++                text = String(text.dropFirst().dropLast())
++            }
++
++            if text.contains(":") {
++                // A zone identifier (`fe80::1%en0`) names the interface, not part of the address.
++                let address = text.split(separator: "%", maxSplits: 1, omittingEmptySubsequences: false).first.map(String.init) ?? text
++                var storage = in6_addr()
++                guard inet_pton(AF_INET6, address, &storage) == 1 else { return nil }
++                self = .ipv6(withUnsafeBytes(of: storage) { Array($0) })
++                return
++            }
++
++            var labels = text.lowercased().split(separator: ".", omittingEmptySubsequences: false).map(String.init)
++            // A single trailing dot marks a fully qualified name and changes nothing else.
++            if labels.count > 1, labels.last?.isEmpty == true {
++                labels.removeLast()
++            }
++            guard !labels.isEmpty, labels.allSatisfy({ !$0.isEmpty }) else { return nil }
++
++            if let last = labels.last, Self.isNumericLabel(last) {
++                guard let address = Self.parseIPv4(labels) else { return nil }
++                self = .ipv4(address)
++                return
++            }
++
++            let allowed = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyz0123456789-_")
++            guard labels.allSatisfy({ $0.unicodeScalars.allSatisfy(allowed.contains) || $0.hasPrefix("xn--") }) else { return nil }
++
++            self = .name(labels)
++        }
++
++
++        /// Whether HTTP is supported for this host: `localhost`, loopback, private and link-local
++        /// addresses, unqualified names and names under `.local`.
++        var isLocal: Bool {
++
++            switch self {
++                case .ipv4(let address):
++                    return Self.isLocalIPv4(address)
++
++                case .ipv6(let bytes):
++                    // loopback ::1
++                    if bytes == Array(repeating: 0, count: 15) + [1] { return true }
++                    // unique local fc00::/7, the IPv6 private range
++                    if bytes[0] & 0xfe == 0xfc { return true }
++                    // link-local fe80::/10
++                    if bytes[0] == 0xfe, bytes[1] & 0xc0 == 0x80 { return true }
++                    // an IPv4 address mapped into IPv6, ::ffff:a.b.c.d
++                    if bytes[0..<10].allSatisfy({ $0 == 0 }), bytes[10] == 0xff, bytes[11] == 0xff {
++                        return Self.isLocalIPv4(bytes[12...].reduce(0) { $0 << 8 | UInt32($1) })
++                    }
++                    return false
++
++                case .name(let labels):
++                    return labels.count == 1 || labels == ["localhost"] || labels.last == "local"
++            }
++        }
++
++
++        private static func isLocalIPv4(_ address: UInt32) -> Bool {
++
++            let octets = (UInt8(address >> 24), UInt8(address >> 16 & 0xff))
++
++            return switch octets {
++                case (127, _): true  // loopback
++                case (10, _): true  // private
++                case (172, 16...31): true  // private
++                case (192, 168): true  // private
++                case (169, 254): true  // link-local
++                default: false
++            }
++        }
++
++
++        /// Whether a label reads as a number, which makes the whole host an IPv4 address.
++        private static func isNumericLabel(_ label: String) -> Bool {
++
++            if label.lowercased().hasPrefix("0x") {
++                return label.dropFirst(2).allSatisfy(\.isHexDigit)
++            }
++            return label.allSatisfy { $0.isASCII && $0.isNumber }
++        }
++
++
++        /// Reads an IPv4 address of one to four parts, each decimal, octal (`0` prefix) or hexadecimal (`0x` prefix).
++        private static func parseIPv4(_ labels: [String]) -> UInt32? {
++
++            guard labels.count <= 4 else { return nil }
++
++            var numbers: [UInt64] = []
++            for label in labels {
++                let lowercased = label.lowercased()
++                let number: UInt64?
++                if lowercased.hasPrefix("0x") {
++                    number = lowercased.count == 2 ? 0 : UInt64(lowercased.dropFirst(2), radix: 16)
++                } else if lowercased.count > 1, lowercased.hasPrefix("0") {
++                    number = UInt64(lowercased.dropFirst(), radix: 8)
++                } else {
++                    number = UInt64(lowercased, radix: 10)
++                }
++                guard let number else { return nil }
++                numbers.append(number)
++            }
++
++            let last = numbers.removeLast()
++            guard numbers.allSatisfy({ $0 <= 255 }) else { return nil }
++            guard last < (1 << (8 * (4 - UInt64(numbers.count)))) else { return nil }
++
++            let leading = numbers.enumerated().reduce(UInt64(0)) { $0 | $1.element << (8 * (3 - UInt64($1.offset))) }
++
++            return UInt32(leading | last)
++        }
++    }
++}
+diff --git a/CotEditor/Sources/WebPages/WebPagePrompts.swift b/CotEditor/Sources/WebPages/WebPagePrompts.swift
+new file mode 100644
+index 000000000..7123a9c77
+--- /dev/null
++++ b/CotEditor/Sources/WebPages/WebPagePrompts.swift
+@@ -0,0 +1,304 @@
++//
++//  WebPagePrompts.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++
++
++/// A JavaScript alert, confirmation or prompt that a website asked for.
++struct WebPageDialog: Equatable {
++
++    enum Kind: Equatable {
++
++        case alert
++        case confirmation
++        case textInput(defaultText: String?)
++    }
++
++
++    enum Response: Equatable {
++
++        case acknowledged
++        case confirmed(Bool)
++        case text(String?)
++    }
++
++
++    var kind: Kind
++    var message: String
++
++    /// The origin of the frame that asked, such as `https://example.com`, or `nil` if WebKit did not say.
++    ///
++    /// It comes from the requesting frame's security origin only; neither the page title nor the message
++    /// can supply it, since both are under the website's control.
++    var origin: String?
++
++
++    /// What the page receives when the dialog is not shown or is dismissed: alerts are acknowledged,
++    /// confirmations cancelled, and text prompts return no value.
++    var safeResponse: Response {
++
++        switch self.kind {
++            case .alert: .acknowledged
++            case .confirmation: .confirmed(false)
++            case .textInput: .text(nil)
++        }
++    }
++
++
++    /// Describes a frame's security origin for the dialog.
++    static func origin(protocol scheme: String, host: String, port: Int) -> String? {
++
++        guard !scheme.isEmpty, !host.isEmpty else { return nil }
++
++        let defaultPort = switch scheme.lowercased() {
++            case "https": 443
++            case "http": 80
++            default: 0
++        }
++        // WebKit brackets an IPv6 host already; a bare one is bracketed here, as in a URL.
++        let displayedHost = (host.contains(":") && !host.hasPrefix("[")) ? "[\(host)]" : host
++
++        return (port == 0 || port == defaultPort)
++            ? "\(scheme)://\(displayedHost)"
++            : "\(scheme)://\(displayedHost):\(port)"
++    }
++}
++
++
++/// A website dialog on screen, which its tab can take away again.
++@MainActor final class WebPageDialogHandle {
++
++    /// Takes the dialog off the screen; set by whoever shows it.
++    var dismissHandler: (() -> Void)?
++
++
++    func dismiss() {
++
++        let handler = self.dismissHandler
++        self.dismissHandler = nil
++        handler?()
++    }
++}
++
++
++/// The confirmations and dialogs webpage tabs need.
++///
++/// Every decision goes through this protocol so that tests can answer without showing alerts.
++@MainActor protocol WebPagePrompting {
++
++    /// Asks whether to turn on file tabs, which webpages need.
++    func confirmEnablingTabs(window: NSWindow?) async -> Bool
++
++    /// Asks whether to send a form again, as reloading or going back to a page made by a form submission does.
++    func confirmResubmission(to url: URL?, window: NSWindow?) async -> Bool
++
++    /// Asks whether to remove every website's cookies and stored data.
++    func confirmClearingWebsiteData(window: NSWindow?) async -> Bool
++
++    /// Shows a website dialog as a sheet on the window until the user answers or the handle dismisses it.
++    ///
++    /// - Returns: The user's answer; after a dismissal, any value, since the caller answers the page itself.
++    func present(_ dialog: WebPageDialog, window: NSWindow, handle: WebPageDialogHandle) async -> WebPageDialog.Response
++}
++
++
++@MainActor enum WebPagePrompts {
++
++    /// The prompts in use; tests replace them.
++    static var current: any WebPagePrompting = WebPageAlertPrompts()
++}
++
++
++/// The standard prompts, as alerts.
++@MainActor struct WebPageAlertPrompts: WebPagePrompting {
++
++    func confirmEnablingTabs(window: NSWindow?) async -> Bool {
++
++        let alert = NSAlert()
++        alert.messageText = String(localized: "WebPagePrompt.enableTabs.message", defaultValue: "Webpages open as tabs", table: "WebPages")
++        alert.informativeText = String(localized: "WebPagePrompt.enableTabs.information",
++                                       defaultValue: "Webpage tabs appear next to file tabs, which are turned off. Turning on file tabs applies to all folder windows.",
++                                       table: "WebPages")
++        alert.addButton(withTitle: String(localized: "WebPagePrompt.enableTabs.button", defaultValue: "Enable Tabs and Open Webpage", table: "WebPages",
++                                          comment: "button label"))
++        alert.addButton(withTitle: Self.cancelLabel)
++
++        return await Self.run(alert, window: window) == .alertFirstButtonReturn
++    }
++
++
++    func confirmResubmission(to url: URL?, window: NSWindow?) async -> Bool {
++
++        let alert = NSAlert()
++        alert.alertStyle = .warning
++        alert.messageText = if let host = url?.host(percentEncoded: false) {
++            String(localized: "WebPagePrompt.resubmit.message", defaultValue: "Send the form to “\(host)” again?", table: "WebPages",
++                   comment: "%@ is the website’s host name")
++        } else {
++            String(localized: "WebPagePrompt.resubmitUnknown.message", defaultValue: "Send the form again?", table: "WebPages")
++        }
++        alert.informativeText = String(localized: "WebPagePrompt.resubmit.information",
++                                       defaultValue: "This page was made by submitting a form. Showing it again sends the form again, which may repeat an action such as a purchase.",
++                                       table: "WebPages")
++        alert.addButton(withTitle: String(localized: "WebPagePrompt.resubmit.button", defaultValue: "Send Again", table: "WebPages", comment: "button label"))
++        alert.addButton(withTitle: Self.cancelLabel)
++
++        return await Self.run(alert, window: window) == .alertFirstButtonReturn
++    }
++
++
++    func confirmClearingWebsiteData(window: NSWindow?) async -> Bool {
++
++        let alert = NSAlert()
++        alert.alertStyle = .warning
++        alert.messageText = String(localized: "WebPagePrompt.clearData.message", defaultValue: "Clear all website data?", table: "WebPages")
++        alert.informativeText = String(localized: "WebPagePrompt.clearData.information",
++                                       defaultValue: "Cookies and data stored by every website are removed, including websites open in other tabs. You may be signed out of them.",
++                                       table: "WebPages")
++        alert.addButton(withTitle: String(localized: "WebPagePrompt.clearData.button", defaultValue: "Clear Website Data", table: "WebPages", comment: "button label"))
++        alert.addButton(withTitle: Self.cancelLabel)
++
++        return await Self.run(alert, window: window) == .alertFirstButtonReturn
++    }
++
++
++    func present(_ dialog: WebPageDialog, window: NSWindow, handle: WebPageDialogHandle) async -> WebPageDialog.Response {
++
++        let alert = NSAlert()
++        // The origin is the title, so that the website's own text can never pose as the app.
++        alert.messageText = if let origin = dialog.origin {
++            String(localized: "WebPageDialog.origin", defaultValue: "The website “\(origin)” says:", table: "WebPages",
++                   comment: "title of a JavaScript dialog; %@ is the website’s origin, such as https://example.com")
++        } else {
++            String(localized: "WebPageDialog.unknownOrigin", defaultValue: "A website of unknown origin says:", table: "WebPages",
++                   comment: "title of a JavaScript dialog whose origin is not known")
++        }
++        alert.informativeText = dialog.message
++
++        let field: NSTextField?
++        switch dialog.kind {
++            case .alert:
++                field = nil
++                alert.addButton(withTitle: String(localized: "WebPageDialog.ok", defaultValue: "OK", table: "WebPages", comment: "button label"))
++            case .confirmation:
++                field = nil
++                alert.addButton(withTitle: String(localized: "WebPageDialog.ok", defaultValue: "OK", table: "WebPages", comment: "button label"))
++                alert.addButton(withTitle: Self.cancelLabel)
++            case .textInput(let defaultText):
++                let textField = NSTextField(string: defaultText ?? "")
++                textField.frame.size.width = 260
++                alert.accessoryView = textField
++                alert.window.initialFirstResponder = textField
++                field = textField
++                alert.addButton(withTitle: String(localized: "WebPageDialog.ok", defaultValue: "OK", table: "WebPages", comment: "button label"))
++                alert.addButton(withTitle: Self.cancelLabel)
++        }
++
++        handle.dismissHandler = { [weak window, weak alert] in
++            guard let window, let alert, alert.window.sheetParent === window else { return }
++            window.endSheet(alert.window, returnCode: .abort)
++        }
++        let response = await alert.beginSheetModal(for: window)
++        handle.dismissHandler = nil
++
++        let accepted = (response == .alertFirstButtonReturn)
++        return switch dialog.kind {
++            case .alert: .acknowledged
++            case .confirmation: .confirmed(accepted)
++            case .textInput: .text(accepted ? field?.stringValue : nil)
++        }
++    }
++
++
++    // MARK: Private Methods
++
++    private static var cancelLabel: String {
++
++        String(localized: "WebPagePrompt.cancel", defaultValue: "Cancel", table: "WebPages", comment: "button label")
++    }
++
++
++    /// Shows the alert as a sheet on the window, or as an application-modal alert without one.
++    private static func run(_ alert: NSAlert, window: NSWindow?) async -> NSApplication.ModalResponse {
++
++        if let window, window.isVisible, window.attachedSheet == nil {
++            await alert.beginSheetModal(for: window)
++        } else {
++            alert.runModal()
++        }
++    }
++}
++
++
++/// Shows at most one website dialog for a tab, and answers every request exactly once.
++///
++/// A dialog is shown only while `presentationWindow` names a window, which the tab allows only while it
++/// is selected in the active window and nothing else is asking the user anything. Other requests are
++/// answered at once with the safe response and never queued, and nothing is selected to show them.
++@MainActor final class WebPageDialogPresenter {
++
++    /// The window to show a dialog on now, or `nil` if a dialog must not be shown.
++    var presentationWindow: () -> NSWindow? = { nil }
++
++    private var active: (handle: WebPageDialogHandle, finish: (WebPageDialog.Response?) -> Void)?
++
++    var isPresenting: Bool  { self.active != nil }
++
++
++    /// Shows a website dialog, or answers it with its safe response.
++    func run(_ dialog: WebPageDialog) async -> WebPageDialog.Response {
++
++        guard self.active == nil, let window = self.presentationWindow() else { return dialog.safeResponse }
++
++        let handle = WebPageDialogHandle()
++
++        return await withCheckedContinuation { continuation in
++            var isFinished = false
++            let finish: (WebPageDialog.Response?) -> Void = { [weak self] response in
++                guard !isFinished else { return }
++                isFinished = true
++                if self?.active?.handle === handle {
++                    self?.active = nil
++                }
++                continuation.resume(returning: response ?? dialog.safeResponse)
++            }
++            self.active = (handle, finish)
++
++            Task {
++                let response = await WebPagePrompts.current.present(dialog, window: window, handle: handle)
++                finish(response)
++            }
++        }
++    }
++
++
++    /// Takes the dialog away, answering the page with the safe response. The web view is left alone.
++    func dismiss() {
++
++        guard let active = self.active else { return }
++
++        self.active = nil
++        active.handle.dismiss()
++        active.finish(nil)
++    }
++}
+diff --git a/CotEditor/Sources/WebPages/WebPageSession.swift b/CotEditor/Sources/WebPages/WebPageSession.swift
+new file mode 100644
+index 000000000..3179dbb5a
+--- /dev/null
++++ b/CotEditor/Sources/WebPages/WebPageSession.swift
+@@ -0,0 +1,380 @@
++//
++//  WebPageSession.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import Foundation
++import Observation
++
++
++/// The state of one webpage tab: what it shows, and what its last navigation did.
++///
++/// It is not a document: it has no file and no edited marker. The web view and its navigation history
++/// belong to the tab's `WebPageViewController`, which reports WebKit's events here. Events carry a
++/// token for the navigation they belong to, and only the navigation started last may change the state,
++/// so a late completion or cancellation of an older load never overwrites a newer one.
++@MainActor @Observable final class WebPageSession {
++
++    /// A navigation that did not reach its page.
++    struct Failure: Equatable {
++
++        /// The address the navigation was going to.
++        var url: URL?
++        var message: String
++        /// Whether the request can be sent again: only a GET without a body, whose pairing with WebKit's
++        /// policy decision was unambiguous, ever is.
++        var isRetryable: Bool
++        /// Whether the failure happened before the page changed, so the previous page is still shown.
++        var keepsPreviousPage: Bool
++    }
++
++
++    /// Something the user asked for that a webpage tab does not do, such as a download.
++    struct Notice: Equatable {
++
++        var message: String
++    }
++
++
++    /// The main-frame request WebKit decided to load, before it became a navigation.
++    struct PolicyDecision: Equatable {
++
++        var url: URL?
++        var isSafeToRepeat: Bool
++    }
++
++
++    /// Identifies one WebKit navigation.
++    struct NavigationToken: Hashable {
++
++        private let id: ObjectIdentifier
++
++        init(_ object: AnyObject) {
++
++            self.id = ObjectIdentifier(object)
++        }
++    }
++
++
++    enum Lifecycle: Equatable {
++
++        /// A new tab that has not loaded anything.
++        case empty
++        /// A restored tab that waits for the user to load its address.
++        case restored
++        /// A tab whose web view has been asked to load something.
++        case active
++        /// The web content process ended; nothing reloads by itself.
++        case contentProcessEnded
++        case closed
++    }
++
++
++    // MARK: Public Properties
++
++    let id: UUID
++
++    private(set) var lifecycle: Lifecycle
++
++    /// The address of the page that last committed, as the web view reports it, including redirects.
++    private(set) var currentURL: URL?
++
++    /// The address a restored tab offers to load.
++    private(set) var restoredURL: URL?
++
++    /// The page's own title, sanitized for the tab strip.
++    private(set) var pageTitle: String?
++
++    private(set) var isLoading = false
++    private(set) var canGoBack = false
++    private(set) var canGoForward = false
++
++    private(set) var failure: Failure?
++    private(set) var notice: Notice?
++
++
++    /// The controller showing the tab, once the window has made it.
++    @ObservationIgnored weak var controller: WebPageViewController?
++
++
++    // MARK: Private Properties
++
++    @ObservationIgnored private var currentNavigation: NavigationToken?
++    @ObservationIgnored private var currentNavigationDecision: PolicyDecision?
++    @ObservationIgnored private var currentNavigationHasCommitted = false
++    @ObservationIgnored private var pendingDecision: PolicyDecision?
++
++
++    // MARK: Lifecycle
++
++    /// Makes a new, empty tab.
++    init(id: UUID = UUID()) {
++
++        self.id = id
++        self.lifecycle = .empty
++    }
++
++
++    /// Makes a tab restored from the archive, which loads nothing until the user asks.
++    ///
++    /// - Parameters:
++    ///   - id: The archived tab ID.
++    ///   - url: The archived address, already checked against the navigation policy, or `nil` for an empty tab.
++    ///   - title: The archived title.
++    init(id: UUID, restoring url: URL?, title: String?) {
++
++        self.id = id
++        self.restoredURL = url
++        self.pageTitle = title.flatMap(Self.sanitizedTitle)
++        self.lifecycle = (url == nil) ? .empty : .restored
++    }
++
++
++    // MARK: Presentation
++
++    /// The title for the tab: the page's title, then the host, then “Webpage”.
++    var title: String {
++
++        if let pageTitle { return pageTitle }
++        if let host = (self.currentURL ?? self.restoredURL)?.host(percentEncoded: false), !host.isEmpty { return host }
++
++        return Self.defaultTitle
++    }
++
++
++    /// The address the tab stands for: the shown page's, or the one a restored tab offers.
++    var address: URL? {
++
++        self.currentURL ?? self.restoredURL
++    }
++
++
++    static var defaultTitle: String {
++
++        String(localized: "WebPageSession.defaultTitle", defaultValue: "Webpage", table: "WebPages",
++               comment: "name of a webpage tab that shows no page yet")
++    }
++
++
++    /// Makes a page title fit for the tab strip: one line, without surrounding space, and not endless.
++    nonisolated static func sanitizedTitle(_ title: String) -> String? {
++
++        let line = title.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).joined(separator: " ")
++
++        guard !line.isEmpty else { return nil }
++
++        return line.count > 200 ? String(line.prefix(200)) + "…" : line
++    }
++
++
++    // MARK: Requests
++
++    /// Notes that the web view was asked to load something, which ends the empty or restored state.
++    func willLoad() {
++
++        guard self.lifecycle != .closed else { return }
++
++        self.lifecycle = .active
++        self.restoredURL = nil
++        self.failure = nil
++        self.notice = nil
++    }
++
++
++    /// Notes that the user stopped loading. Stopping is not a failure.
++    func didStop() {
++
++        guard self.lifecycle != .closed else { return }
++
++        self.currentNavigation = nil
++        self.currentNavigationDecision = nil
++        self.pendingDecision = nil
++        self.isLoading = false
++    }
++
++
++    func show(_ notice: Notice) {
++
++        guard self.lifecycle != .closed else { return }
++
++        self.notice = notice
++    }
++
++
++    func dismissMessages() {
++
++        self.failure = nil
++        self.notice = nil
++    }
++
++
++    // MARK: WebKit Events
++
++    /// Records WebKit's policy decision for a main-frame navigation that is allowed to start.
++    ///
++    /// WebKit decides before the navigation exists, so the decision is attached to the next navigation
++    /// that starts, or to the current one if it turns out to be a redirect.
++    ///
++    /// - Parameters:
++    ///   - url: The requested address.
++    ///   - isSafeToRepeat: Whether the request is a GET without a body.
++    func didDecide(url: URL?, isSafeToRepeat: Bool) {
++
++        guard self.lifecycle != .closed else { return }
++
++        self.pendingDecision = PolicyDecision(url: url, isSafeToRepeat: isSafeToRepeat)
++    }
++
++
++    /// A main-frame navigation started; it replaces any other as the one whose events count.
++    ///
++    /// - Parameters:
++    ///   - token: The navigation.
++    ///   - url: The address the web view reports for it.
++    func didStartProvisionalNavigation(_ token: NavigationToken, url: URL?) {
++
++        guard self.lifecycle != .closed else { return }
++
++        // The decision belongs to this navigation only if it asked for the same address. Anything
++        // else is ambiguous, and an ambiguous navigation is never retried.
++        let decision = self.pendingDecision
++        self.pendingDecision = nil
++        self.currentNavigation = token
++        self.currentNavigationHasCommitted = false
++        self.currentNavigationDecision = if let decision, decision.url == url {
++            decision
++        } else {
++            PolicyDecision(url: url, isSafeToRepeat: false)
++        }
++        self.lifecycle = .active
++        self.isLoading = true
++        self.failure = nil
++        self.notice = nil
++    }
++
++
++    /// The server redirected the current navigation. A redirect is safe to repeat only if both requests were.
++    func didReceiveRedirect(_ token: NavigationToken, url: URL?) {
++
++        guard token == self.currentNavigation else { return }
++
++        let redirect = self.pendingDecision
++        self.pendingDecision = nil
++        let isSafeToRepeat = (self.currentNavigationDecision?.isSafeToRepeat ?? false)
++            && (redirect?.isSafeToRepeat ?? false) && (redirect?.url == url)
++        self.currentNavigationDecision = PolicyDecision(url: url, isSafeToRepeat: isSafeToRepeat)
++    }
++
++
++    func didCommit(_ token: NavigationToken) {
++
++        guard token == self.currentNavigation else { return }
++
++        self.currentNavigationHasCommitted = true
++    }
++
++
++    func didFinish(_ token: NavigationToken) {
++
++        guard token == self.currentNavigation else { return }
++
++        self.currentNavigation = nil
++        self.currentNavigationDecision = nil
++        self.isLoading = false
++    }
++
++
++    /// The current navigation failed.
++    ///
++    /// Cancellations, including those caused by a newer navigation, Stop or a policy refusal, are not failures.
++    ///
++    /// - Parameters:
++    ///   - token: The navigation.
++    ///   - error: WebKit's error.
++    func didFail(_ token: NavigationToken, error: any Error) {
++
++        guard token == self.currentNavigation else { return }
++
++        let decision = self.currentNavigationDecision
++        let hasCommitted = self.currentNavigationHasCommitted
++        self.currentNavigation = nil
++        self.currentNavigationDecision = nil
++        self.isLoading = false
++
++        guard !Self.isCancellation(error) else { return }
++
++        self.failure = Failure(url: decision?.url, message: error.localizedDescription,
++                               isRetryable: decision?.isSafeToRepeat == true && decision?.url.flatMap(WebPageNavigationPolicy.refusal(for:)) == nil,
++                               keepsPreviousPage: !hasCommitted)
++    }
++
++
++    /// The web view reported its current address, title or history.
++    func didUpdate(url: URL?, title: String?, isLoading: Bool, canGoBack: Bool, canGoForward: Bool) {
++
++        guard self.lifecycle != .closed, self.lifecycle != .restored else { return }
++
++        if let url, url.absoluteString != "about:blank" {
++            self.currentURL = url
++        }
++        self.pageTitle = title.flatMap(Self.sanitizedTitle)
++        self.isLoading = isLoading
++        self.canGoBack = canGoBack
++        self.canGoForward = canGoForward
++    }
++
++
++    /// The process showing the page ended. The page is gone, and nothing reloads by itself.
++    func contentProcessDidTerminate() {
++
++        guard self.lifecycle != .closed else { return }
++
++        self.currentNavigation = nil
++        self.currentNavigationDecision = nil
++        self.pendingDecision = nil
++        self.isLoading = false
++        self.lifecycle = .contentProcessEnded
++    }
++
++
++    func close() {
++
++        self.currentNavigation = nil
++        self.pendingDecision = nil
++        self.isLoading = false
++        self.lifecycle = .closed
++    }
++
++
++    // MARK: Private Methods
++
++    private static func isCancellation(_ error: any Error) -> Bool {
++
++        let error = error as NSError
++
++        return switch (error.domain, error.code) {
++            case (NSURLErrorDomain, NSURLErrorCancelled): true
++            // WebKit's “frame load interrupted by policy change”, reported when a decision cancels a load
++            case ("WebKitErrorDomain", 102): true
++            default: false
++        }
++    }
++}
+diff --git a/CotEditor/Sources/WebPages/WebPageTabArchive.swift b/CotEditor/Sources/WebPages/WebPageTabArchive.swift
+new file mode 100644
+index 000000000..fe000a613
+--- /dev/null
++++ b/CotEditor/Sources/WebPages/WebPageTabArchive.swift
+@@ -0,0 +1,93 @@
++//
++//  WebPageTabArchive.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import Foundation
++
++
++/// The webpage part of a directory's tab archive.
++///
++/// Webpage tabs are entries of kind `webpage` in the versioned `DirectoryTabArchive` list. Only the
++/// address of the page that was showing and its title are kept, and the address only if the navigation
++/// policy allows it. Cookies, credentials, navigation history, page contents, form values and address
++/// edits are never archived.
++struct WebPageTabArchive: Equatable {
++
++    struct Entry: Equatable {
++
++        var id: UUID
++        /// The address to offer, or `nil` for a tab that showed no page.
++        var url: URL?
++        var title: String?
++    }
++
++
++    static let kind = "webpage"
++
++    var webPages: [Entry]
++
++
++    // MARK: Encoding
++
++    /// The archive fields of a webpage tab.
++    static func fields(for entry: Entry) -> [String: Any] {
++
++        var fields: [String: Any] = [:]
++        if let url = entry.url, WebPageNavigationPolicy.refusal(for: url) == nil {
++            fields["url"] = url.absoluteString
++            fields["title"] = entry.title
++        }
++        return fields
++    }
++
++
++    // MARK: Decoding
++
++    /// Reads archived webpage entries.
++    ///
++    /// Archived values are untrusted: an entry whose address is not a string, cannot be parsed, or is
++    /// refused by the navigation policy is skipped, and a title that is not a string is dropped. The
++    /// directory archive has already dropped entries without a valid and unique ID.
++    ///
++    /// - Parameter entries: The directory archive's entries.
++    init(entries: [DirectoryTabArchive.ForeignEntry]) {
++
++        self.webPages = entries.filter { $0.kind == Self.kind }.compactMap { entry in
++            let fields = entry.fields
++            let url: URL?
++            switch fields["url"] {
++                case nil:
++                    url = nil
++                case let string as String:
++                    guard let parsed = URL(string: string, encodingInvalidCharacters: false),
++                          WebPageNavigationPolicy.refusal(for: parsed) == nil
++                    else { return nil }
++                    url = parsed
++                default:
++                    return nil
++            }
++
++            return Entry(id: entry.id, url: url,
++                         title: url == nil ? nil : (fields["title"] as? String).flatMap(WebPageSession.sanitizedTitle))
++        }
++    }
++}
+diff --git a/CotEditor/Sources/WebPages/WebPageViewController.swift b/CotEditor/Sources/WebPages/WebPageViewController.swift
+new file mode 100644
+index 000000000..d1a1229d4
+--- /dev/null
++++ b/CotEditor/Sources/WebPages/WebPageViewController.swift
+@@ -0,0 +1,847 @@
++//
++//  WebPageViewController.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import SwiftUI
++import WebKit
++
++
++/// Shows one webpage tab: a navigation bar, a message bar, and the tab's web view.
++///
++/// The controller owns the web view for the tab's whole life. The window keeps the controller while
++/// the tab is open, so switching tabs only moves it in and out of the window, and the page and its
++/// navigation history stay as they are. Nothing is loaded until the user submits an address or asks
++/// a restored tab to load.
++final class WebPageViewController: NSViewController, DirectoryTabViewController, NSTextFieldDelegate, WKNavigationDelegate, WKUIDelegate {
++
++    let session: WebPageSession
++
++    private weak var directoryDocument: DirectoryDocument?
++
++    private(set) lazy var webView: WKWebView = Self.makeWebView()
++    let dialogPresenter = WebPageDialogPresenter()
++
++    private let backButton = NSButton()
++    private let forwardButton = NSButton()
++    private let reloadButton = NSButton()
++    let addressField = NSTextField()
++    private let messageBar = NSStackView()
++    private let messageLabel = NSTextField(wrappingLabelWithString: "")
++    private let retryButton = NSButton()
++    private let dismissButton = NSButton()
++    private var placeholderView: NSHostingView<WebPagePlaceholderView>?
++
++    private var webViewObservations: [NSKeyValueObservation] = []
++    private var observationTask: Task<Void, Never>?
++    private var isConfirmingResubmission = false
++    private var isTornDown = false
++
++
++    // MARK: Lifecycle
++
++    init(session: WebPageSession, directoryDocument: DirectoryDocument?) {
++
++        self.session = session
++        self.directoryDocument = directoryDocument
++
++        super.init(nibName: nil, bundle: nil)
++
++        self.dialogPresenter.presentationWindow = { [weak self] in self?.dialogWindow }
++    }
++
++
++    @available(*, unavailable)
++    required init?(coder: NSCoder) {
++
++        fatalError("init(coder:) has not been implemented")
++    }
++
++
++    isolated deinit {
++        self.observationTask?.cancel()
++    }
++
++
++    override func loadView() {
++
++        let view = NSView()
++        view.setAccessibilityElement(true)
++        view.setAccessibilityRole(.group)
++        self.view = view
++
++        let navigationBar = self.makeNavigationBar()
++        self.configureMessageBar()
++
++        self.webView.navigationDelegate = self
++        self.webView.uiDelegate = self
++        self.webView.translatesAutoresizingMaskIntoConstraints = false
++
++        let placeholderView = NSHostingView(rootView: self.makePlaceholder())
++        // The placeholder fills the content area; its content's size must never constrain the split view.
++        placeholderView.sizingOptions = []
++        placeholderView.translatesAutoresizingMaskIntoConstraints = false
++        self.placeholderView = placeholderView
++
++        let stack = NSStackView(views: [navigationBar, self.messageBar])
++        stack.orientation = .vertical
++        stack.spacing = 0
++        stack.alignment = .leading
++        stack.setHuggingPriority(.defaultHigh, for: .vertical)
++        stack.translatesAutoresizingMaskIntoConstraints = false
++
++        view.addSubview(self.webView)
++        view.addSubview(placeholderView)
++        view.addSubview(stack)
++
++        NSLayoutConstraint.activate([
++            stack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
++            stack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
++            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
++            navigationBar.widthAnchor.constraint(equalTo: stack.widthAnchor),
++            self.messageBar.widthAnchor.constraint(equalTo: stack.widthAnchor),
++
++            self.webView.topAnchor.constraint(equalTo: stack.bottomAnchor),
++            self.webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
++            self.webView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
++            self.webView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
++
++            placeholderView.topAnchor.constraint(equalTo: stack.bottomAnchor),
++            placeholderView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
++            placeholderView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
++            placeholderView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
++        ])
++
++        self.observeWebView()
++        self.update()
++    }
++
++
++    override func viewWillAppear() {
++
++        super.viewWillAppear()
++
++        self.update()
++
++        self.observationTask?.cancel()
++        self.observationTask = Task { [weak self, session] in
++            for await _ in Observations({ (session.lifecycle, session.failure, session.notice, session.currentURL, session.title,
++                                           session.isLoading, session.canGoBack, session.canGoForward) }) {
++                guard !Task.isCancelled else { return }
++                self?.update()
++            }
++        }
++    }
++
++
++    override func viewWillDisappear() {
++
++        super.viewWillDisappear()
++
++        // A dialog belongs to the tab on screen; switching away or closing the window takes it away.
++        self.dialogPresenter.dismiss()
++    }
++
++
++    override func viewDidDisappear() {
++
++        super.viewDidDisappear()
++
++        self.observationTask?.cancel()
++        self.observationTask = nil
++    }
++
++
++    // MARK: Public Methods
++
++    func focusTabContent() {
++
++        guard let window = self.view.window else { return }
++
++        switch self.session.lifecycle {
++            case .empty:
++                window.makeFirstResponder(self.addressField)
++            case .restored, .contentProcessEnded:
++                window.makeFirstResponder(self.placeholderView)
++            case .active, .closed:
++                window.makeFirstResponder(self.webView)
++        }
++    }
++
++
++    /// Loads what the user typed, or explains why it cannot be loaded.
++    func submitAddress(_ text: String) {
++
++        switch WebPageNavigationPolicy.url(fromTypedAddress: text) {
++            case .success(let url):
++                self.load(url)
++                self.view.window?.makeFirstResponder(self.webView)
++            case .failure(let refusal):
++                self.session.show(.init(message: refusal.message))
++        }
++    }
++
++
++    /// Loads an address that passed the navigation policy.
++    func load(_ url: URL) {
++
++        guard !self.isTornDown, WebPageNavigationPolicy.refusal(for: url) == nil else { return }
++
++        self.session.willLoad()
++        self.webView.load(URLRequest(url: url))
++        self.update()
++    }
++
++
++    /// Sends the failed navigation's request again, if it is a GET that can safely be repeated.
++    func retry() {
++
++        guard let failure = self.session.failure, failure.isRetryable, let url = failure.url else { return }
++
++        self.load(url)
++    }
++
++
++    /// Stops everything, releases the web view's delegates and observations, and takes away any dialog.
++    func tearDown() {
++
++        guard !self.isTornDown else { return }
++
++        self.isTornDown = true
++        self.dialogPresenter.dismiss()
++        self.observationTask?.cancel()
++        self.observationTask = nil
++        self.webViewObservations.removeAll()
++        if self.isViewLoaded {
++            self.webView.stopLoading()
++            self.webView.navigationDelegate = nil
++            self.webView.uiDelegate = nil
++        }
++    }
++
++
++    // MARK: Navigation Delegate
++
++    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, preferences: WKWebpagePreferences) async -> (WKNavigationActionPolicy, WKWebpagePreferences) {
++
++        guard !self.isTornDown, let url = navigationAction.request.url else { return (.cancel, preferences) }
++
++        if navigationAction.shouldPerformDownload {
++            self.session.show(.init(message: Self.downloadsUnsupportedMessage))
++            return (.cancel, preferences)
++        }
++
++        guard navigationAction.targetFrame?.isMainFrame ?? true else {
++            return (WebPageNavigationPolicy.allowsSubframe(url) ? .allow : .cancel, preferences)
++        }
++
++        if let refusal = WebPageNavigationPolicy.refusal(for: url) {
++            // The page that is showing stays as it is; a refused destination is never rewritten or retried.
++            self.session.show(.init(message: refusal.message))
++            return (.cancel, preferences)
++        }
++
++        if navigationAction.navigationType == .formResubmitted {
++            guard !self.isConfirmingResubmission else { return (.cancel, preferences) }
++            self.isConfirmingResubmission = true
++            defer { self.isConfirmingResubmission = false }
++            guard await WebPagePrompts.current.confirmResubmission(to: url, window: self.view.window), !self.isTornDown else {
++                return (.cancel, preferences)
++            }
++        }
++
++        let request = navigationAction.request
++        let isSafeToRepeat = (request.httpMethod ?? "GET").uppercased() == "GET" && request.httpBody == nil && request.httpBodyStream == nil
++            && navigationAction.navigationType != .formSubmitted && navigationAction.navigationType != .formResubmitted
++        self.session.didDecide(url: url, isSafeToRepeat: isSafeToRepeat)
++
++        return (.allow, preferences)
++    }
++
++
++    func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse) async -> WKNavigationResponsePolicy {
++
++        guard navigationResponse.isForMainFrame else { return .allow }
++
++        if !navigationResponse.canShowMIMEType {
++            self.session.show(.init(message: Self.downloadsUnsupportedMessage))
++            return .cancel
++        }
++        return .allow
++    }
++
++
++    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
++
++        self.session.didStartProvisionalNavigation(Self.token(navigation, in: webView), url: webView.url)
++    }
++
++
++    func webView(_ webView: WKWebView, didReceiveServerRedirectForProvisionalNavigation navigation: WKNavigation!) {
++
++        self.session.didReceiveRedirect(Self.token(navigation, in: webView), url: webView.url)
++    }
++
++
++    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
++
++        self.session.didCommit(Self.token(navigation, in: webView))
++        self.synchronizeWithWebView()
++    }
++
++
++    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
++
++        self.session.didFinish(Self.token(navigation, in: webView))
++        self.synchronizeWithWebView()
++    }
++
++
++    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: any Error) {
++
++        self.session.didFail(Self.token(navigation, in: webView), error: error)
++        self.synchronizeWithWebView()
++    }
++
++
++    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: any Error) {
++
++        self.session.didFail(Self.token(navigation, in: webView), error: error)
++        self.synchronizeWithWebView()
++    }
++
++
++    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
++
++        self.dialogPresenter.dismiss()
++        self.session.contentProcessDidTerminate()
++        self.synchronizeWithWebView()
++    }
++
++
++    // MARK: UI Delegate
++
++    /// Loads a request for a new window in this tab, if the policy allows it.
++    ///
++    /// Scripts cannot open windows without a user gesture, so WebKit only asks here for a click. A page
++    /// that expects to talk to the new window through `window.opener` does not get one.
++    func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
++
++        guard !self.isTornDown, navigationAction.targetFrame == nil, let url = navigationAction.request.url else { return nil }
++
++        if let refusal = WebPageNavigationPolicy.refusal(for: url) {
++            self.session.show(.init(message: refusal.message))
++        } else {
++            self.session.willLoad()
++            webView.load(navigationAction.request)
++        }
++        return nil
++    }
++
++
++    func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo) async {
++
++        _ = await self.dialogPresenter.run(WebPageDialog(kind: .alert, message: message, origin: Self.origin(of: frame)))
++    }
++
++
++    func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo) async -> Bool {
++
++        let response = await self.dialogPresenter.run(WebPageDialog(kind: .confirmation, message: message, origin: Self.origin(of: frame)))
++
++        return response == .confirmed(true)
++    }
++
++
++    func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo) async -> String? {
++
++        let response = await self.dialogPresenter.run(WebPageDialog(kind: .textInput(defaultText: defaultText), message: prompt, origin: Self.origin(of: frame)))
++
++        return if case .text(let text) = response { text } else { nil }
++    }
++
++
++    // MARK: Text Field Delegate
++
++    func control(_ control: NSControl, textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
++
++        guard control === self.addressField else { return false }
++
++        switch commandSelector {
++            case #selector(NSResponder.insertNewline(_:)):
++                self.submitAddress(self.addressField.stringValue)
++                return true
++            case #selector(NSResponder.cancelOperation(_:)):
++                // Escape gives up the edit and shows the current address again.
++                self.addressField.abortEditing()
++                self.addressField.stringValue = self.session.address?.absoluteString ?? ""
++                if self.session.lifecycle == .active {
++                    self.view.window?.makeFirstResponder(self.webView)
++                }
++                return true
++            default:
++                return false
++        }
++    }
++
++
++    func controlTextDidEndEditing(_ obj: Notification) {
++
++        self.updateAddressField()
++    }
++
++
++    // MARK: Private Methods
++
++    /// The window a website dialog may be shown on now, or `nil` if it must be answered without showing.
++    private var dialogWindow: NSWindow? {
++
++        guard
++            !self.isTornDown,
++            let window = self.view.window,
++            Self.isActiveWindow(window),
++            window.attachedSheet == nil,
++            NSApp.modalWindow == nil,
++            let directoryDocument,
++            directoryDocument.activeTabItem === self.session,
++            !directoryDocument.isConfirmingClose,
++            directoryDocument.pendingItemCloses.isEmpty
++        else { return nil }
++
++        return window
++    }
++
++
++    /// Whether the window is the one the user works in: the key or main window, or, while the app has
++    /// no main window, as when it is not active, its frontmost window.
++    private static func isActiveWindow(_ window: NSWindow) -> Bool {
++
++        if window.isKeyWindow || window.isMainWindow { return true }
++
++        guard NSApp.mainWindow == nil else { return false }
++
++        return NSApp.orderedWindows.first { $0.isVisible && $0.canBecomeMain } === window
++    }
++
++
++    private static func makeWebView() -> WKWebView {
++
++        let configuration = WKWebViewConfiguration()
++        // The app's own data store is private to its bundle identifier, and separate from Safari.
++        configuration.websiteDataStore = .default()
++        // Scripts can ask for a new window only for a user gesture.
++        configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
++
++        let webView = WKWebView(frame: .zero, configuration: configuration)
++        webView.allowsBackForwardNavigationGestures = true
++        webView.setAccessibilityLabel(String(localized: "WebPageView.content.accessibilityLabel", defaultValue: "Webpage Content", table: "WebPages"))
++
++        return webView
++    }
++
++
++    private static func token(_ navigation: WKNavigation?, in webView: WKWebView) -> WebPageSession.NavigationToken {
++
++        WebPageSession.NavigationToken(navigation ?? webView)
++    }
++
++
++    private static func origin(of frame: WKFrameInfo) -> String? {
++
++        let origin = frame.securityOrigin
++
++        return WebPageDialog.origin(protocol: origin.protocol, host: origin.host, port: origin.port)
++    }
++
++
++    private static var downloadsUnsupportedMessage: String {
++
++        String(localized: "WebPageView.downloadUnsupported", defaultValue: "Webpage tabs can’t download files.", table: "WebPages",
++               comment: "message shown when a link or response in a webpage tab would download a file")
++    }
++
++
++    private func observeWebView() {
++
++        let update: @Sendable (WKWebView, Any) -> Void = { [weak self] _, _ in
++            MainActor.assumeIsolated {
++                self?.synchronizeWithWebView()
++            }
++        }
++        self.webViewObservations = [
++            self.webView.observe(\.title, changeHandler: update),
++            self.webView.observe(\.url, changeHandler: update),
++            self.webView.observe(\.isLoading, changeHandler: update),
++            self.webView.observe(\.canGoBack, changeHandler: update),
++            self.webView.observe(\.canGoForward, changeHandler: update),
++        ]
++    }
++
++
++    private func synchronizeWithWebView() {
++
++        guard !self.isTornDown else { return }
++
++        self.session.didUpdate(url: self.webView.url, title: self.webView.title, isLoading: self.webView.isLoading,
++                               canGoBack: self.webView.canGoBack, canGoForward: self.webView.canGoForward)
++        self.update()
++    }
++
++
++    private func update() {
++
++        guard self.isViewLoaded else { return }
++
++        let session = self.session
++        let isActive = (session.lifecycle == .active)
++
++        self.backButton.isEnabled = isActive && session.canGoBack
++        self.forwardButton.isEnabled = isActive && session.canGoForward
++        self.reloadButton.isEnabled = isActive || session.lifecycle == .contentProcessEnded
++        let reloadLabel = session.isLoading
++            ? String(localized: "WebPageView.stop", defaultValue: "Stop", table: "WebPages", comment: "button label")
++            : String(localized: "WebPageView.reload", defaultValue: "Reload", table: "WebPages", comment: "button label")
++        self.reloadButton.image = NSImage(systemSymbolName: session.isLoading ? "xmark" : "arrow.clockwise", accessibilityDescription: reloadLabel)
++        self.reloadButton.setAccessibilityLabel(reloadLabel)
++        self.reloadButton.toolTip = reloadLabel
++
++        self.updateAddressField()
++        self.updateMessageBar()
++
++        let showsPlaceholder = switch session.lifecycle {
++            case .empty, .restored, .contentProcessEnded: true
++            case .active: session.currentURL == nil && session.failure != nil
++            case .closed: false
++        }
++        self.placeholderView?.rootView = self.makePlaceholder()
++        self.placeholderView?.isHidden = !showsPlaceholder
++        self.webView.isHidden = showsPlaceholder && session.lifecycle != .contentProcessEnded
++
++        self.view.setAccessibilityLabel(session.title)
++    }
++
++
++    /// Shows the current address, unless the user is editing it.
++    private func updateAddressField() {
++
++        guard self.addressField.currentEditor() == nil else { return }
++
++        self.addressField.stringValue = self.session.address?.absoluteString ?? ""
++    }
++
++
++    private func updateMessageBar() {
++
++        let session = self.session
++        let showsInPlaceholder = session.failure != nil && session.currentURL == nil
++
++        if let failure = session.failure, !showsInPlaceholder {
++            self.messageLabel.stringValue = failure.description
++            self.retryButton.isHidden = !failure.isRetryable
++            self.messageBar.isHidden = false
++        } else if let notice = session.notice {
++            self.messageLabel.stringValue = notice.message
++            self.retryButton.isHidden = true
++            self.messageBar.isHidden = false
++        } else {
++            self.messageBar.isHidden = true
++        }
++    }
++
++
++    private func makePlaceholder() -> WebPagePlaceholderView {
++
++        WebPagePlaceholderView(session: self.session,
++                               load: { [weak self] in
++                                   guard let self, let url = self.session.restoredURL else { return }
++                                   self.load(url)
++                               },
++                               reload: { [weak self] in self?.reload() },
++                               retry: { [weak self] in self?.retry() },
++                               editAddress: { [weak self] in
++                                   guard let self else { return }
++                                   self.view.window?.makeFirstResponder(self.addressField)
++                               })
++    }
++
++
++    private func makeNavigationBar() -> NSView {
++
++        func configure(_ button: NSButton, symbol: String, label: String, action: Selector) {
++            button.bezelStyle = .accessoryBarAction
++            button.isBordered = false
++            button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: label)
++            button.imagePosition = .imageOnly
++            button.setAccessibilityLabel(label)
++            button.toolTip = label
++            button.target = self
++            button.action = action
++            button.setContentHuggingPriority(.required, for: .horizontal)
++        }
++
++        configure(self.backButton, symbol: "chevron.backward",
++                  label: String(localized: "WebPageView.back", defaultValue: "Back", table: "WebPages", comment: "button label"),
++                  action: #selector(goBack))
++        configure(self.forwardButton, symbol: "chevron.forward",
++                  label: String(localized: "WebPageView.forward", defaultValue: "Forward", table: "WebPages", comment: "button label"),
++                  action: #selector(goForward))
++        configure(self.reloadButton, symbol: "arrow.clockwise",
++                  label: String(localized: "WebPageView.reload", defaultValue: "Reload", table: "WebPages", comment: "button label"),
++                  action: #selector(reloadOrStop))
++
++        self.addressField.placeholderString = String(localized: "WebPageView.address.placeholder", defaultValue: "Website Address", table: "WebPages",
++                                                     comment: "placeholder of the address field of a webpage tab")
++        self.addressField.setAccessibilityLabel(String(localized: "WebPageView.address.accessibilityLabel", defaultValue: "Address", table: "WebPages"))
++        self.addressField.bezelStyle = .roundedBezel
++        self.addressField.lineBreakMode = .byTruncatingTail
++        self.addressField.usesSingleLineMode = true
++        self.addressField.cell?.isScrollable = true
++        self.addressField.delegate = self
++        self.addressField.setContentHuggingPriority(.defaultLow, for: .horizontal)
++        self.addressField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
++
++        let bar = NSStackView(views: [self.backButton, self.forwardButton, self.reloadButton, self.addressField])
++        bar.orientation = .horizontal
++        bar.spacing = 4
++        bar.edgeInsets = NSEdgeInsets(top: 4, left: 8, bottom: 4, right: 8)
++        bar.setAccessibilityElement(true)
++        bar.setAccessibilityRole(.toolbar)
++        bar.setAccessibilityLabel(String(localized: "WebPageView.navigationBar.accessibilityLabel", defaultValue: "Navigation", table: "WebPages"))
++
++        return bar
++    }
++
++
++    private func configureMessageBar() {
++
++        self.messageLabel.textColor = .secondaryLabelColor
++        self.messageLabel.font = .preferredFont(forTextStyle: .callout)
++        self.messageLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
++        self.messageLabel.isSelectable = true
++
++        let icon = NSImageView(image: NSImage(systemSymbolName: "exclamationmark.triangle", accessibilityDescription: nil)!)
++        icon.contentTintColor = .systemOrange
++        icon.setContentHuggingPriority(.required, for: .horizontal)
++
++        self.retryButton.title = String(localized: "WebPageView.retry", defaultValue: "Try Again", table: "WebPages", comment: "button label")
++        self.retryButton.bezelStyle = .push
++        self.retryButton.controlSize = .small
++        self.retryButton.target = self
++        self.retryButton.action = #selector(retryFailedNavigation)
++
++        let dismissLabel = String(localized: "WebPageView.dismissMessage", defaultValue: "Dismiss", table: "WebPages", comment: "button label")
++        self.dismissButton.bezelStyle = .accessoryBarAction
++        self.dismissButton.isBordered = false
++        self.dismissButton.image = NSImage(systemSymbolName: "xmark.circle.fill", accessibilityDescription: dismissLabel)
++        self.dismissButton.imagePosition = .imageOnly
++        self.dismissButton.setAccessibilityLabel(dismissLabel)
++        self.dismissButton.toolTip = dismissLabel
++        self.dismissButton.target = self
++        self.dismissButton.action = #selector(dismissMessage)
++
++        self.messageBar.setViews([icon, self.messageLabel, self.retryButton, self.dismissButton], in: .leading)
++        self.messageBar.orientation = .horizontal
++        self.messageBar.spacing = 8
++        self.messageBar.edgeInsets = NSEdgeInsets(top: 4, left: 12, bottom: 6, right: 8)
++        self.messageBar.isHidden = true
++    }
++
++
++    private func reload() {
++
++        guard !self.isTornDown else { return }
++
++        self.session.willLoad()
++        if self.webView.url != nil {
++            self.webView.reload()
++        } else if let url = self.session.address {
++            self.load(url)
++        }
++        self.update()
++    }
++
++
++    // MARK: Action Messages
++
++    @objc private func goBack(_ sender: Any?) {
++
++        self.webView.goBack()
++    }
++
++
++    @objc private func goForward(_ sender: Any?) {
++
++        self.webView.goForward()
++    }
++
++
++    @objc private func reloadOrStop(_ sender: Any?) {
++
++        if self.session.isLoading {
++            self.webView.stopLoading()
++            self.session.didStop()
++            self.update()
++        } else {
++            self.reload()
++        }
++    }
++
++
++    @objc private func retryFailedNavigation(_ sender: Any?) {
++
++        self.retry()
++    }
++
++
++    @objc private func dismissMessage(_ sender: Any?) {
++
++        self.session.dismissMessages()
++    }
++}
++
++
++// MARK: - Messages
++
++extension WebPageNavigationPolicy.Refusal {
++
++    var message: String {
++
++        switch self {
++            case .invalidAddress:
++                String(localized: "WebPageRefusal.invalidAddress", defaultValue: "Enter a website address, such as https://example.com.", table: "WebPages")
++            case .unsupportedScheme(let scheme):
++                String(localized: "WebPageRefusal.unsupportedScheme", defaultValue: "Webpage tabs can’t open “\(scheme):” addresses.", table: "WebPages",
++                       comment: "%@ is a URL scheme such as mailto")
++            case .requiresHTTPS(let host):
++                String(localized: "WebPageRefusal.requiresHTTPS",
++                       defaultValue: "“\(host)” requires HTTPS. HTTP is only supported for local development servers.", table: "WebPages",
++                       comment: "%@ is a host name")
++            case .embeddedCredentials:
++                String(localized: "WebPageRefusal.embeddedCredentials", defaultValue: "Addresses with a user name or password aren’t supported.", table: "WebPages")
++        }
++    }
++}
++
++
++extension WebPageSession.Failure: CustomStringConvertible {
++
++    var description: String {
++
++        var text = if let url {
++            String(localized: "WebPageFailure.message", defaultValue: "“\(url.absoluteString)” couldn’t be opened: \(self.message)", table: "WebPages",
++                   comment: "first %@ is the address that failed, second %@ the reason")
++        } else {
++            self.message
++        }
++        if !self.isRetryable {
++            text += " " + String(localized: "WebPageFailure.notRetried",
++                                 defaultValue: "The request was not sent again. To try again, go back and submit it again.", table: "WebPages",
++                                 comment: "explanation after a failed form submission or other request that is not repeated automatically")
++        }
++        return text
++    }
++}
++
++
++// MARK: - Placeholder
++
++/// What a webpage tab shows while it has no page: a new tab, a restored tab, a page whose process
++/// ended, or a first navigation that failed.
++struct WebPagePlaceholderView: View {
++
++    let session: WebPageSession
++    let load: () -> Void
++    let reload: () -> Void
++    let retry: () -> Void
++    let editAddress: () -> Void
++
++
++    var body: some View {
++
++        VStack(spacing: 12) {
++            switch self.session.lifecycle {
++                case .restored:
++                    self.header(systemImage: "globe", title: self.session.title,
++                                message: String(localized: "WebPagePlaceholder.restored.message",
++                                                defaultValue: "Webpages are not loaded again by themselves after CotEditor quits.", table: "WebPages"))
++                    if let url = self.session.restoredURL {
++                        Text(url.absoluteString)
++                            .font(.callout)
++                            .foregroundStyle(.secondary)
++                            .textSelection(.enabled)
++                            .lineLimit(3)
++                    }
++                    Button(String(localized: "WebPagePlaceholder.load", defaultValue: "Load Webpage", table: "WebPages", comment: "button label"),
++                           action: self.load)
++                        .keyboardShortcut(.defaultAction)
++
++                case .contentProcessEnded:
++                    self.header(systemImage: "exclamationmark.triangle",
++                                title: String(localized: "WebPagePlaceholder.processEnded.title", defaultValue: "The webpage stopped", table: "WebPages"),
++                                message: String(localized: "WebPagePlaceholder.processEnded.message",
++                                                defaultValue: "The page and anything entered on it are gone. Reloading loads it again.", table: "WebPages"))
++                    Button(String(localized: "WebPageView.reload", defaultValue: "Reload", table: "WebPages", comment: "button label"),
++                           action: self.reload)
++
++                case .active where self.session.failure != nil:
++                    let failure = self.session.failure!
++                    self.header(systemImage: "exclamationmark.triangle",
++                                title: String(localized: "WebPagePlaceholder.failed.title", defaultValue: "The webpage couldn’t be opened", table: "WebPages"),
++                                message: failure.description)
++                    if failure.isRetryable {
++                        Button(String(localized: "WebPageView.retry", defaultValue: "Try Again", table: "WebPages", comment: "button label"),
++                               action: self.retry)
++                    }
++
++                default:
++                    self.header(systemImage: "globe",
++                                title: String(localized: "WebPagePlaceholder.empty.title", defaultValue: "Enter a website address", table: "WebPages"),
++                                message: String(localized: "WebPagePlaceholder.empty.message",
++                                                defaultValue: "HTTPS addresses open anywhere. HTTP works for local development servers, such as http://localhost:3000.",
++                                                table: "WebPages"))
++                    Button(String(localized: "WebPagePlaceholder.editAddress", defaultValue: "Edit Address", table: "WebPages", comment: "button label"),
++                           action: self.editAddress)
++            }
++        }
++        .padding(24)
++        .frame(maxWidth: 480)
++        .frame(maxWidth: .infinity, maxHeight: .infinity)
++        .accessibilityElement(children: .contain)
++    }
++
++
++    private func header(systemImage: String, title: String, message: String) -> some View {
++
++        VStack(spacing: 8) {
++            Image(systemName: systemImage)
++                .font(.system(size: 36))
++                .foregroundStyle(.secondary)
++                .accessibilityHidden(true)
++            Text(title)
++                .font(.headline)
++                .multilineTextAlignment(.center)
++            Text(message)
++                .foregroundStyle(.secondary)
++                .multilineTextAlignment(.center)
++        }
++    }
++}

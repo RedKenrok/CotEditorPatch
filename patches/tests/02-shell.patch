@@ -1,0 +1,1807 @@
+diff --git a/Tests/Sources/Models/DirectoryTabTests+Terminal.swift b/Tests/Sources/Models/DirectoryTabTests+Terminal.swift
+new file mode 100644
+index 000000000..5257cbdff
+--- /dev/null
++++ b/Tests/Sources/Models/DirectoryTabTests+Terminal.swift
+@@ -0,0 +1,761 @@
++//
++//  DirectoryTabTests+Terminal.swift
++//  Tests
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import Foundation
++import Testing
++import Defaults
++@testable import CotEditor
++
++/// Terminal tabs in directory windows, with fake engines and scripted prompts.
++///
++/// These are part of the serialized `DirectoryTabTests` suite: they change the same global
++/// preference, and also the global engine factory and prompts.
++extension DirectoryTabTests {
++
++    // MARK: Ordering and Selection
++
++    @Test(.timeLimit(.minutes(1))) func terminalsShareTabOrderAndSelection() async throws {
++
++        try await self.withTerminals { directory, urls, _, _ in
++            #expect(await directory.openDocument(at: urls[0]))
++            let terminal = try #require(directory.openTerminalTab())
++            #expect(await directory.openDocument(at: urls[1]))
++            let entries = directory.tabState.entries
++            #expect(entries.count == 3)
++            #expect(entries[1].terminalSession === terminal)
++            #expect(directory.tabDocuments.map(\.fileURL) == [urls[0], urls[1]], "terminals are not documents")
++
++            directory.selectTab(id: entries[1].id)
++            #expect(directory.activeTerminalSession === terminal)
++            #expect(directory.activeFileDocument == nil)
++            #expect(directory.currentDocument == nil)
++
++            directory.selectAdjacentTab(by: 1)
++            #expect(directory.activeFileDocument?.fileURL == urls[1])
++            directory.selectAdjacentTab(by: -1)
++            #expect(directory.activeTerminalSession === terminal)
++            directory.selectAdjacentTab(by: -1)
++            #expect(directory.activeFileDocument?.fileURL == urls[0])
++            #expect(directory.currentDocument?.fileURL == urls[0])
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func terminalHostsNoFileAndKeepsFilesIntact() async throws {
++
++        try await self.withTerminals(makesWindow: true) { directory, urls, engines, _ in
++            #expect(await directory.openDocument(at: urls[0]))
++            let file = try #require(directory.activeFileDocument)
++            let window = try #require(directory.windowControllers.first?.window)
++            let content = try #require(directory.windowContentViewController)
++            let editor = try #require(content.documentViewController)
++
++            let terminal = try #require(directory.openTerminalTab())
++            #expect(content.documentViewController == nil, "no editor is reachable while a terminal shows")
++            #expect((directory.windowController?.fileDocument) == nil)
++            #expect(window.subtitle == terminal.title)
++            let engine = try #require(engines.made.first)
++            #expect(engine.view.window === window)
++
++            let fileActions: [Selector] = [
++                #selector(NSDocument.save(_:)),
++                #selector(NSDocument.revertToSaved(_:)),
++                #selector(NSDocument.printDocument(_:)),
++                #selector(DirectoryDocument.changeEncoding(_:)),
++                #selector(DirectoryDocument.changeLineEnding(_:)),
++                #selector(DirectoryDocument.toggleEditable(_:)),
++                #selector(DirectoryDocument.showInFinder(_:)),
++            ]
++            #expect(fileActions.allSatisfy { !directory.validateUserInterfaceItem(NSMenuItem(title: "", action: $0, keyEquivalent: "")) })
++            #expect(directory.validateUserInterfaceItem(NSMenuItem(title: "", action: #selector(DirectoryDocument.renameTerminalTab(_:)), keyEquivalent: "")))
++
++            // The hidden file comes back with its own editor, and the terminal view is only detached.
++            directory.selectDocument(file)
++            #expect(content.documentViewController === editor)
++            #expect(engine.view.window == nil)
++            #expect(engine.shutDownCount == 0)
++            #expect(terminal.isLive)
++
++            directory.selectTerminal(terminal)
++            #expect(engine.view.window === window)
++            #expect(engines.made.count == 1, "switching tabs never recreates the terminal")
++
++            // Opening the hidden file from the sidebar activates it as usual.
++            #expect(await directory.openDocument(at: urls[0]))
++            #expect(directory.activeFileDocument === file)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func terminalFillsTheContentPaneInEveryState() async throws {
++        
++        try await self.withTerminals(makesWindow: true) { directory, _, engines, _ in
++            let window = try #require(directory.windowControllers.first?.window)
++            let splitViewController = try #require(directory.windowController?.contentViewController as? NSSplitViewController)
++            let pane = try #require(splitViewController.splitViewItems.first { $0.behavior == .default })
++            window.setContentSize(NSSize(width: 1000, height: 700))
++            // The divider position is remembered across launches, so start from a known sidebar width.
++            splitViewController.splitView.setPosition(220, ofDividerAt: 0)
++            window.layoutIfNeeded()
++            let fileWidth = pane.viewController.view.frame.width
++            
++            // The pane must keep its width, and follow the window, whatever the terminal shows.
++            _ = try #require(directory.openTerminalTab())
++            let states: [(String, () -> Void)] = [
++                ("running", {}),
++                ("failed", { engines.nextStartError = .spawnFailed; _ = directory.openTerminalTab() }),
++            ]
++            for (state, enter) in states {
++                enter()
++                window.setContentSize(NSSize(width: 1000, height: 700))
++                window.layoutIfNeeded()
++                #expect(abs(pane.viewController.view.frame.width - fileWidth) < 2, "\(state): the terminal keeps the pane width")
++                
++                window.setContentSize(NSSize(width: 1300, height: 700))
++                window.layoutIfNeeded()
++                #expect(pane.viewController.view.frame.width > fileWidth + 250, "\(state): the pane follows the window")
++            }
++            
++            // A real terminal view, without a process, fills the pane with the grid centered in it.
++            engines.makeView = { SwiftTermEngine().view }
++            directory.selectTerminal(try #require(directory.openTerminalTab()))
++            let container = try #require(engines.made.last?.view as? TerminalContainerView)
++            let terminalView = container.terminalView
++            let cell = try #require(terminalView.cellSize)
++            let scrollerWidth = terminalView.reservedScrollerWidth
++            for size in [NSSize(width: 1000, height: 700), NSSize(width: 1300, height: 523)] {
++                window.setContentSize(size)
++                window.layoutIfNeeded()
++                #expect(abs(container.frame.width - pane.viewController.view.frame.width) < 2)
++                
++                // The scroller's strip lies inside the trailing margin, so it counts as margin.
++                let bounds = container.bounds
++                let frame = terminalView.frame
++                let margins = (leading: frame.minX - bounds.minX,
++                               trailing: bounds.maxX - frame.maxX + scrollerWidth,
++                               top: bounds.maxY - frame.maxY,
++                               bottom: frame.minY - bounds.minY)
++                #expect(abs(margins.leading - margins.trailing) <= 1, "\(size): \(margins)")
++                #expect(abs(margins.top - margins.bottom) <= 1, "\(size): \(margins)")
++                #expect(min(margins.leading, margins.top) >= scrollerWidth, "\(size): \(margins)")
++                
++                // Every whole cell that fits inside the minimum margins is used. SwiftTerm counts
++                // the cells of its own frame by dividing it by the cell size, as done here.
++                #expect(Int((frame.width - scrollerWidth) / cell.width) == Int((bounds.width - 2 * scrollerWidth) / cell.width), "\(size)")
++                #expect(Int(frame.height / cell.height) == Int((bounds.height - 2 * scrollerWidth) / cell.height), "\(size)")
++            }
++        }
++    }
++    
++    
++    @Test(.timeLimit(.minutes(1))) func selectingATerminalMovesKeyboardFocusIntoIt() async throws {
++        
++        try await self.withTerminals(makesWindow: true) { directory, urls, engines, _ in
++            engines.makeView = { FocusableTerminalView() }
++            #expect(await directory.openDocument(at: urls[0]))
++            let file = try #require(directory.activeFileDocument)
++            let window = try #require(directory.windowControllers.first?.window)
++            
++            let terminal = try #require(directory.openTerminalTab())
++            let engine = try #require(engines.made.last)
++            #expect(window.firstResponder === engine.focusView, "a new terminal takes the focus")
++            
++            directory.selectDocument(file)
++            let editor = try #require(directory.windowContentViewController?.documentViewController?.focusedTextView)
++            #expect(window.firstResponder === editor, "the editor gets the focus back")
++            
++            directory.selectTerminal(terminal)
++            #expect(window.firstResponder === engine.focusView, "selecting the terminal focuses its input")
++            
++            // Focus the user put in the sidebar stays there, as for file tabs.
++            directory.selectDocument(file)
++            let outline = try #require(directory.fileBrowserViewController.flatMap { Self.firstOutlineView(in: $0.view) })
++            #expect(window.makeFirstResponder(outline))
++            directory.selectTerminal(terminal)
++            #expect(window.firstResponder === outline)
++        }
++    }
++    
++    
++    @Test(.timeLimit(.minutes(1))) func terminalFollowsTheThemeSetting() async throws {
++        
++        let key = DefaultKeys.terminalTheme.rawValue
++        let original = UserDefaults.standard.object(forKey: key)
++        defer { UserDefaults.standard.set(original, forKey: key) }
++        UserDefaults.standard[.terminalTheme] = ""
++        
++        let engine = SwiftTermEngine()
++        defer { engine.shutDown() }
++        let host = try #require(engine.focusView as? TerminalHostView)
++        let expectedColors = {
++            var colors: TerminalColors?
++            host.effectiveAppearance.performAsCurrentDrawingAppearance {
++                colors = TerminalColors.current(isDark: host.effectiveAppearance.isDark)
++            }
++            return colors
++        }
++        #expect(host.themeColors == expectedColors(), "a new terminal starts with the theme")
++        
++        // Classic has no dark variant, so it is used in either appearance.
++        UserDefaults.standard[.terminalTheme] = "Classic"
++        #expect(TerminalColors.themeName(setting: "Classic", isDark: host.effectiveAppearance.isDark, pinsAppearance: false) == "Classic")
++        let classic = try #require(try? ThemeManager.shared.setting(name: "Classic"))
++        try await self.wait { host.themeColors == expectedColors() }
++        #expect(host.themeColors?.background == TerminalColors(theme: classic, derivesPalette: false).background, "the chosen theme is applied")
++    }
++    
++    
++    @Test(.timeLimit(.minutes(1))) func terminalTitlesAreUniqueAndDescribed() async throws {
++
++        try await self.withTerminals { directory, _, _, prompts in
++            let first = try #require(directory.openTerminalTab())
++            let second = try #require(directory.openTerminalTab())
++            #expect(first.title == "Shell")
++            #expect(second.title == "Shell 2")
++
++            prompts.answers = [true]
++            #expect(await directory.closeTerminal(first))
++            let third = try #require(directory.openTerminalTab())
++            #expect(third.title == "Shell", "a freed name is reused")
++
++            third.rename(to: "Build")
++            let presentation = try #require(directory.tabPresentations.first { $0.id == directory.tabState.entry(for: third)?.id })
++            #expect(presentation.title == "Build")
++            #expect(!presentation.isModified, "a terminal is running work, not an unsaved document")
++            #expect(presentation.tooltip.contains(directory.fileURL!.path(percentEncoded: false)))
++            #expect(DirectoryTabBar.closeLabel(for: presentation).contains("Build"))
++        }
++    }
++
++
++    // MARK: Folders Elsewhere
++
++    @Test(.timeLimit(.minutes(1))) func aWindowWithoutALocalFolderStartsNoTerminal() async throws {
++
++        try await self.withRootDirectory { directory, _ in
++            let item = NSMenuItem(title: "", action: #selector(DirectoryDocument.newTerminalTab(_:)), keyEquivalent: "")
++            #expect(!directory.validateUserInterfaceItem(item))
++
++            UserDefaults.standard[.usesDirectoryFileTabs] = false
++            await directory.requestTerminalTab()
++            #expect(!UserDefaults.standard[.usesDirectoryFileTabs], "it does not even offer to turn tabs on")
++            UserDefaults.standard[.usesDirectoryFileTabs] = true
++
++            #expect(directory.openTerminalTab() == nil)
++            #expect(directory.tabItems.isEmpty)
++            #expect(directory.newTerminalMenuItem.isEnabled == false)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func aRootsLauncherStartsTheTerminalsOfAWindowWithoutALocalFolder() async throws {
++
++        let engines = FakeTerminalEngines()
++        let originalFactory = TerminalSession.defaultEngineFactory
++        TerminalSession.defaultEngineFactory = engines.make
++        let key = DefaultKeys.usesDirectoryFileTabs.rawValue
++        let original = UserDefaults.standard.object(forKey: key)
++        UserDefaults.standard[.usesDirectoryFileTabs] = true
++        let root = FakeTerminalRoot()
++        let directory = DirectoryDocument(root: root)
++        directory.makeWindowControllers()
++        directory.showWindows()
++        defer {
++            directory.close()
++            TerminalSession.defaultEngineFactory = originalFactory
++            UserDefaults.standard.set(original, forKey: key)
++        }
++
++        #expect(directory.canOpenTerminals)
++        #expect(directory.validateUserInterfaceItem(NSMenuItem(title: "", action: #selector(DirectoryDocument.newTerminalTab(_:)), keyEquivalent: "")))
++        #expect(directory.newTerminalMenuItem.isEnabled)
++
++        await directory.requestTerminalTab()
++        let session = try #require(directory.activeTerminalSession)
++        let engine = try #require(engines.made.first)
++        #expect(engine.configurations.first?.executable == "/usr/bin/true", "the launcher decides what runs")
++        #expect(session.tabToolTip.contains("elsewhere:/folder"))
++        #expect(session.archivedFields() == nil, "only the launcher could start it again")
++
++        // A failure keeps the tab with its output; starting again makes a new process.
++        engine.finish(code: 255)
++        try await self.wait { session.keepsTabAfterExit }
++        await Task.yield()
++        #expect(directory.tabItems.contains { $0 === session })
++        session.start()
++        let second = try #require(engines.made.last)
++        #expect(second !== engine)
++        #expect(root.launchCount == 2, "each start asks the launcher again")
++
++        // Ending normally closes the tab, as for a local shell.
++        second.finish(code: 0)
++        try await self.wait { !directory.tabItems.contains { $0 === session } }
++
++        // A root that cannot start a terminal opens no tab, and no local shell.
++        root.error = CocoaError(.featureUnsupported)
++        await directory.requestTerminalTab()
++        #expect(directory.tabItems.isEmpty)
++        #expect(engines.made.count == 2)
++    }
++
++
++    // MARK: Closing
++
++    @Test(.timeLimit(.minutes(1))) func closingRunningTerminalAsksFirst() async throws {
++
++        try await self.withTerminals(makesWindow: true) { directory, urls, engines, prompts in
++            #expect(await directory.openDocument(at: urls[0]))
++            let terminal = try #require(directory.openTerminalTab())
++            let engine = try #require(engines.made.first)
++
++            prompts.answers = [false]
++            await directory.closeTab(id: terminal.id)
++            #expect(prompts.closeRequests == [.tab(title: "Shell")])
++            #expect(directory.terminalSessions.first === terminal)
++            #expect(engine.shutDownCount == 0, "canceling never stops the process")
++
++            prompts.answers = [true]
++            await directory.closeTab(id: terminal.id)
++            #expect(directory.terminalSessions.isEmpty)
++            #expect(engine.shutDownCount == 1)
++            #expect(terminal.lifecycle == .closed)
++            #expect(directory.activeFileDocument?.fileURL == urls[0], "the neighbor takes over the selection")
++            #expect(directory.windowContentViewController?.documentViewController != nil)
++            #expect(directory.windowControllers.first?.window?.isVisible == true, "closing the last terminal keeps the window")
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func exitingShellClosesItsTab() async throws {
++
++        try await self.withTerminals(makesWindow: true) { directory, urls, engines, prompts in
++            #expect(await directory.openDocument(at: urls[0]))
++            let terminal = try #require(directory.openTerminalTab())
++            let engine = try #require(engines.made.last)
++
++            engine.finish(code: 0)
++            try await self.wait { directory.terminalSessions.isEmpty }
++            #expect(terminal.lifecycle == .closed)
++            #expect(engine.shutDownCount == 1)
++            #expect(prompts.closeRequests.isEmpty, "a shell that has ended needs no confirmation")
++            #expect(directory.activeFileDocument?.fileURL == urls[0], "the neighbor takes over the selection")
++            #expect(directory.windowControllers.first?.window?.isVisible == true)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func shellExitingDuringItsClosePromptClosesTheTabOnce() async throws {
++
++        try await self.withTerminals { directory, _, engines, prompts in
++            let terminal = try #require(directory.openTerminalTab())
++            let engine = try #require(engines.made.last)
++            prompts.suspends = true
++
++            let close = Task { await directory.closeTerminal(terminal) }
++            try await self.wait { prompts.pending != nil }
++            engine.finish(code: 0)
++            try await self.wait { directory.terminalSessions.isEmpty }
++
++            prompts.resume(with: true)
++            #expect(await close.value == false, "the tab was already gone when the user answered")
++            #expect(engine.shutDownCount == 1)
++            #expect(prompts.closeRequests.count == 1)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func closingFailedTerminalDoesNotAsk() async throws {
++
++        try await self.withTerminals { directory, _, engines, prompts in
++            engines.nextStartError = .spawnFailed
++            let failed = try #require(directory.openTerminalTab())
++            #expect(failed.lifecycle == .failed(.spawnFailed))
++
++            #expect(await directory.closeTerminal(failed))
++            #expect(prompts.closeRequests.isEmpty)
++            #expect(directory.terminalSessions.isEmpty)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func keyboardCloseClosesTheTerminalTab() async throws {
++
++        try await self.withTerminals(makesWindow: true) { directory, urls, _, prompts in
++            #expect(await directory.openDocument(at: urls[0]))
++            _ = try #require(directory.openTerminalTab())
++            let window = try #require(directory.windowControllers.first?.window as? DocumentWindow)
++            prompts.answers = [true]
++
++            window.performClose(NSMenuItem(title: "Close", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w"))
++            try await self.wait { directory.terminalSessions.isEmpty }
++            #expect(window.isVisible)
++            #expect(directory.activeFileDocument?.fileURL == urls[0])
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func windowCloseAsksOnceAndStopsNothingUntilApproved() async throws {
++
++        try await self.withTerminals(makesWindow: true) { directory, _, engines, prompts in
++            _ = try #require(directory.openTerminalTab())
++            _ = try #require(directory.openTerminalTab())
++            engines.nextStartError = .spawnFailed
++            _ = try #require(directory.openTerminalTab())
++            let live = engines.made.filter { $0.startError == nil }
++
++            prompts.answers = [false]
++            #expect(await directory.canClose() == false)
++            #expect(prompts.closeRequests == [.many(scope: .window, liveCount: 2)])
++            #expect(live.allSatisfy { $0.shutDownCount == 0 })
++            #expect(directory.terminalSessions.count == 3)
++
++            prompts.answers = [true]
++            #expect(await directory.canClose())
++            #expect(live.allSatisfy { $0.shutDownCount == 0 }, "approval alone stops nothing")
++
++            directory.close()
++            #expect(live.allSatisfy { $0.shutDownCount == 1 })
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func overlappingTerminalClosesAreRefused() async throws {
++
++        try await self.withTerminals { directory, _, _, prompts in
++            let terminal = try #require(directory.openTerminalTab())
++            prompts.suspends = true
++
++            let firstClose = Task { await directory.closeTerminal(terminal) }
++            try await self.wait { prompts.pending != nil }
++            #expect(await directory.closeTerminal(terminal) == false)
++            #expect(await directory.canClose() == false, "a window close waits for no pending tab close")
++
++            prompts.resume(with: true)
++            #expect(await firstClose.value)
++            #expect(directory.terminalSessions.isEmpty)
++            #expect(prompts.closeRequests.count == 1)
++        }
++    }
++
++
++    // MARK: Preference Transitions
++
++    @Test(.timeLimit(.minutes(1))) func turningTabsOffAsksBeforeClosingTerminals() async throws {
++
++        try await self.withTerminals(makesWindow: true, registersDocument: true) { directory, urls, engines, prompts in
++            #expect(await directory.openDocument(at: urls[0]))
++            _ = try #require(directory.openTerminalTab())
++            engines.nextStartError = .spawnFailed
++            _ = try #require(directory.openTerminalTab())
++            let live = engines.made.filter { $0.startError == nil }
++
++            prompts.answers = [false]
++            #expect(await TerminalTabsPreference.setUsesDirectoryFileTabs(false) == false)
++            #expect(prompts.closeRequests == [.many(scope: .disablingTabs, liveCount: 1)])
++            #expect(UserDefaults.standard[.usesDirectoryFileTabs])
++            #expect(directory.terminalSessions.count == 2)
++            #expect(live.allSatisfy { $0.shutDownCount == 0 })
++
++            prompts.answers = [true]
++            #expect(await TerminalTabsPreference.setUsesDirectoryFileTabs(false))
++            #expect(!UserDefaults.standard[.usesDirectoryFileTabs])
++            #expect(directory.terminalSessions.isEmpty)
++            #expect(live.allSatisfy { $0.shutDownCount == 1 })
++            #expect(directory.activeFileDocument?.fileURL == urls[0])
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func externalPreferenceChangeStillEndsTerminals() async throws {
++
++        try await self.withTerminals(makesWindow: true) { directory, _, engines, _ in
++            _ = try #require(directory.openTerminalTab())
++
++            UserDefaults.standard[.usesDirectoryFileTabs] = false
++            #expect(directory.terminalSessions.isEmpty)
++            #expect(try #require(engines.made.first).shutDownCount == 1)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func terminalWithTabsOffOffersToEnableThem() async throws {
++
++        try await self.withTerminals(makesWindow: true) { directory, _, _, prompts in
++            UserDefaults.standard[.usesDirectoryFileTabs] = false
++
++            prompts.answers = [false]
++            await directory.requestTerminalTab()
++            #expect(prompts.enableRequests == 1)
++            #expect(!UserDefaults.standard[.usesDirectoryFileTabs], "canceling changes nothing")
++            #expect(directory.terminalSessions.isEmpty)
++            #expect(directory.openTerminalTab() == nil)
++
++            prompts.answers = [true]
++            await directory.requestTerminalTab(in: directory.fileURL)
++            #expect(UserDefaults.standard[.usesDirectoryFileTabs])
++            #expect(directory.activeTerminalSession?.isLive == true)
++        }
++    }
++
++
++    // MARK: Quitting
++
++    @Test(.timeLimit(.minutes(1))) func quittingAsksOnceAndStopsOnlyOnTermination() async throws {
++
++        try await self.withTerminals(registersDocument: true) { directory, _, engines, prompts in
++            _ = try #require(directory.openTerminalTab())
++            defer { TerminalTermination.revokeConsent() }
++
++            prompts.answers = [false]
++            #expect(await TerminalTermination.requestConsent() == false)
++            #expect(TerminalTermination.needsConsent)
++
++            prompts.answers = [true]
++            #expect(await TerminalTermination.requestConsent())
++            #expect(await TerminalTermination.requestConsent(), "the answer holds for the rest of the attempt")
++            #expect(prompts.closeRequests == [.many(scope: .quit, liveCount: 1), .many(scope: .quit, liveCount: 1)])
++            #expect(engines.made.allSatisfy { $0.shutDownCount == 0 })
++
++            // A dirty-file prompt canceled later in the same quit.
++            TerminalTermination.revokeConsent()
++            #expect(TerminalTermination.needsConsent)
++            #expect(directory.activeTerminalSession?.isLive == true)
++
++            TerminalTermination.stopAllSessions()
++            #expect(engines.made.allSatisfy { $0.shutDownCount == 1 })
++            #expect(directory.terminalSessions.allSatisfy { $0.lifecycle == .closed })
++        }
++    }
++
++
++    // MARK: Restoration
++
++    @Test(.timeLimit(.minutes(1))) func restorationShowsPlaceholdersWithoutStartingShells() async throws {
++
++        try await self.withTerminals { directory, urls, engines, _ in
++            #expect(await directory.openDocument(at: urls[0]))
++            let terminal = try #require(directory.openTerminalTab(in: urls[0].deletingLastPathComponent()))
++            terminal.rename(to: "Server")
++            #expect(await directory.openDocument(at: urls[1]))
++            directory.selectTerminal(terminal)
++            let ids = directory.tabState.entries.map(\.id)
++            let data = self.encodeRestorableState(of: directory)
++            directory.close()
++            let madeBeforeRestore = engines.made.count
++
++            try await self.withRestoredDirectory(at: urls[0].deletingLastPathComponent(), from: data) { restored in
++                try await self.wait { restored.tabDocuments.count == 2 }
++                #expect(restored.tabState.entries.map(\.id) == ids)
++                #expect(restored.tabState.selectedID == ids[1], "the selected terminal is still selected")
++                let placeholder = try #require(restored.activeTerminalSession)
++                #expect(placeholder.lifecycle == .inactive)
++                #expect(placeholder.title == "Server")
++                #expect(restored.activeFileDocument == nil)
++                #expect(engines.made.count == madeBeforeRestore, "restoration never starts a shell")
++
++                placeholder.start()
++                #expect(placeholder.isLive)
++                let started = try #require(engines.made.last?.configurations.first?.currentDirectory)
++                #expect(URL(filePath: started).resolvingSymlinksInPath().standardizedFileURL.path(percentEncoded: false)
++                        == urls[0].deletingLastPathComponent().resolvingSymlinksInPath().standardizedFileURL.path(percentEncoded: false))
++            }
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func terminalTabsReorderButStayInTheirWindow() async throws {
++        
++        try await self.withTerminals { directory, urls, _, _ in
++            #expect(await directory.openDocument(at: urls[0]))
++            let terminal = try #require(directory.openTerminalTab())
++            #expect(await directory.openDocument(at: urls[1]))
++            let ids = directory.tabState.entries.map(\.id)
++            
++            directory.moveTab(id: ids[1], to: 2)
++            #expect(directory.tabState.entries.map(\.id) == [ids[0], ids[2], ids[1]])
++            
++            // Detachable terminals are outside the terminal patch: the command is neither offered nor carried out.
++            #expect(!directory.canMoveTabToNewWindow(id: ids[1]))
++            #expect(directory.tabPresentations.first { $0.id == ids[1] }?.canMoveToNewWindow == false)
++            #expect(!directory.moveTabToNewWindow(id: ids[1]))
++            #expect(directory.terminalSessions.first === terminal)
++            #expect(terminal.isLive)
++            
++            let data = self.encodeRestorableState(of: directory)
++            directory.close()
++            try await self.withRestoredDirectory(at: urls[0].deletingLastPathComponent(), from: data) { restored in
++                try await self.wait { restored.tabDocuments.count == 2 }
++                #expect(restored.tabState.entries.map(\.id) == [ids[0], ids[2], ids[1]], "the moved order survives a relaunch")
++            }
++        }
++    }
++    
++    
++    @Test(.timeLimit(.minutes(1))) func reconcilingFilesKeepsTerminalPlaces() async throws {
++
++        try await self.withTerminals { directory, urls, _, _ in
++            #expect(await directory.openDocument(at: urls[0]))
++            let terminal = try #require(directory.openTerminalTab())
++            #expect(await directory.openDocument(at: urls[1]))
++            let ids = directory.tabState.entries.map(\.id)
++
++            directory.tabState.reconcile(with: directory.tabDocuments)
++            #expect(directory.tabState.entries.map(\.id) == ids)
++            #expect(directory.tabState.entries[1].terminalSession === terminal)
++        }
++    }
++}
++
++
++// MARK: - Fixtures
++
++extension DirectoryTabTests {
++
++    /// Runs the body with fake terminal engines and scripted prompts installed.
++    ///
++    /// - Parameter registersDocument: Whether the directory joins the document controller, for app-wide coordinators.
++    func withTerminals(makesWindow: Bool = false, registersDocument: Bool = false,
++                       _ body: (DirectoryDocument, [URL], FakeTerminalEngines, ScriptedTerminalPrompts) async throws -> Void) async throws
++    {
++        let engines = FakeTerminalEngines()
++        let prompts = ScriptedTerminalPrompts()
++        let originalFactory = TerminalSession.defaultEngineFactory
++        let originalPrompts = TerminalPrompts.current
++        TerminalSession.defaultEngineFactory = engines.make
++        TerminalPrompts.current = prompts
++        defer {
++            TerminalSession.defaultEngineFactory = originalFactory
++            TerminalPrompts.current = originalPrompts
++        }
++
++        try await self.withDirectory(makesWindow: makesWindow) { directory, urls in
++            if registersDocument {
++                NSDocumentController.shared.addDocument(directory)
++            }
++            defer {
++                if registersDocument {
++                    NSDocumentController.shared.removeDocument(directory)
++                }
++            }
++            try await body(directory, urls, engines, prompts)
++        }
++    }
++}
++
++
++/// A fake terminal view that takes keyboard focus like the real one.
++private final class FocusableTerminalView: NSView {
++    
++    override var acceptsFirstResponder: Bool { true }
++}
++
++
++extension DirectoryTabTests {
++    
++    static func firstOutlineView(in view: NSView) -> NSOutlineView? {
++        
++        (view as? NSOutlineView) ?? view.subviews.lazy.compactMap { Self.firstOutlineView(in: $0) }.first
++    }
++}
++
++
++/// Answers terminal prompts from a script and records what was asked.
++@MainActor final class ScriptedTerminalPrompts: TerminalPrompting {
++
++    var answers: [Bool] = []
++    var suspends = false
++    private(set) var closeRequests: [TerminalCloseRequest] = []
++    private(set) var enableRequests = 0
++    private(set) var pending: CheckedContinuation<Bool, Never>?
++
++
++    func confirmClosing(_ request: TerminalCloseRequest, window: NSWindow?) async -> Bool {
++
++        self.closeRequests.append(request)
++
++        if self.suspends {
++            return await withCheckedContinuation { self.pending = $0 }
++        }
++        return self.answers.isEmpty ? false : self.answers.removeFirst()
++    }
++
++
++    func confirmEnablingTabs(window: NSWindow?) async -> Bool {
++
++        self.enableRequests += 1
++        return self.answers.isEmpty ? false : self.answers.removeFirst()
++    }
++
++
++    func askForTitle(current: String, window: NSWindow?) async -> String? {
++
++        nil
++    }
++
++
++    func resume(with answer: Bool) {
++
++        self.pending?.resume(returning: answer)
++        self.pending = nil
++        self.suspends = false
++    }
++}
++
++
++/// A root whose terminals run elsewhere, through a launcher that runs a fixed program.
++@MainActor final class FakeTerminalRoot: DirectoryRoot, TerminalLaunchProviding {
++
++    var error: (any Error)?
++    private(set) var launchCount = 0
++
++
++    var displayName: String  { "Elsewhere" }
++
++    var subtitle: String  { "elsewhere:/folder" }
++
++
++    func makeSidebarViewController(for directory: DirectoryDocument) -> NSViewController {
++
++        let controller = NSViewController()
++        controller.view = NSView(frame: NSRect(x: 0, y: 0, width: 200, height: 400))
++        return controller
++    }
++
++
++    func directoryDidChangeState(_ directory: DirectoryDocument) { }
++
++    func directoryDidClose(_ directory: DirectoryDocument) { }
++
++
++    func makeTerminalLauncher(for directory: DirectoryDocument) async throws -> TerminalLauncher {
++
++        if let error { throw error }
++
++        return TerminalLauncher(location: "elsewhere:/folder") { [weak self] in
++            self?.launchCount += 1
++            return TerminalLaunchConfiguration(executable: "/usr/bin/true", argv0: "true", arguments: [], environment: [], currentDirectory: "/")
++        }
++    }
++}
+diff --git a/Tests/Sources/Models/TerminalColorsTests.swift b/Tests/Sources/Models/TerminalColorsTests.swift
+new file mode 100644
+index 000000000..cd5ee4363
+--- /dev/null
++++ b/Tests/Sources/Models/TerminalColorsTests.swift
+@@ -0,0 +1,153 @@
++//
++//  TerminalColorsTests.swift
++//  Tests
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import Testing
++@testable import CotEditor
++
++/// Terminal colors derived from CotEditor themes, without changing any setting.
++@MainActor struct TerminalColorsTests {
++
++    // MARK: Palette
++
++    @Test func programColorsTakeTheClosestThemeHues() {
++
++        let theme = Self.theme(background: 0x1E1E1E, text: 0xD4D4D4, syntax: [
++            \.keywords: 0xE0443A,    // red
++            \.strings: 0x3FA34D,     // green
++            \.numbers: 0xC9A227,     // yellow
++            \.commands: 0x3C7FE0,    // blue
++            \.types: 0xB04BD1,       // magenta
++            \.characters: 0x2AA7B8,  // cyan
++            \.comments: 0x7A7A7A,
++        ])
++        let colors = TerminalColors(theme: theme, derivesPalette: true)
++        let palette = try! #require(colors.palette)
++
++        #expect(palette.count == 16)
++        #expect(Self.hex(palette[1]) == 0xE0443A)
++        #expect(Self.hex(palette[2]) == 0x3FA34D)
++        #expect(Self.hex(palette[3]) == 0xC9A227)
++        #expect(Self.hex(palette[4]) == 0x3C7FE0)
++        #expect(Self.hex(palette[5]) == 0xB04BD1)
++        #expect(Self.hex(palette[6]) == 0x2AA7B8)
++        #expect(Self.hex(palette[8]) == 0x7A7A7A, "bright black is the comment color")
++        #expect(palette[9].brightnessComponent > palette[1].brightnessComponent, "bright variants are lighter on a dark background")
++
++        #expect(Self.hex(colors.foreground) == 0xD4D4D4)
++        #expect(Self.hex(colors.background) == 0x1E1E1E)
++    }
++
++
++    @Test func unfittingOrUnreadableColorsKeepTheStandardOnes() {
++
++        // A dark blue on a dark background is too hard to read, and nothing is green or cyan.
++        let theme = Self.theme(background: 0x101010, text: 0xE0E0E0, syntax: [
++            \.keywords: 0xE0443A,
++            \.commands: 0x14143C,
++            \.strings: 0x808080,
++        ])
++        let palette = try! #require(TerminalColors(theme: theme, derivesPalette: true).palette)
++
++        #expect(Self.hex(palette[1]) == 0xE0443A)
++        for index in [2, 4, 6] {
++            #expect(palette[index] == TerminalColors.standardPalette[index], "slot \(index) keeps the standard color")
++        }
++    }
++
++
++    @Test func lightThemesKeepBrightVariantsReadable() {
++
++        let theme = Self.theme(background: 0xFFFFFF, text: 0x202020, syntax: [\.keywords: 0xC0302A])
++        let palette = try! #require(TerminalColors(theme: theme, derivesPalette: true).palette)
++
++        #expect(Self.hex(palette[1]) == 0xC0302A)
++        #expect(Self.hex(palette[9]) == 0xC0302A, "lightening would cost contrast on a light background")
++    }
++
++
++    @Test func standardPaletteWhenNotDerived() {
++
++        let theme = Self.theme(background: 0x1E1E1E, text: 0xD4D4D4, syntax: [\.keywords: 0xE0443A])
++        let colors = TerminalColors(theme: theme, derivesPalette: false)
++
++        #expect(colors.palette == nil)
++        #expect(Self.hex(colors.background) == 0x1E1E1E, "the base colors still follow the theme")
++    }
++
++
++    // MARK: Theme Resolution
++
++    @Test func sameAsEditorFollowsTheEditorTheme() {
++
++        for isDark in [false, true] {
++            #expect(TerminalColors.themeName(setting: "", isDark: isDark, pinsAppearance: false)
++                    == ThemeManager.shared.userDefaultSettingName(inDarkMode: isDark))
++        }
++    }
++
++
++    @Test func chosenThemeSwitchesToItsAppearanceVariant() {
++
++        let usesDark = ThemeManager.shared.usesDarkAppearance(inDarkMode: true)
++
++        #expect(TerminalColors.themeName(setting: "Dendrobates", isDark: true, pinsAppearance: false)
++                == (usesDark ? "Dendrobates (Dark)" : "Dendrobates"))
++        #expect(TerminalColors.themeName(setting: "Dendrobates", isDark: true, pinsAppearance: true) == "Dendrobates",
++                "a pinned theme keeps its own appearance")
++        #expect(TerminalColors.themeName(setting: "Mono", isDark: true, pinsAppearance: false) == "Mono",
++                "a theme without a dark variant stays itself")
++        #expect(TerminalColors.themeName(setting: "Removed Theme", isDark: false, pinsAppearance: false)
++                == ThemeManager.shared.userDefaultSettingName(inDarkMode: false), "a missing theme falls back to the editor's")
++    }
++
++
++    // MARK: Helpers
++
++    private static func theme(background: Int, text: Int, syntax: [WritableKeyPath<Theme, Theme.Style>: Int]) -> Theme {
++
++        var theme = Theme()
++        theme.background = .init(color: self.color(background))
++        theme.text = .init(color: self.color(text))
++        for keyPath in [\Theme.keywords, \.commands, \.types, \.attributes, \.variables, \.values, \.numbers, \.strings, \.characters, \.comments] {
++            theme[keyPath: keyPath] = .init(color: syntax[keyPath].map(self.color) ?? self.color(text))
++        }
++        return theme
++    }
++
++
++    private static func color(_ hex: Int) -> NSColor {
++
++        NSColor(srgbRed: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
++    }
++
++
++    private static func hex(_ color: NSColor) -> Int {
++
++        let color = color.usingColorSpace(.sRGB)!
++        let component = { (value: CGFloat) in Int((value * 255).rounded()) }
++
++        return component(color.redComponent) << 16 | component(color.greenComponent) << 8 | component(color.blueComponent)
++    }
++}
+diff --git a/Tests/Sources/Models/TerminalPTYTests.swift b/Tests/Sources/Models/TerminalPTYTests.swift
+new file mode 100644
+index 000000000..48a77dd6c
+--- /dev/null
++++ b/Tests/Sources/Models/TerminalPTYTests.swift
+@@ -0,0 +1,486 @@
++//
++//  TerminalPTYTests.swift
++//  Tests
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import Foundation
++import Testing
++@testable import CotEditor
++
++/// Real pseudo-terminal sessions with controlled shells.
++///
++/// The shells run without user startup files (`/bin/sh -c` or `zsh -f`) and with a fixed environment,
++/// so results never depend on the developer's shell configuration. Every wait is bounded, and every
++/// engine is shut down even when an expectation fails.
++@Suite(.serialized) @MainActor struct TerminalPTYTests {
++
++    private static let environment = ["TERM=xterm-256color", "PATH=/usr/bin:/bin:/usr/sbin:/sbin", "LANG=en_US.UTF-8"]
++
++
++    @Test(.timeLimit(.minutes(1))) func runsInItsOwnDirectoryWithUnicode() async throws {
++
++        // A name that would break if it were ever passed through a shell command line.
++        try await self.withDirectory(named: "pty test $(false) ✓ ü") { directory in
++            let engine = SwiftTermEngine()
++            defer { engine.shutDown() }
++            var status: TerminalExitStatus?
++            engine.onExit = { status = $0 }
++
++            try engine.start(self.shell("pwd -P; echo \"TERM=$TERM\"; printf 'h\\303\\251llo \\342\\234\\223\\n'; printf 'nfd u\\314\\210 end\\n'; exit 3", in: directory))
++
++            // The exit can be reported before the last output has been drawn, so wait for both.
++            try await self.wait { status != nil && engine.bufferText.contains(" end") }
++            #expect(status == TerminalExitStatus(code: 3))
++            // Long paths wrap at the terminal width.
++            let text = engine.bufferText.replacing("\n", with: "").replacing("\0", with: "")
++            let components = directory.pathComponents.suffix(2).joined(separator: "/")
++            #expect(text.contains(components), "the folder name reaches the shell literally")
++            #expect(text.contains("TERM=xterm-256color"))
++            #expect(text.contains("héllo ✓"))
++            #expect(text.contains("nfd u\u{0308} end"), "a combining accent stays with its letter")
++            
++            // Copying what the terminal shows keeps the same characters.
++            let pasteboard = NSPasteboard.general
++            let saved = pasteboard.string(forType: .string)
++            defer {
++                pasteboard.clearContents()
++                if let saved { pasteboard.setString(saved, forType: .string) }
++            }
++            NSApp.sendAction(#selector(NSText.selectAll(_:)), to: engine.focusView, from: nil)
++            NSApp.sendAction(#selector(NSText.copy(_:)), to: engine.focusView, from: nil)
++            let copied = try #require(pasteboard.string(forType: .string))
++            #expect(copied.contains("héllo ✓"))
++            #expect(copied.contains("nfd u\u{0308} end"))
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func concurrentSessionsAreIndependent() async throws {
++
++        try await self.withDirectory(named: "first") { first in
++            try await self.withDirectory(named: "second") { second in
++                let engines = [SwiftTermEngine(), SwiftTermEngine()]
++                defer { engines.forEach { $0.shutDown() } }
++                var exits = 0
++                for engine in engines {
++                    engine.onExit = { _ in exits += 1 }
++                }
++
++                try engines[0].start(self.shell("pwd -P; echo \"MARK=$MARK\"; sleep 0.2", in: first, environment: ["MARK=one"]))
++                try engines[1].start(self.shell("pwd -P; echo \"MARK=$MARK\"; sleep 0.2", in: second, environment: ["MARK=two"]))
++
++                try await self.wait { exits == 2 && engines.allSatisfy { $0.bufferText.contains("MARK=") } }
++                #expect(engines[0].processID != engines[1].processID)
++                #expect(engines[0].bufferText.contains("/first") && engines[0].bufferText.contains("MARK=one"))
++                #expect(engines[1].bufferText.contains("/second") && engines[1].bufferText.contains("MARK=two"))
++                #expect(!engines[0].bufferText.contains("MARK=two"))
++            }
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func resizeReachesThePseudoTerminal() async throws {
++
++        let engine = SwiftTermEngine()
++        defer { engine.shutDown() }
++        try engine.start(self.shell("sleep 10", in: FileManager.default.temporaryDirectory))
++
++        let before = try #require(self.windowSize(of: engine))
++        engine.focusView.setFrameSize(NSSize(width: 1400, height: 900))
++        let after = try #require(self.windowSize(of: engine))
++
++        #expect(after.ws_col > before.ws_col)
++        #expect(after.ws_row > before.ws_row)
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func exitStatusesAndLaunchErrorsAreReported() async throws {
++
++        let signaled = SwiftTermEngine()
++        let missing = SwiftTermEngine()
++        defer {
++            signaled.shutDown()
++            missing.shutDown()
++        }
++        var signalStatus: TerminalExitStatus?
++        var missingStatus: TerminalExitStatus?
++        signaled.onExit = { signalStatus = $0 }
++        missing.onExit = { missingStatus = $0 }
++
++        try signaled.start(self.shell("kill -9 $$", in: FileManager.default.temporaryDirectory))
++        try missing.start(TerminalLaunchConfiguration(executable: "/nonexistent/shell", argv0: "shell", arguments: [],
++                                                      environment: Self.environment, currentDirectory: NSTemporaryDirectory()))
++
++        try await self.wait { signalStatus != nil && missingStatus != nil }
++        #expect(signalStatus == TerminalExitStatus(code: nil, signal: SIGKILL))
++        #expect(missingStatus == TerminalExitStatus(code: 127), "a shell that cannot be executed exits the child with 127")
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func shutdownStopsForegroundJobs() async throws {
++
++        let engine = SwiftTermEngine()
++        defer { engine.shutDown() }
++        var didExit = false
++        engine.onExit = { _ in didExit = true }
++
++        // An interactive shell with job control runs the job in its own foreground process group.
++        try engine.start(TerminalLaunchConfiguration(executable: "/bin/zsh", argv0: "zsh", arguments: ["-f", "-i"],
++                                                     environment: Self.environment, currentDirectory: NSTemporaryDirectory()))
++        let shell = engine.processID
++        try await self.wait { !engine.bufferText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
++        engine.type("sleep 60\r")
++        try await self.wait { tcgetpgrp(engine.pseudoTerminalDescriptor) != shell }
++        let job = tcgetpgrp(engine.pseudoTerminalDescriptor)
++        #expect(job > 1)
++
++        engine.shutDown()
++
++        try await self.wait(timeout: .seconds(10)) { !Self.exists(shell) && !Self.exists(job) }
++        #expect(!didExit, "no callback reaches a closed tab")
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func shutdownForcesSessionsThatIgnoreHangup() async throws {
++
++        let engine = SwiftTermEngine()
++        defer { engine.shutDown() }
++        try engine.start(self.shell("trap '' HUP TERM; while :; do sleep 0.1; done", in: FileManager.default.temporaryDirectory))
++        let shell = engine.processID
++        try await Task.sleep(for: .milliseconds(200))
++
++        engine.shutDown()
++        try await Task.sleep(for: .milliseconds(500))
++        #expect(Self.exists(shell), "the session gets a grace period first")
++
++        try await self.wait(timeout: .seconds(10)) { !Self.exists(shell) }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func pseudoTerminalIsReleased() async throws {
++
++        // A live session closed by the user, and one whose shell exited on its own.
++        for script in ["sleep 10", "exit 0"] {
++            var engine: SwiftTermEngine? = SwiftTermEngine()
++            var didExit = false
++            engine?.onExit = { _ in didExit = true }
++            try engine?.start(self.shell(script, in: FileManager.default.temporaryDirectory))
++            let device = try #require(engine.flatMap { Self.device(of: $0.pseudoTerminalDescriptor) })
++            #expect(Self.openDescriptors(for: device) > 0)
++
++            if script == "exit 0" {
++                try await self.wait { didExit }
++            }
++            engine?.shutDown()
++            engine = nil
++
++            try await self.wait { Self.openDescriptors(for: device) == 0 }
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func bracketedPasteWrapsMultilineInput() async throws {
++
++        let engine = SwiftTermEngine()
++        defer { engine.shutDown() }
++        var didExit = false
++        engine.onExit = { _ in didExit = true }
++
++        // The program turns bracketed paste on, then echoes the raw bytes it reads as hex.
++        try engine.start(self.shell("stty raw -echo; printf '\\033[?2004h'; echo READY; head -c 17 | od -An -tx1; stty sane", in: FileManager.default.temporaryDirectory))
++        try await self.wait { engine.bufferText.contains("READY") }
++
++        let pasteboard = NSPasteboard.general
++        let saved = pasteboard.string(forType: .string)
++        defer {
++            pasteboard.clearContents()
++            if let saved { pasteboard.setString(saved, forType: .string) }
++        }
++        pasteboard.clearContents()
++        pasteboard.setString("ab\ncd", forType: .string)
++        NSApp.sendAction(#selector(NSText.paste(_:)), to: engine.focusView, from: nil)
++
++        try await self.wait { didExit && engine.bufferText.contains("7e") }
++        // The dump wraps at the terminal width and the buffer pads cells with NUL, so keep only the digits.
++        let hex = String(try #require(engine.bufferText.components(separatedBy: "READY").last).filter(\.isHexDigit))
++        // ESC [ 2 0 0 ~  a b LF c d  ESC [ 2 0 1 ~
++        #expect(hex.contains("1b5b3230307e61620a63641b5b3230317e"))
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func controlKeysReachTheShellBeforeMenuShortcuts() async throws {
++        
++        let engine = SwiftTermEngine()
++        defer { engine.shutDown() }
++        var didExit = false
++        engine.onExit = { _ in didExit = true }
++        let window = Self.makeWindow(showing: engine)
++        defer { window.close() }
++        
++        // A menu item bound to ⌃C, as a user could configure in the Shortcuts settings.
++        let probe = MenuProbe()
++        let item = NSMenuItem(title: "Probe", action: #selector(MenuProbe.fire(_:)), keyEquivalent: "c")
++        item.keyEquivalentModifierMask = .control
++        item.target = probe
++        let menu = try #require(NSApp.mainMenu?.items.first?.submenu)
++        menu.addItem(item)
++        defer { menu.removeItem(item) }
++        
++        try engine.start(self.shell("stty raw -echo; echo READY; head -c 1 | od -An -tx1; stty sane", in: FileManager.default.temporaryDirectory))
++        try await self.wait { engine.bufferText.contains("READY") }
++        #expect(window.makeFirstResponder(engine.focusView))
++        
++        let controlC = try #require(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: .control, timestamp: 0,
++                                                     windowNumber: window.windowNumber, context: nil,
++                                                     characters: "\u{3}", charactersIgnoringModifiers: "c", isARepeat: false, keyCode: 8))
++        #expect(NSApp.mainMenu?.performKeyEquivalent(with: controlC) == true, "the menu item would take ⌃C")
++        #expect(probe.count == 1)
++        
++        #expect(window.performKeyEquivalent(with: controlC), "the focused terminal claims ⌃C first")
++        try await self.wait { didExit && engine.bufferText.contains("03") }
++        #expect(probe.count == 1, "the menu item was not triggered by the terminal")
++        
++        let commandK = try #require(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: .command, timestamp: 0,
++                                                     windowNumber: window.windowNumber, context: nil,
++                                                     characters: "k", charactersIgnoringModifiers: "k", isARepeat: false, keyCode: 40))
++        #expect(!engine.focusView.performKeyEquivalent(with: commandK), "command shortcuts stay with the menu")
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func arrowKeysMoveByWordAndLineAsOnTheMac() async throws {
++        
++        // `\033[?1h` switches the cursor keys to application mode, as full-screen programs do.
++        for (setup, bytes) in [("", ["1b", "62", "1b", "66", "01", "05"]),
++                               (#"printf '\033[?1h'; "#, ["1b", "62", "1b", "66", "1b", "4f", "48", "1b", "4f", "46"])]
++        {
++            let engine = SwiftTermEngine()
++            defer { engine.shutDown() }
++            var didExit = false
++            engine.onExit = { _ in didExit = true }
++            let window = Self.makeWindow(showing: engine)
++            defer { window.close() }
++            
++            try engine.start(self.shell("stty raw -echo; \(setup)echo READY; head -c \(bytes.count) | od -An -tx1; stty sane", in: FileManager.default.temporaryDirectory))
++            try await self.wait { engine.bufferText.contains("READY") }
++            #expect(window.makeFirstResponder(engine.focusView))
++            
++            // Option-arrows arrive as key events, Command-arrows as key equivalents first.
++            let arrow = { (modifiers: NSEvent.ModifierFlags, key: Int, keyCode: UInt16) throws -> NSEvent in
++                let character = String(UnicodeScalar(UInt16(key))!)
++                return try #require(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: modifiers.union([.numericPad, .function]),
++                                                     timestamp: 0, windowNumber: window.windowNumber, context: nil,
++                                                     characters: character, charactersIgnoringModifiers: character, isARepeat: false, keyCode: keyCode))
++            }
++            engine.focusView.keyDown(with: try arrow(.option, NSLeftArrowFunctionKey, 123))
++            engine.focusView.keyDown(with: try arrow(.option, NSRightArrowFunctionKey, 124))
++            #expect(window.performKeyEquivalent(with: try arrow(.command, NSLeftArrowFunctionKey, 123)))
++            #expect(window.performKeyEquivalent(with: try arrow(.command, NSRightArrowFunctionKey, 124)))
++            
++            // The system's od separates bytes with two spaces.
++            let expected = bytes.joined(separator: "  ")
++            try await self.wait { didExit && engine.bufferText.contains(expected) }
++        }
++    }
++    
++    
++    @Test(.timeLimit(.minutes(1))) func hiddenTerminalKeepsItsSize() async throws {
++        
++        let engine = SwiftTermEngine()
++        defer { engine.shutDown() }
++        try engine.start(self.shell("sleep 10", in: FileManager.default.temporaryDirectory))
++        let window = Self.makeWindow(showing: engine)
++        defer { window.close() }
++        let container = engine.view
++        
++        container.setFrameSize(NSSize(width: 800, height: 500))
++        container.layoutSubtreeIfNeeded()
++        let visible = try #require(self.windowSize(of: engine))
++        #expect(visible.ws_col > 20 && visible.ws_row > 5)
++        
++        // Transient layouts and hidden tabs can make the container arbitrarily small.
++        for size in [NSSize.zero, NSSize(width: 0, height: 400), NSSize(width: 30, height: 400), NSSize(width: 600, height: 10)] {
++            container.setFrameSize(size)
++            container.layoutSubtreeIfNeeded()
++            let current = try #require(self.windowSize(of: engine))
++            #expect(current.ws_col == visible.ws_col && current.ws_row == visible.ws_row, "\(size) must not reach the program")
++        }
++        
++        // Switching tabs removes the view from the window.
++        container.removeFromSuperview()
++        container.setFrameSize(.zero)
++        let detached = try #require(self.windowSize(of: engine))
++        #expect(detached.ws_col == visible.ws_col && detached.ws_row == visible.ws_row)
++        
++        window.contentView?.addSubview(container)
++        container.setFrameSize(NSSize(width: 1000, height: 600))
++        container.layoutSubtreeIfNeeded()
++        let shown = try #require(self.windowSize(of: engine))
++        #expect(shown.ws_col > visible.ws_col, "a real size still reaches the program")
++    }
++    
++    
++    @Test(.timeLimit(.minutes(1))) func outputCannotWriteTheClipboard() async throws {
++        
++        let pasteboard = NSPasteboard.general
++        let saved = pasteboard.string(forType: .string)
++        defer {
++            pasteboard.clearContents()
++            if let saved { pasteboard.setString(saved, forType: .string) }
++        }
++        pasteboard.clearContents()
++        pasteboard.setString("copied by the user", forType: .string)
++        
++        let engine = SwiftTermEngine()
++        defer { engine.shutDown() }
++        var didExit = false
++        engine.onExit = { _ in didExit = true }
++        
++        // OSC 52 asks the terminal to put "hello" (base64) on the clipboard.
++        try engine.start(self.shell("printf '\\033]52;c;aGVsbG8=\\007'; echo DONE", in: FileManager.default.temporaryDirectory))
++        try await self.wait { didExit && engine.bufferText.contains("DONE") }
++        #expect(pasteboard.string(forType: .string) == "copied by the user")
++    }
++    
++    
++    @Test(.timeLimit(.minutes(1))) func outputCannotReadTheClipboard() async throws {
++        
++        let pasteboard = NSPasteboard.general
++        let saved = pasteboard.string(forType: .string)
++        defer {
++            pasteboard.clearContents()
++            if let saved { pasteboard.setString(saved, forType: .string) }
++        }
++        pasteboard.clearContents()
++        pasteboard.setString("secret", forType: .string)
++        
++        let engine = SwiftTermEngine()
++        defer { engine.shutDown() }
++        var didExit = false
++        engine.onExit = { _ in didExit = true }
++        
++        // OSC 52 with "?" asks the terminal to send the clipboard back as input. The program waits a
++        // second for any reply and dumps what arrived.
++        try engine.start(self.shell("stty raw -echo min 0 time 10; printf '\\033]52;c;?\\007'; head -c 64 | od -An -c; stty sane; echo END",
++                                    in: FileManager.default.temporaryDirectory))
++        try await self.wait(timeout: .seconds(10)) { didExit && engine.bufferText.contains("END") }
++        let text = engine.bufferText
++        #expect(!text.contains("5   2"), "no clipboard reply reached the program")
++        #expect(!text.contains("c   2   V   j"), "the clipboard contents never reach the program")
++    }
++    
++    
++    // MARK: Helpers
++
++    private func shell(_ script: String, in directory: URL, environment: [String] = []) -> TerminalLaunchConfiguration {
++
++        TerminalLaunchConfiguration(executable: "/bin/sh", argv0: "sh", arguments: ["-c", script],
++                                    environment: Self.environment + environment,
++                                    currentDirectory: directory.path(percentEncoded: false))
++    }
++
++
++    /// A window showing the engine's view at a usable size, so that layout reaches the terminal.
++    private static func makeWindow(showing engine: SwiftTermEngine) -> NSWindow {
++        
++        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 800, height: 500), styleMask: [.titled, .resizable],
++                              backing: .buffered, defer: false)
++        window.isReleasedWhenClosed = false
++        engine.view.frame = window.contentView!.bounds
++        window.contentView?.addSubview(engine.view)
++        window.contentView?.layoutSubtreeIfNeeded()
++        return window
++    }
++    
++    
++    private func withDirectory(named name: String, _ body: (URL) async throws -> Void) async throws {
++
++        let url = FileManager.default.temporaryDirectory
++            .appending(path: UUID().uuidString, directoryHint: .isDirectory)
++            .appending(path: name, directoryHint: .isDirectory)
++        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
++        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
++
++        try await body(url)
++    }
++
++
++    private func windowSize(of engine: SwiftTermEngine) -> winsize? {
++
++        var size = winsize()
++        guard ioctl(engine.pseudoTerminalDescriptor, TIOCGWINSZ, &size) == 0 else { return nil }
++        return size
++    }
++
++
++    /// Whether a process or process group with the ID still exists, reaped or not.
++    private static func exists(_ id: pid_t) -> Bool {
++
++        guard kill(id, 0) == 0 || errno == EPERM else { return false }
++
++        // A zombie still exists until reaped; count it as gone only once reaped.
++        return true
++    }
++
++
++    private static func device(of descriptor: Int32) -> dev_t? {
++
++        var info = stat()
++        guard descriptor >= 0, fstat(descriptor, &info) == 0 else { return nil }
++        return info.st_rdev
++    }
++
++
++    /// Counts this process's descriptors open on the given device, identifying a pseudo-terminal
++    /// without relying on descriptor numbers, which other tests may reuse.
++    private static func openDescriptors(for device: dev_t) -> Int {
++
++        let descriptors = (try? FileManager.default.contentsOfDirectory(atPath: "/dev/fd")) ?? []
++        return descriptors.compactMap(Int32.init).count { self.device(of: $0) == device }
++    }
++
++
++    private func wait(timeout: Duration = .seconds(5), until condition: () -> Bool) async throws {
++
++        let deadline = ContinuousClock.now + timeout
++        while !condition() {
++            guard ContinuousClock.now < deadline else {
++                Issue.record("Timed out waiting for condition")
++                return
++            }
++            try await Task.sleep(for: .milliseconds(20))
++        }
++    }
++}
++
++
++/// Records whether a menu item fired.
++@MainActor private final class MenuProbe: NSObject {
++    
++    private(set) var count = 0
++    
++    
++    @objc func fire(_ sender: Any?) {
++        
++        self.count += 1
++    }
++}
+diff --git a/Tests/Sources/Models/TerminalSessionTests.swift b/Tests/Sources/Models/TerminalSessionTests.swift
+new file mode 100644
+index 000000000..aad9aadcf
+--- /dev/null
++++ b/Tests/Sources/Models/TerminalSessionTests.swift
+@@ -0,0 +1,383 @@
++//
++//  TerminalSessionTests.swift
++//  Tests
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import Foundation
++import Testing
++@testable import CotEditor
++
++/// Session lifecycle, launch validation and archiving, without spawning any process.
++@MainActor struct TerminalSessionTests {
++
++    // MARK: Lifecycle
++
++    @Test func startRunsLoginShellInStartingDirectory() throws {
++
++        let engines = FakeTerminalEngines()
++        let directory = FileManager.default.temporaryDirectory
++        let session = TerminalSession(defaultTitle: "Shell", startingDirectory: directory, makeEngine: engines.make)
++        #expect(session.lifecycle == .inactive)
++        #expect(engines.made.isEmpty, "a session does nothing until it is started")
++
++        session.start()
++
++        let engine = try #require(engines.made.first)
++        let configuration = try #require(engine.configurations.first)
++        #expect(session.lifecycle == .running)
++        #expect(session.isLive)
++        #expect(configuration.currentDirectory == directory.path(percentEncoded: false))
++        #expect(configuration.argv0.hasPrefix("-"), "a leading hyphen makes the shell a login shell")
++        #expect(configuration.arguments.isEmpty, "no command is ever typed into or passed to the shell")
++
++        session.start()
++        #expect(engines.made.count == 1, "starting a running session does nothing")
++    }
++
++
++    @Test func exitKeepsOutputAndRestartMakesNewProcess() throws {
++
++        let engines = FakeTerminalEngines()
++        let session = TerminalSession(defaultTitle: "Shell", startingDirectory: FileManager.default.temporaryDirectory, makeEngine: engines.make)
++        session.start()
++        let first = try #require(engines.made.first)
++
++        first.finish(code: 3)
++        #expect(session.lifecycle == .exited(TerminalExitStatus(code: 3)))
++        #expect(!session.isLive)
++        #expect(session.engine === first, "the exited terminal stays readable")
++        #expect(first.shutDownCount == 0)
++
++        session.start()
++        let second = try #require(engines.made.last)
++        #expect(second !== first)
++        #expect(first.shutDownCount == 1)
++        #expect(session.engine === second)
++        #expect(session.lifecycle == .running)
++        #expect(second.configurations.count == 1, "a restart starts a new shell; nothing is replayed")
++    }
++
++
++    @Test func closeShutsDownExactlyOnceAndIgnoresLateCallbacks() throws {
++
++        let engines = FakeTerminalEngines()
++        let session = TerminalSession(defaultTitle: "Shell", startingDirectory: FileManager.default.temporaryDirectory, makeEngine: engines.make)
++        session.start()
++        let engine = try #require(engines.made.first)
++        let lateExit = try #require(engine.onExit)
++        let lateTitle = try #require(engine.onTitleChange)
++
++        session.close()
++        session.close()
++        #expect(engine.shutDownCount == 1)
++        #expect(session.engine == nil)
++        #expect(session.lifecycle == .closed)
++
++        // A process callback that was already on its way when the tab closed.
++        lateExit(TerminalExitStatus(code: 0))
++        lateTitle("late")
++        #expect(session.lifecycle == .closed)
++        #expect(session.title == "Shell")
++
++        session.start()
++        #expect(engines.made.count == 1, "a closed session never starts again")
++    }
++
++
++    @Test func replacedEngineCannotChangeTheNewProcess() throws {
++
++        let engines = FakeTerminalEngines()
++        let session = TerminalSession(defaultTitle: "Shell", startingDirectory: FileManager.default.temporaryDirectory, makeEngine: engines.make)
++        session.start()
++        let first = try #require(engines.made.first)
++        let staleExit = try #require(first.onExit)
++        first.finish(code: 1)
++        session.start()
++
++        staleExit(TerminalExitStatus(code: 9))
++        #expect(session.lifecycle == .running)
++    }
++
++
++    @Test func launchFailuresAreReportedInTheTab() throws {
++
++        let engines = FakeTerminalEngines()
++        let missing = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
++        let session = TerminalSession(defaultTitle: "Shell", startingDirectory: missing, makeEngine: engines.make)
++
++        session.start()
++        #expect(session.lifecycle == .failed(.directoryUnavailable(missing)))
++        #expect(engines.made.isEmpty, "the folder is validated before anything is spawned")
++
++        // Choose Folder, then a spawn failure, then a successful retry.
++        session.changeStartingDirectory(to: FileManager.default.temporaryDirectory)
++        engines.nextStartError = .spawnFailed
++        session.start()
++        let failed = try #require(engines.made.first)
++        #expect(session.lifecycle == .failed(.spawnFailed))
++        #expect(failed.shutDownCount == 1)
++        #expect(session.engine == nil)
++
++        session.start()
++        #expect(session.lifecycle == .running)
++    }
++
++
++    @Test func customTitleWinsOverShellTitle() throws {
++
++        let engines = FakeTerminalEngines()
++        let session = TerminalSession(defaultTitle: "Shell 2", startingDirectory: FileManager.default.temporaryDirectory, makeEngine: engines.make)
++        session.start()
++        let engine = try #require(engines.made.first)
++        #expect(session.title == "Shell 2")
++
++        engine.onTitleChange?("vim \u{1B}]evil\u{07}")
++        #expect(session.title == "vim ]evil", "control characters from the output are removed")
++
++        session.rename(to: "Server")
++        engine.onTitleChange?("zsh")
++        #expect(session.title == "Server")
++
++        session.rename(to: "  ")
++        #expect(session.customTitle == nil)
++        #expect(session.title == "zsh")
++    }
++
++
++    @Test func waitStatusIsDecoded() {
++
++        #expect(TerminalExitStatus(waitStatus: 3 << 8) == TerminalExitStatus(code: 3))
++        #expect(TerminalExitStatus(waitStatus: 0) == TerminalExitStatus(code: 0))
++        #expect(TerminalExitStatus(waitStatus: SIGKILL) == TerminalExitStatus(code: nil, signal: SIGKILL))
++    }
++
++
++    // MARK: Launch Configuration
++
++    @Test func shellResolutionFallsBackInOrder() throws {
++
++        #expect(try TerminalLaunchConfiguration.resolveShell(preferred: "/bin/bash", accountShell: "/bin/zsh") == "/bin/bash")
++        #expect(try TerminalLaunchConfiguration.resolveShell(preferred: "relative/sh", accountShell: "/bin/bash") == "/bin/bash")
++        #expect(try TerminalLaunchConfiguration.resolveShell(preferred: nil, accountShell: "/nonexistent/sh") == "/bin/zsh")
++        #expect(try TerminalLaunchConfiguration.resolveShell(preferred: "/etc", accountShell: nil) == "/bin/zsh", "a directory is not a shell")
++        #expect(try TerminalLaunchConfiguration.resolveShell(preferred: "/nonexistent/a", accountShell: "/nonexistent/b") == "/bin/zsh")
++        #expect(!TerminalLaunchConfiguration.isUsableShell("/etc/shells"), "a file without execute permission is not a shell")
++    }
++
++
++    @Test func environmentIsAllowlisted() {
++
++        let base = [
++            "HOME": "/Users/test",
++            "PATH": "/usr/bin",
++            "SSH_AUTH_SOCK": "/tmp/agent",
++            "DYLD_INSERT_LIBRARIES": "/tmp/inject.dylib",
++            "XPC_SERVICE_NAME": "application.test",
++            "OS_ACTIVITY_DT_MODE": "YES",
++        ]
++        let environment = TerminalLaunchConfiguration.environment(base: base, shell: "/bin/zsh", fallbackLocale: "de_NL.UTF-8")
++
++        #expect(environment.contains("HOME=/Users/test"))
++        #expect(environment.contains("SSH_AUTH_SOCK=/tmp/agent"))
++        #expect(environment.contains("SHELL=/bin/zsh"))
++        #expect(environment.contains("TERM=xterm-256color"))
++        #expect(environment.contains("TERM_PROGRAM=CotEditor"))
++        #expect(environment.contains("LANG=de_NL.UTF-8"))
++        #expect(!environment.contains { $0.hasPrefix("DYLD_") || $0.hasPrefix("XPC_") || $0.hasPrefix("OS_ACTIVITY") })
++
++        let withLocale = TerminalLaunchConfiguration.environment(base: ["LC_ALL": "ja_JP.UTF-8"], shell: "/bin/zsh", fallbackLocale: "de_NL.UTF-8")
++        #expect(!withLocale.contains { $0.hasPrefix("LANG=") }, "an inherited locale is kept as it is")
++        #expect(withLocale.contains("PATH=/usr/bin:/bin:/usr/sbin:/sbin"))
++
++        #expect(TerminalLaunchConfiguration.defaultLocaleName(locale: Locale(identifier: "nl_NL"), isInstalled: { _ in true }) == "nl_NL.UTF-8")
++        #expect(TerminalLaunchConfiguration.defaultLocaleName(locale: Locale(identifier: "xx_YY"), isInstalled: { _ in false }) == "en_US.UTF-8")
++    }
++
++
++    @Test func directoryIsValidatedBeforeLaunch() throws {
++
++        let file = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
++        try Data().write(to: file)
++        defer { try? FileManager.default.removeItem(at: file) }
++
++        #expect(TerminalLaunchConfiguration.isUsableDirectory(FileManager.default.temporaryDirectory))
++        #expect(!TerminalLaunchConfiguration.isUsableDirectory(file))
++        #expect(!TerminalLaunchConfiguration.isUsableDirectory(URL(string: "https://example.com/")!))
++        #expect(throws: TerminalLaunchError.directoryUnavailable(file)) {
++            try TerminalLaunchConfiguration(directory: file)
++        }
++    }
++
++
++    // MARK: Output Policy
++    
++    @Test func clickedLinksOpenOnlyWebPages() {
++        
++        #expect(SwiftTermEngine.openableURL(for: "https://coteditor.com/path?q=1") == URL(string: "https://coteditor.com/path?q=1"))
++        #expect(SwiftTermEngine.openableURL(for: "HTTP://example.com") != nil, "schemes are case-insensitive")
++        
++        for link in [
++            "file:///Applications/Calculator.app",
++            "/usr/bin/true",
++            "~/Downloads/script.command",
++            "script.sh:12",
++            "ssh://example.com",
++            "x-apple.systempreferences:com.apple.preference.security",
++            "javascript:alert(1)",
++            "mailto:someone@example.com",
++            "https://",
++            "",
++        ] {
++            #expect(SwiftTermEngine.openableURL(for: link) == nil, "\(link) must not open")
++        }
++    }
++    
++    
++    // MARK: Archive
++
++    @Test func archiveKeepsMixedOrderAndOnlyWhatIsNeeded() throws {
++
++        let fileID = UUID()
++        let terminal = TerminalTabArchive.Entry(id: UUID(), customTitle: "Server", shellPath: "/bin/zsh",
++                                                startingDirectory: FileManager.default.temporaryDirectory)
++        let plain = TerminalTabArchive.Entry(id: UUID(), customTitle: nil, shellPath: nil,
++                                             startingDirectory: URL(filePath: "/nonexistent/project", directoryHint: .isDirectory))
++        let encoded = DirectoryTabArchive.encode([TerminalTabArchive.tab(for: terminal),
++                                                  .init(id: fileID, kind: DirectoryTabArchive.fileKind, fields: ["bookmark": Data([1, 2, 3])]),
++                                                  TerminalTabArchive.tab(for: plain)],
++                                                 selectedID: terminal.id)
++        let data = try NSKeyedArchiver.archivedData(withRootObject: encoded, requiringSecureCoding: true)
++        let decoded = try #require(try NSKeyedUnarchiver.unarchivedObject(ofClasses: DirectoryTabArchive.allowedClasses, from: data) as? [String: Any])
++        let archive = DirectoryTabArchive(archive: decoded, legacyBookmarks: nil, currentBookmark: nil,
++                                          resolve: { _ in URL(filePath: "/tmp/file.txt") })
++
++        let restored = TerminalTabArchive(archive: archive, resolveBookmark: { _ in nil })
++        #expect(archive.order == [terminal.id, fileID, plain.id])
++        #expect(archive.selectedID == terminal.id)
++        #expect(restored.terminals.map(\.id) == [terminal.id, plain.id])
++        #expect(restored.terminals[0].customTitle == "Server")
++        #expect(restored.terminals[0].shellPath == "/bin/zsh")
++        // Without a resolvable bookmark, the saved path is kept so that the tab can offer repair.
++        #expect(restored.terminals[1].startingDirectory.path(percentEncoded: false).hasPrefix("/nonexistent/project"))
++
++        // The file part of the same archive sees just the file.
++        #expect(archive.entries.map(\.id) == [fileID])
++        #expect(archive.selectedIndex == nil, "a selected terminal is not a file to select")
++
++        let stored = try #require((decoded["entries"] as? [[String: Any]])?.first)
++        #expect(Set(stored.keys).isSubset(of: ["id", "kind", "title", "shell", "directory", "path"]), "no output, commands or environment are archived")
++    }
++
++
++    @Test func archiveRejectsDamagedEntries() {
++
++        let id = UUID()
++        let archive: [String: Any] = [
++            "version": DirectoryTabArchive.version,
++            "entries": [
++                ["id": id.uuidString, "kind": "terminal", "path": "/tmp", "title": "\u{1B}[31m", "shell": "relative/sh"],
++                ["id": id.uuidString, "kind": "terminal", "path": "/tmp"],
++                ["id": "not-a-uuid", "kind": "terminal", "path": "/tmp"],
++                ["id": UUID().uuidString, "kind": "terminal", "path": "relative/path"],
++                ["id": UUID().uuidString, "kind": "unknown"],
++            ],
++            "selectedID": "",
++        ]
++
++        let decoded = DirectoryTabArchive(archive: archive, legacyBookmarks: nil, currentBookmark: nil, resolve: { _ in nil })
++        let restored = TerminalTabArchive(archive: decoded, resolveBookmark: { _ in nil })
++        #expect(restored.terminals.count == 1)
++        #expect(restored.terminals.first?.id == id)
++        #expect(restored.terminals.first?.customTitle == "[31m")
++        #expect(restored.terminals.first?.shellPath == nil)
++        #expect(decoded.selectedID == nil)
++
++        let unknownVersion = DirectoryTabArchive(archive: ["version": 99, "entries": archive["entries"]!],
++                                                 legacyBookmarks: nil, currentBookmark: nil, resolve: { _ in nil })
++        #expect(TerminalTabArchive(archive: unknownVersion).terminals.isEmpty)
++    }
++}
++
++
++// MARK: - Fakes
++
++/// Makes fake engines and keeps them for inspection.
++@MainActor final class FakeTerminalEngines {
++
++    private(set) var made: [FakeTerminalEngine] = []
++    var nextStartError: TerminalLaunchError?
++    
++    /// Makes the view each engine shows, for example a real terminal view for layout tests.
++    var makeView: @MainActor () -> NSView = { NSView() }
++
++
++    var make: @MainActor () -> any TerminalEngine {
++
++        { [unowned self] in
++            let engine = FakeTerminalEngine(startError: self.nextStartError, view: self.makeView())
++            self.nextStartError = nil
++            self.made.append(engine)
++            return engine
++        }
++    }
++}
++
++
++@MainActor final class FakeTerminalEngine: TerminalEngine {
++
++    let view: NSView
++    var focusView: NSView { self.view }
++    var onExit: ((TerminalExitStatus) -> Void)?
++    var onTitleChange: ((String) -> Void)?
++
++    let startError: TerminalLaunchError?
++    private(set) var configurations: [TerminalLaunchConfiguration] = []
++    private(set) var shutDownCount = 0
++
++
++    init(startError: TerminalLaunchError? = nil, view: NSView = NSView()) {
++
++        self.startError = startError
++        self.view = view
++    }
++
++
++    func start(_ configuration: TerminalLaunchConfiguration) throws(TerminalLaunchError) {
++
++        if let startError { throw startError }
++        self.configurations.append(configuration)
++    }
++
++
++    func shutDown() {
++
++        self.shutDownCount += 1
++    }
++
++
++    /// Simulates the shell exiting on its own.
++    func finish(code: Int32) {
++
++        self.onExit?(TerminalExitStatus(code: code))
++    }
++}

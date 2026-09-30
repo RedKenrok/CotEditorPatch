@@ -1,0 +1,4020 @@
+diff --git a/Configurations/CotEditor.xcconfig b/Configurations/CotEditor.xcconfig
+index 5e4a3c8fa..dd3b9db25 100644
+--- a/Configurations/CotEditor.xcconfig
++++ b/Configurations/CotEditor.xcconfig
+@@ -26,10 +26,17 @@
+ // Configuration settings file format documentation can be found at:
+ // https://help.apple.com/xcode/#/dev745c5c974
+ 
++// A shell is only useful outside the App Sandbox, so the entitlements do not enable it, and have no
++// iCloud container, which only a sandboxed app can use. The hardened runtime stays in force.
+ CODE_SIGN_ENTITLEMENTS = CotEditor/$(PRODUCT_NAME)$(CODE_SIGN_ENTITLEMENTS_SUFFIX).entitlements
+ 
+ EXCLUDED_SOURCE_FILE_NAMES = $(inherited) Sparkle*
+ 
++// A separate identity keeps a development install from replacing, or sharing preferences and
++// saved window state with, a regular CotEditor installation. Anyone distributing this app must
++// replace it with an identifier in a domain they control.
++PRODUCT_BUNDLE_IDENTIFIER = local.coteditor-tabs.CotEditor-Shell
++
+ // Code signing may need to override any predefined values.
+ // Therefore, it should be included at the end.
+ #include "CodeSigning.xcconfig"
+diff --git a/CotEditor.xcodeproj/project.pbxproj b/CotEditor.xcodeproj/project.pbxproj
+index d5c144dc5..0cb3566ac 100644
+--- a/CotEditor.xcodeproj/project.pbxproj
++++ b/CotEditor.xcodeproj/project.pbxproj
+@@ -25,6 +25,7 @@
+ 		2ABB27D62C382AD400AFCD0B /* MacUI in Frameworks */ = {isa = PBXBuildFile; productRef = 2ABB27D52C382AD400AFCD0B /* MacUI */; };
+ 		2ACD02BF22A87F0400893051 /* ColorCode in Frameworks */ = {isa = PBXBuildFile; productRef = 2ACD02BE22A87F0400893051 /* ColorCode */; };
+ 		2AE863CF2CA2E3BE00D47837 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 2AE863CE2CA2E3BE00D47837 /* Sparkle */; };
++		7E7A0000000000000000000D /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 7E7A0000000000000000000C /* SwiftTerm */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+@@ -145,6 +146,7 @@
+ 				2A1380092C22E9B500093BF3 /* EditorCore in Frameworks */,
+ 				2ABB27D62C382AD400AFCD0B /* MacUI in Frameworks */,
+ 				2AE863CF2CA2E3BE00D47837 /* Sparkle in Frameworks */,
++				7E7A0000000000000000000D /* SwiftTerm in Frameworks */,
+ 				2A644BC92F0665A700E1975F /* Syntax in Frameworks */,
+ 			);
+ 		};
+@@ -235,6 +237,7 @@
+ 				2A1380082C22E9B500093BF3 /* EditorCore */,
+ 				2ABB27D52C382AD400AFCD0B /* MacUI */,
+ 				2AE863CE2CA2E3BE00D47837 /* Sparkle */,
++				7E7A0000000000000000000C /* SwiftTerm */,
+ 				2A644BC82F0665A700E1975F /* Syntax */,
+ 			);
+ 			productInstallPath = "$(HOME)/Applications";
+@@ -338,6 +341,7 @@
+ 				2AAAE6E326DB82F800C5F0AC /* XCRemoteSwiftPackageReference "Sparkle" */,
+ 				2AB756AF2C25BBA4005E04C3 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */,
+ 				2ABB27CC2C3824DE00AFCD0B /* XCRemoteSwiftPackageReference "swift-numerics" */,
++				7E7A0000000000000000000B /* XCRemoteSwiftPackageReference "SwiftTerm" */,
+ 			);
+ 			preferredProjectObjectVersion = 110;
+ 			productRefGroup = 2A7380232CAD911F00E870E5 /* Products */;
+@@ -774,7 +778,6 @@
+ 				INFOPLIST_FILE = CotEditor/Info.plist;
+ 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+ 				MARKETING_VERSION = "7.1.1-alpha";
+-				PRODUCT_BUNDLE_IDENTIFIER = com.coteditor.CotEditor;
+ 				PRODUCT_NAME = CotEditor;
+ 				SWIFT_STRICT_CONCURRENCY = complete;
+ 				SWIFT_UPCOMING_FEATURE_CONCISE_MAGIC_FILE = YES;
+@@ -806,7 +809,6 @@
+ 				INFOPLIST_FILE = CotEditor/Info.plist;
+ 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+ 				MARKETING_VERSION = "7.1.1-alpha";
+-				PRODUCT_BUNDLE_IDENTIFIER = com.coteditor.CotEditor;
+ 				PRODUCT_NAME = CotEditor;
+ 				SWIFT_STRICT_CONCURRENCY = complete;
+ 				SWIFT_UPCOMING_FEATURE_CONCISE_MAGIC_FILE = YES;
+@@ -1075,6 +1077,14 @@
+ 				minimumVersion = 4.0.0;
+ 			};
+ 		};
++		7E7A0000000000000000000B /* XCRemoteSwiftPackageReference "SwiftTerm" */ = {
++			isa = XCRemoteSwiftPackageReference;
++			repositoryURL = "https://github.com/migueldeicaza/SwiftTerm";
++			requirement = {
++				kind = exactVersion;
++				version = 1.20.0;
++			};
++		};
+ /* End XCRemoteSwiftPackageReference section */
+ 
+ /* Begin XCSwiftPackageProductDependency section */
+@@ -1124,6 +1134,11 @@
+ 			package = 2AAAE6E326DB82F800C5F0AC /* XCRemoteSwiftPackageReference "Sparkle" */;
+ 			productName = Sparkle;
+ 		};
++		7E7A0000000000000000000C /* SwiftTerm */ = {
++			isa = XCSwiftPackageProductDependency;
++			package = 7E7A0000000000000000000B /* XCRemoteSwiftPackageReference "SwiftTerm" */;
++			productName = SwiftTerm;
++		};
+ /* End XCSwiftPackageProductDependency section */
+ 	};
+ 	rootObject = 2A37F4A9FDCFA73011CA2CEA /* Project object */;
+diff --git a/CotEditor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved b/CotEditor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+index da8974bb9..0c77ea6eb 100644
+--- a/CotEditor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
++++ b/CotEditor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+@@ -1,5 +1,5 @@
+ {
+-  "originHash" : "95f98c06254adb44b94138eb244b91bb6303a795ab093eca9e1dd4cddb1b4cd2",
++  "originHash" : "392bb9ee4ba9c7b8f8e9e4fc4247db62c6290232bc828fa949f819c095100698",
+   "pins" : [
+     {
+       "identity" : "sparkle",
+@@ -46,6 +46,15 @@
+         "version" : "0.65.1"
+       }
+     },
++    {
++      "identity" : "swiftterm",
++      "kind" : "remoteSourceControl",
++      "location" : "https://github.com/migueldeicaza/SwiftTerm",
++      "state" : {
++        "revision" : "5d14406844143538cd8f8851d2d8a67c1fe443e5",
++        "version" : "1.20.0"
++      }
++    },
+     {
+       "identity" : "tree-sitter",
+       "kind" : "remoteSourceControl",
+diff --git a/CotEditor/CotEditor-AdHoc.entitlements b/CotEditor/CotEditor-AdHoc.entitlements
+index 4661a241c..4b60e692f 100644
+--- a/CotEditor/CotEditor-AdHoc.entitlements
++++ b/CotEditor/CotEditor-AdHoc.entitlements
+@@ -2,14 +2,8 @@
+ <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+ <plist version="1.0">
+ <dict>
+-	<key>com.apple.security.app-sandbox</key>
+-	<true/>
+ 	<key>com.apple.security.cs.disable-library-validation</key>
+ 	<true/>
+-	<key>com.apple.security.files.user-selected.executable</key>
+-	<true/>
+-	<key>com.apple.security.files.user-selected.read-write</key>
+-	<true/>
+ 	<key>com.apple.security.hardened-process</key>
+ 	<true/>
+ 	<key>com.apple.security.hardened-process.checked-allocations</key>
+@@ -19,12 +13,10 @@
+ 	<key>com.apple.security.hardened-process.dyld-ro</key>
+ 	<true/>
+ 	<key>com.apple.security.hardened-process.enhanced-security-version-string</key>
+-	<string>1</string>
++	<string>2</string>
+ 	<key>com.apple.security.hardened-process.hardened-heap</key>
+ 	<true/>
+ 	<key>com.apple.security.hardened-process.platform-restrictions-string</key>
+ 	<string>2</string>
+-	<key>com.apple.security.print</key>
+-	<true/>
+ </dict>
+ </plist>
+diff --git a/CotEditor/CotEditor.entitlements b/CotEditor/CotEditor.entitlements
+index 8c157ce98..e57439b29 100644
+--- a/CotEditor/CotEditor.entitlements
++++ b/CotEditor/CotEditor.entitlements
+@@ -2,24 +2,6 @@
+ <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+ <plist version="1.0">
+ <dict>
+-	<key>com.apple.developer.icloud-container-identifiers</key>
+-	<array>
+-		<string>iCloud.$(CFBundleIdentifier)</string>
+-	</array>
+-	<key>com.apple.developer.icloud-services</key>
+-	<array>
+-		<string>CloudDocuments</string>
+-	</array>
+-	<key>com.apple.developer.ubiquity-container-identifiers</key>
+-	<array>
+-		<string>iCloud.$(CFBundleIdentifier)</string>
+-	</array>
+-	<key>com.apple.security.app-sandbox</key>
+-	<true/>
+-	<key>com.apple.security.files.user-selected.executable</key>
+-	<true/>
+-	<key>com.apple.security.files.user-selected.read-write</key>
+-	<true/>
+ 	<key>com.apple.security.hardened-process</key>
+ 	<true/>
+ 	<key>com.apple.security.hardened-process.checked-allocations</key>
+@@ -34,7 +16,5 @@
+ 	<true/>
+ 	<key>com.apple.security.hardened-process.platform-restrictions-string</key>
+ 	<string>2</string>
+-	<key>com.apple.security.print</key>
+-	<true/>
+ </dict>
+ </plist>
+diff --git a/CotEditor/Localizables/Terminal.xcstrings b/CotEditor/Localizables/Terminal.xcstrings
+new file mode 100644
+index 000000000..fad3a4b82
+--- /dev/null
++++ b/CotEditor/Localizables/Terminal.xcstrings
+@@ -0,0 +1,578 @@
++{
++  "sourceLanguage" : "en",
++  "strings" : {
++    "SettingsPane.terminal.label" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Shell"
++          }
++        }
++      }
++    },
++    "TerminalLaunchError.directoryUnavailable.description" : {
++      "comment" : "error shown in a terminal tab whose starting folder was renamed, moved or deleted (%@ is the folder name)",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "The folder “%@” is no longer available."
++          }
++        }
++      }
++    },
++    "TerminalLaunchError.directoryUnavailable.recoverySuggestion" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Choose another folder to start the shell in."
++          }
++        }
++      }
++    },
++    "TerminalLaunchError.retry.recoverySuggestion" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Try again, or close this tab."
++          }
++        }
++      }
++    },
++    "TerminalLaunchError.shellUnavailable.description" : {
++      "comment" : "error shown in a terminal tab (%@ is the path to the shell program)",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "The shell “%@” can’t be run."
++          }
++        }
++      }
++    },
++    "TerminalLaunchError.spawnFailed.description" : {
++      "comment" : "error shown in a terminal tab when the system refused to create the process",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "The shell session couldn’t be started."
++          }
++        }
++      }
++    },
++    "TerminalMenu.newTerminal" : {
++      "comment" : "menu item in the tab strip’s add menu",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "New Shell"
++          }
++        }
++      }
++    },
++    "TerminalMenu.newTerminalTab" : {
++      "comment" : "File menu item opening a terminal tab in the folder window",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "New Shell Tab"
++          }
++        }
++      }
++    },
++    "TerminalMenu.openTerminalHere" : {
++      "comment" : "file browser context menu item",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Open Shell Here"
++          }
++        }
++      }
++    },
++    "TerminalMenu.rename" : {
++      "comment" : "context menu item of a terminal tab",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Rename…"
++          }
++        }
++      }
++    },
++    "TerminalMenu.renameTerminalTab" : {
++      "comment" : "File menu item",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Rename Shell Tab…"
++          }
++        }
++      }
++    },
++    "TerminalPrompt.cancel" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Cancel"
++          }
++        }
++      }
++    },
++    "TerminalPrompt.closeTab.button" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Close Shell"
++          }
++        }
++      }
++    },
++    "TerminalPrompt.closeTab.message" : {
++      "comment" : "%@ is the name of the terminal tab",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Close the shell “%@”?"
++          }
++        }
++      }
++    },
++    "TerminalPrompt.closeWindow.button" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Close Window"
++          }
++        }
++      }
++    },
++    "TerminalPrompt.closeWindow.message" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Close this window with running shells?"
++          }
++        }
++      }
++    },
++    "TerminalPrompt.disableTabs.button" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Turn Off and Close Shells"
++          }
++        }
++      }
++    },
++    "TerminalPrompt.disableTabs.information" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Shells are only shown as tabs, so every shell tab in every folder window will be closed."
++          }
++        }
++      }
++    },
++    "TerminalPrompt.disableTabs.message" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Turn off file tabs?"
++          }
++        }
++      }
++    },
++    "TerminalPrompt.enableTabs.button" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Enable Tabs and Open Shell"
++          }
++        }
++      }
++    },
++    "TerminalPrompt.enableTabs.information" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Shell tabs appear next to file tabs, which are turned off. Turning on file tabs applies to all folder windows."
++          }
++        }
++      }
++    },
++    "TerminalPrompt.enableTabs.message" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Shells open as tabs"
++          }
++        }
++      }
++    },
++    "TerminalPrompt.quit.button" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Quit"
++          }
++        }
++      }
++    },
++    "TerminalPrompt.quit.message" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Quit with running shells?"
++          }
++        }
++      }
++    },
++    "TerminalPrompt.rename.button" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Rename"
++          }
++        }
++      }
++    },
++    "TerminalPrompt.rename.information" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Leave the name empty to use the automatic name."
++          }
++        }
++      }
++    },
++    "TerminalPrompt.rename.message" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Rename Shell Tab"
++          }
++        }
++      }
++    },
++    "TerminalPrompt.rename.placeholder" : {
++      "comment" : "placeholder of the tab name field; leaving it empty returns to the automatic name",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Automatic"
++          }
++        }
++      }
++    },
++    "TerminalPrompt.stopsAllWork" : {
++      "comment" : "explanation when closing several terminal tabs",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Anything running in the shell tabs will be stopped."
++          }
++        }
++      }
++    },
++    "TerminalPrompt.stopsWork" : {
++      "comment" : "explanation when closing a running terminal tab",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Anything running in it will be stopped."
++          }
++        }
++      }
++    },
++    "TerminalSession.defaultTitle" : {
++      "comment" : "default name of the first terminal tab in a window",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Shell"
++          }
++        }
++      }
++    },
++    "TerminalSession.numberedTitle" : {
++      "comment" : "default name of further terminal tabs in a window (%lld is a number starting at 2)",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Shell %lld"
++          }
++        }
++      }
++    },
++    "TerminalSettings.theme.description" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Text, background, cursor and selection colors come from the theme, including its light or dark variant."
++          }
++        }
++      }
++    },
++    "TerminalSettings.theme.label" : {
++      "comment" : "label of the terminal theme picker in the settings",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Theme:"
++          }
++        }
++      }
++    },
++    "TerminalSettings.theme.sameAsEditor" : {
++      "comment" : "terminal theme choice that follows the editor’s theme",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Same as Editor"
++          }
++        }
++      }
++    },
++    "TerminalSettings.themeColors.description" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Programs such as ls and git choose from 16 standard colors. Each then takes the theme color closest to it in hue, as long as it stays readable; otherwise the standard color is kept."
++          }
++        }
++      }
++    },
++    "TerminalSettings.themeColors.label" : {
++      "comment" : "toggle deriving the 16 ANSI colors from the theme",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Match program colors to the theme"
++          }
++        }
++      }
++    },
++    "TerminalStatus.chooseFolder" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Choose Folder…"
++          }
++        }
++      }
++    },
++    "TerminalStatus.chooseFolder.prompt" : {
++      "comment" : "button label in the panel choosing the folder a terminal starts in",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Start Here"
++          }
++        }
++      }
++    },
++    "TerminalStatus.closeTab" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Close Tab"
++          }
++        }
++      }
++    },
++    "TerminalStatus.ended" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Session ended"
++          }
++        }
++      }
++    },
++    "TerminalStatus.inactive.message" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Processes and their output are not restored after CotEditor quits."
++          }
++        }
++      }
++    },
++    "TerminalStatus.inactive.title" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Shell Not Running"
++          }
++        }
++      }
++    },
++    "TerminalStatus.missingFolder" : {
++      "comment" : "%@ is the folder path",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "The starting folder “%@” no longer exists."
++          }
++        }
++      }
++    },
++    "TerminalStatus.retry" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Try Again"
++          }
++        }
++      }
++    },
++    "TerminalStatus.startNewSession" : {
++      "comment" : "button label",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Start New Session"
++          }
++        }
++      }
++    },
++    "TerminalStatus.startsIn" : {
++      "comment" : "%@ is the folder path a new terminal session starts in",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Starts in “%@”."
++          }
++        }
++      }
++    },
++    "TerminalTab.tooltip" : {
++      "comment" : "tooltip and accessibility hint of a terminal tab; it names the starting folder, not the shell’s current folder (%@ is a path)",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Shell started in %@"
++          }
++        }
++      }
++    },
++    "TerminalTab.tooltip.elsewhere" : {
++      "comment" : "tooltip of a terminal tab that runs elsewhere, such as on a server (%@ is a location such as user@host:/path)",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Shell started in %@"
++          }
++        }
++      }
++    }
++  },
++  "version" : "1.1"
++}
+\ No newline at end of file
+diff --git a/CotEditor/Sources/Application/AppDelegate.swift b/CotEditor/Sources/Application/AppDelegate.swift
+index ed632d89f..0fc6e70b6 100644
+--- a/CotEditor/Sources/Application/AppDelegate.swift
++++ b/CotEditor/Sources/Application/AppDelegate.swift
+@@ -162,6 +162,8 @@ extension Logger {
+         self.prepareMainMenu()
+         DocumentWindow.addCloseWindowMenuItem(to: NSApp.mainMenu!)
+         DocumentWindow.addTabNavigationMenuItems(to: NSApp.mainMenu!)
++        TerminalSettings.registerDefaults()
++        TerminalMenu.install(in: NSApp.mainMenu!)
+         
+         #if SPARKLE
+         UpdaterManager.shared.setup()
+@@ -193,8 +195,22 @@ extension Logger {
+     }
+     
+     
++    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
++        
++        // The document review usually asks first; this covers terminations that skip it.
++        guard TerminalTermination.needsConsent else { return .terminateNow }
++        
++        Task {
++            sender.reply(toApplicationShouldTerminate: await TerminalTermination.requestConsent())
++        }
++        return .terminateLater
++    }
++    
++    
+     func applicationWillTerminate(_ notification: Notification) {
+         
++        TerminalTermination.stopAllSessions()
++        
+         if self.needsRelaunch {
+             NSApp.relaunch()
+         }
+diff --git a/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift b/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift
+index 4b448983d..a357051d3 100644
+--- a/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift	
++++ b/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift	
+@@ -200,6 +200,12 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
+             NSMenuItem(title: String(localized: "Open with External Editor", table: "Document", comment: "menu item label"),
+                        systemImage: "arrow.up.forward.square",
+                        action: #selector(openWithExternalEditor), keyEquivalent: ""),
++        ]
++        contextMenu.items.append(NSMenuItem(title: String(localized: "TerminalMenu.openTerminalHere", defaultValue: "Open Shell Here", table: "Terminal",
++                                                          comment: "file browser context menu item"),
++                                            systemImage: "apple.terminal",
++                                            action: #selector(openTerminalHere), keyEquivalent: ""))
++        contextMenu.items += [
+             .separator(),
+             
+             NSMenuItem(title: String(localized: "Move to Trash", table: "Document", comment: "menu item label"),
+@@ -429,6 +435,9 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
+             case #selector(openInNewWindow):
+                 menuItem.isHidden = self.targetRows(for: menuItem).isEmpty
+                 
++            case #selector(openTerminalHere):
++                return self.targetFolderNode(for: menuItem) != nil
++                
+             case #selector(addFile):
+                 return self.targetFolderNode(for: menuItem)?.file.isWritable == true
+                 
+@@ -545,6 +554,17 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
+     }
+     
+     
++    /// Opens a terminal tab in the clicked folder, or in the folder containing the clicked file.
++    @IBAction func openTerminalHere(_ sender: NSMenuItem) {
++        
++        guard let folderNode = self.targetFolderNode(for: sender) else { return }
++        
++        Task {
++            await self.document.requestTerminalTab(in: folderNode.file.fileURL)
++        }
++    }
++    
++    
+     /// Creates a new file under the target folder.
+     @IBAction func addFile(_ sender: NSMenuItem) {
+         
+diff --git a/CotEditor/Sources/Document/DirectoryDocument+Actions.swift b/CotEditor/Sources/Document/DirectoryDocument+Actions.swift
+index 6e387c610..9606b7714 100644
+--- a/CotEditor/Sources/Document/DirectoryDocument+Actions.swift
++++ b/CotEditor/Sources/Document/DirectoryDocument+Actions.swift
+@@ -31,6 +31,8 @@ extension DirectoryDocument {
+     
+     override func validateUserInterfaceItem(_ item: any NSValidatedUserInterfaceItem) -> Bool {
+         
++        if let isValid = self.validateTerminalItem(item) { return isValid }
++        
+         switch item.action {
+             case #selector(saveAs):
+                 // prevent file document from being moved out of the folder
+diff --git a/CotEditor/Sources/Document/DirectoryTabItem.swift b/CotEditor/Sources/Document/DirectoryTabItem.swift
+index 99b3eb595..7ec8a7083 100644
+--- a/CotEditor/Sources/Document/DirectoryTabItem.swift
++++ b/CotEditor/Sources/Document/DirectoryTabItem.swift
+@@ -134,6 +134,6 @@ extension DirectoryTabItem {
+     /// The kinds of tabs besides files that this app has, in the order of the “+” menu.
+     static var registered: [DirectoryTabKind] {
+ 
+-        []
++        [.terminal]
+     }
+ }
+diff --git a/CotEditor/Sources/Document/DocumentController.swift b/CotEditor/Sources/Document/DocumentController.swift
+index 07b8e2c79..d74bf1bcc 100644
+--- a/CotEditor/Sources/Document/DocumentController.swift
++++ b/CotEditor/Sources/Document/DocumentController.swift
+@@ -260,6 +260,22 @@ protocol AdditionalDocumentPreparing: NSDocument {
+     }
+     
+     
++    override func reviewUnsavedDocuments(withAlertTitle title: String?, cancellable: Bool, delegate: Any?, didReviewAllSelector: Selector?, contextInfo: UnsafeMutableRawPointer?) {
++        
++        // Quitting asks about running terminals before any document, and nothing is stopped until
++        // the app actually terminates. A later cancellation leaves every terminal running.
++        let context = DelegateContext(delegate: delegate, selector: didReviewAllSelector, contextInfo: contextInfo)
++        Task {
++            if cancellable, await !TerminalTermination.requestConsent() {
++                return context.perform(from: self, flag: false)
++            }
++            super.reviewUnsavedDocuments(withAlertTitle: title, cancellable: cancellable, delegate: self,
++                                         didReviewAllSelector: #selector(self.documentController(_:didReviewAll:contextInfo:)),
++                                         contextInfo: bridgeWrapped(context))
++        }
++    }
++    
++    
+     override func openDocument(_ sender: Any?) {
+         
+         // be called on the open event when iCloud Drive is enabled (2024-05, macOS 14).
+@@ -466,6 +482,18 @@ protocol AdditionalDocumentPreparing: NSDocument {
+     }
+     
+     
++    /// Callback after reviewing unsaved documents for termination.
++    @objc private func documentController(_ documentController: NSDocumentController, didReviewAll: Bool, contextInfo: UnsafeMutableRawPointer) {
++        
++        if !didReviewAll {
++            TerminalTermination.revokeConsent()
++        }
++        
++        let context: DelegateContext = bridgeUnwrapped(contextInfo)
++        context.perform(from: self, flag: didReviewAll)
++    }
++    
++    
+     /// Callback from document after calling `closeAllDocuments(withDelegate:didCloseAllSelector:contextInfo)`.
+     ///
+     /// - Parameters:
+diff --git a/CotEditor/Sources/Models/LicenseItem.swift b/CotEditor/Sources/Models/LicenseItem.swift
+index 44b1654d4..7633ce012 100644
+--- a/CotEditor/Sources/Models/LicenseItem.swift
++++ b/CotEditor/Sources/Models/LicenseItem.swift
+@@ -35,9 +35,9 @@ struct LicenseItem {
+     
+     
+ #if SPARKLE
+-    static let items = Self.commonItems + [.sparkle]
++    static let items = Self.commonItems + [.sparkle, .swiftTerm]
+ #else
+-    static let items = Self.commonItems
++    static let items = Self.commonItems + [.swiftTerm]
+ #endif
+     
+     private static let commonItems = [
+@@ -150,6 +150,19 @@ struct LicenseItem {
+              license: .mit),
+     ]
+     
++    private static let swiftTerm = Self(
++        name: "SwiftTerm",
++        url: "https://github.com/migueldeicaza/SwiftTerm",
++        copyright: """
++                   © 2019-2026 Miguel de Icaza
++                   © 2017-2019, The xterm.js authors
++                   © 2014-2016, SourceLair Private Company
++                   © 2012-2013, Christopher Jeffrey
++                   """,
++        license: .mit
++    )
++    
++    
+     private static let sparkle = Self(
+         name: "Sparkle",
+         url: "https://sparkle-project.org",
+diff --git a/CotEditor/Sources/Settings Window/Panes/WindowSettingsView.swift b/CotEditor/Sources/Settings Window/Panes/WindowSettingsView.swift
+index f7adba0ad..9fca7a12a 100644
+--- a/CotEditor/Sources/Settings Window/Panes/WindowSettingsView.swift	
++++ b/CotEditor/Sources/Settings Window/Panes/WindowSettingsView.swift	
+@@ -89,9 +89,11 @@ struct WindowSettingsView: View {
+                     }
+                     .accessibilityLabeledPair(role: .content, id: "windowTabbing", in: self.accessibility)
+                     
++                    // Turning tabs off closes terminal tabs, which needs confirmation before anything changes.
+                     Toggle(.init("Use file tabs in directory windows", table: "WindowSettings",
+                                  comment: "Distinct from macOS window tabs; this enables tabs for files opened within a directory window."),
+-                           isOn: $usesDirectoryFileTabs)
++                           isOn: Binding(get: { self.usesDirectoryFileTabs },
++                                         set: { usesTabs in Task { await TerminalTabsPreference.setUsesDirectoryFileTabs(usesTabs) } }))
+                 }
+             }
+             
+diff --git a/CotEditor/Sources/Settings Window/SettingsPane.swift b/CotEditor/Sources/Settings Window/SettingsPane.swift
+index e1b75fb32..cd0ca03fc 100644
+--- a/CotEditor/Sources/Settings Window/SettingsPane.swift	
++++ b/CotEditor/Sources/Settings Window/SettingsPane.swift	
+@@ -31,6 +31,7 @@ enum SettingsPane: String, ControlUI.SettingsPane {
+     case general
+     case appearance
+     case window
++    case terminal
+     case edit
+     case mode
+     case format
+@@ -58,6 +59,10 @@ enum SettingsPane: String, ControlUI.SettingsPane {
+                 String(localized: "SettingsPane.window.label",
+                        defaultValue: "Window",
+                        table: "Settings")
++            case .terminal:
++                String(localized: "SettingsPane.terminal.label",
++                       defaultValue: "Shell",
++                       table: "Terminal")
+             case .edit:
+                 String(localized: "SettingsPane.edit.label",
+                        defaultValue: "Edit",
+@@ -93,6 +98,7 @@ enum SettingsPane: String, ControlUI.SettingsPane {
+             case .general: "gearshape"
+             case .appearance: "eyeglasses"
+             case .window: "uiwindow.split.2x1"
++            case .terminal: "apple.terminal"
+             case .edit: "square.and.pencil"
+             case .mode: "switch.2"
+             case .format: "text.document"
+@@ -110,6 +116,7 @@ enum SettingsPane: String, ControlUI.SettingsPane {
+             case .general: GeneralSettingsView()
+             case .appearance: AppearanceSettingsView()
+             case .window: WindowSettingsView()
++            case .terminal: TerminalSettingsView()
+             case .edit: EditSettingsView()
+             case .mode: ModeSettingsView()
+             case .format: FormatSettingsView()
+diff --git a/CotEditor/Sources/Terminal/SwiftTermEngine.swift b/CotEditor/Sources/Terminal/SwiftTermEngine.swift
+new file mode 100644
+index 000000000..e23f490f7
+--- /dev/null
++++ b/CotEditor/Sources/Terminal/SwiftTermEngine.swift
+@@ -0,0 +1,621 @@
++//
++//  SwiftTermEngine.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import Combine
++import Defaults
++import SwiftTerm
++
++
++/// A terminal engine backed by SwiftTerm's local-process terminal view.
++///
++/// SwiftTerm launches the process and moves bytes; this type owns the policy around it: what the
++/// shell may do to the app (clipboard, links, window), and how the process is stopped. SwiftTerm's own
++/// `terminate()` only signals the shell and never reaps it, and signals its PID even after it exited,
++/// so shutdown is driven from here instead.
++@MainActor final class SwiftTermEngine: TerminalEngine {
++
++    /// Lines kept above the screen. Bounded so that a long-running session cannot grow without limit.
++    static let scrollback = 10_000
++
++    var onExit: ((TerminalExitStatus) -> Void)?
++    var onTitleChange: ((String) -> Void)?
++
++    var view: NSView { self.container }
++
++    var focusView: NSView { self.hostView }
++
++    private let hostView: TerminalHostView
++    private let container: TerminalContainerView
++
++    // SwiftTerm holds these weakly, so the engine keeps them alive.
++    private let terminalPolicy: TerminalDelegatePolicy
++    private let processEvents: ProcessEvents
++
++    private var colorObservers: [AnyCancellable] = []
++    private var shellPID: pid_t = 0
++    private var hasExited = false
++    private var isShutDown = false
++
++
++    init() {
++
++        var options = TerminalOptions.default
++        options.scrollback = Self.scrollback
++
++        let hostView = TerminalHostView(frame: NSRect(x: 0, y: 0, width: 640, height: 400),
++                                        font: .monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .regular),
++                                        options: options)
++        self.hostView = hostView
++        self.container = TerminalContainerView(terminalView: hostView)
++        self.terminalPolicy = TerminalDelegatePolicy(hostView: hostView)
++        self.processEvents = ProcessEvents()
++
++        // Option composes characters on many keyboard layouts (such as @ or dead-key accents),
++        // so it must not be taken over as Meta.
++        hostView.optionAsMetaKey = false
++        hostView.applyThemeColors()
++
++        hostView.terminalDelegate = self.terminalPolicy
++        hostView.processDelegate = self.processEvents
++        self.processEvents.engine = self
++        self.terminalPolicy.onTitleChange = { [weak self] title in self?.onTitleChange?(title) }
++        
++        // Everything that decides the terminal's theme; appearance changes arrive through the view itself.
++        self.colorObservers = [
++            Publishers.MergeMany(
++                UserDefaults.standard.publisher(for: .terminalTheme).map { _ in }.eraseToAnyPublisher(),
++                UserDefaults.standard.publisher(for: .terminalUsesThemeColors).map { _ in }.eraseToAnyPublisher(),
++                UserDefaults.standard.publisher(for: .theme).map { _ in }.eraseToAnyPublisher(),
++                UserDefaults.standard.publisher(for: .pinsThemeAppearance).map { _ in }.eraseToAnyPublisher(),
++                UserDefaults.standard.publisher(for: .documentAppearance).map { _ in }.eraseToAnyPublisher(),
++                NotificationCenter.default.publisher(for: DidManagerUpdateSettingMessage<ThemeManager>.name, object: ThemeManager.shared).map { _ in }.eraseToAnyPublisher()
++            )
++            .receive(on: DispatchQueue.main)
++            .sink { [weak hostView] in hostView?.applyThemeColors() },
++        ]
++    }
++
++
++    func start(_ configuration: TerminalLaunchConfiguration) throws(TerminalLaunchError) {
++
++        guard !self.isShutDown, self.shellPID == 0 else { throw .spawnFailed }
++
++        self.hostView.startProcess(executable: configuration.executable,
++                                   args: configuration.arguments,
++                                   environment: configuration.environment,
++                                   execName: configuration.argv0,
++                                   currentDirectory: configuration.currentDirectory)
++
++        // SwiftTerm reports a failed fork only by not running.
++        guard self.hostView.process.running, self.hostView.process.shellPid > 0 else { throw .spawnFailed }
++
++        self.shellPID = self.hostView.process.shellPid
++    }
++
++
++    func shutDown() {
++
++        guard !self.isShutDown else { return }
++        self.isShutDown = true
++
++        self.onExit = nil
++        self.onTitleChange = nil
++        self.processEvents.engine = nil
++
++        if self.shellPID > 0, !self.hasExited {
++            let process = self.hostView.process!
++            let foreground = process.childfd >= 0 ? tcgetpgrp(process.childfd) : -1
++            let reaper = TerminalProcessReaper(shell: self.shellPID, foreground: foreground)
++            reaper.hangUp()
++
++            // Closes the pseudo-terminal, which hangs up the session, and cancels SwiftTerm's exit
++            // monitor so that only the reaper below waits for the shell.
++            process.terminate()
++
++            Task.detached(priority: .utility) {
++                reaper.reap(grace: .seconds(2))
++            }
++        }
++        // An exited shell was already reaped by SwiftTerm: its PID must never be signaled again.
++        // The pseudo-terminal is closed when the view and its process object are released.
++
++        self.container.removeFromSuperview()
++    }
++
++
++    /// Stops the process for application termination, waiting briefly instead of in the background.
++    ///
++    /// - Returns: The reaper that still needs to wait, or `nil` if nothing is running.
++    func shutDownForTermination() -> TerminalProcessReaper? {
++
++        guard !self.isShutDown else { return nil }
++
++        let reaper: TerminalProcessReaper? = if self.shellPID > 0, !self.hasExited, let process = self.hostView.process {
++            TerminalProcessReaper(shell: self.shellPID,
++                                  foreground: process.childfd >= 0 ? tcgetpgrp(process.childfd) : -1)
++        } else {
++            nil
++        }
++
++        self.isShutDown = true
++        self.onExit = nil
++        self.onTitleChange = nil
++        self.processEvents.engine = nil
++
++        reaper?.hangUp()
++        if reaper != nil {
++            self.hostView.process.terminate()
++        }
++
++        return reaper
++    }
++
++
++    /// The web address a clicked link in the terminal may open, or `nil` if it must be ignored.
++    ///
++    /// Links come from untrusted output. Only web pages with a host are opened: file paths and other
++    /// schemes could launch applications or scripts that the output names.
++    ///
++    /// - Parameter link: The link text or target as the terminal reports it.
++    /// - Returns: The URL to open, or `nil`.
++    nonisolated static func openableURL(for link: String) -> URL? {
++        
++        guard
++            let url = URL(string: link),
++            let scheme = url.scheme?.lowercased(),
++            ["http", "https"].contains(scheme),
++            url.host?.isEmpty == false
++        else { return nil }
++        
++        return url
++    }
++    
++    
++    // MARK: Inspection
++    
++    /// The shell's process ID, or 0 before it started.
++    var processID: pid_t { self.shellPID }
++    
++    /// The controlling side of the pseudo-terminal, or -1 once it is closed.
++    var pseudoTerminalDescriptor: Int32 { self.hostView.process.childfd }
++    
++    /// The visible screen as text, one line per row.
++    var bufferText: String {
++        
++        let terminal = self.hostView.getTerminal()
++        
++        // Characters made of several scalars, such as a letter with a combining accent, are kept in the
++        // terminal's own table; exporting cells without it would drop them.
++        return (0..<terminal.rows)
++            .compactMap { terminal.getLine(row: $0)?.translateToString(trimRight: true, characterProvider: terminal.getCharacter(for:)) }
++            .joined(separator: "\n")
++    }
++    
++    
++    /// Sends text to the process as if typed.
++    func type(_ text: String) {
++        
++        self.hostView.send(txt: text)
++    }
++    
++    
++    fileprivate func processDidTerminate(waitStatus: Int32?) {
++
++        guard !self.isShutDown, !self.hasExited else { return }
++
++        self.hasExited = true
++        self.onExit?(TerminalExitStatus(waitStatus: waitStatus ?? 0))
++    }
++}
++
++
++// MARK: - Process Events
++
++/// Receives SwiftTerm's process callbacks.
++///
++/// SwiftTerm delivers them on the main queue; the preconcurrency conformance checks that at run time.
++@MainActor private final class ProcessEvents: @preconcurrency LocalProcessTerminalViewDelegate {
++
++    weak var engine: SwiftTermEngine?
++
++
++    func sizeChanged(source: LocalProcessTerminalView, newCols: Int, newRows: Int) { }
++
++    func setTerminalTitle(source: LocalProcessTerminalView, title: String) { }
++
++    func hostCurrentDirectoryUpdate(source: TerminalView, directory: String?) { }
++
++
++    func processTerminated(source: TerminalView, exitCode: Int32?) {
++
++        // SwiftTerm passes the raw wait status here despite the parameter name.
++        self.engine?.processDidTerminate(waitStatus: exitCode)
++    }
++}
++
++
++// MARK: - Terminal Delegate Policy
++
++/// Stands between the terminal and the app, deciding which requests from the shell's output are honored.
++///
++/// `LocalProcessTerminalView` is its own terminal delegate and would let any program write to and even
++/// read the general pasteboard through escape sequences, or open arbitrary URLs and files.
++/// Terminal output is untrusted, so those requests are refused here while the rest is forwarded.
++@MainActor private final class TerminalDelegatePolicy: @preconcurrency TerminalViewDelegate {
++
++    weak var hostView: TerminalHostView?
++    var onTitleChange: ((String) -> Void)?
++
++
++    init(hostView: TerminalHostView) {
++
++        self.hostView = hostView
++    }
++
++
++    func sizeChanged(source: TerminalView, newCols: Int, newRows: Int) {
++
++        // Forward so that SwiftTerm resizes the pseudo-terminal.
++        self.hostView?.sizeChanged(source: source, newCols: newCols, newRows: newRows)
++    }
++
++
++    func setTerminalTitle(source: TerminalView, title: String) {
++
++        self.onTitleChange?(title)
++    }
++
++
++    func hostCurrentDirectoryUpdate(source: TerminalView, directory: String?) {
++
++        // The shell's reported directory is not tracked: tabs only claim their starting directory.
++    }
++
++
++    func send(source: TerminalView, data: ArraySlice<UInt8>) {
++
++        self.hostView?.send(source: source, data: data)
++    }
++
++
++    func scrolled(source: TerminalView, position: Double) { }
++
++    func rangeChanged(source: TerminalView, startY: Int, endY: Int) { }
++
++
++    func requestOpenLink(source: TerminalView, link: String, params: [String: String]) {
++
++        // Reached only when the user clicks a link.
++        guard let url = SwiftTermEngine.openableURL(for: link) else { return }
++
++        _ = NSWorkspace.shared.open(url)
++    }
++
++
++    func bell(source: TerminalView) {
++
++        NSSound.beep()
++    }
++
++
++    func clipboardCopy(source: TerminalView, content: Data) {
++
++        // Refused: output must not replace what the user copied (OSC 52).
++    }
++
++
++    func clipboardRead(source: TerminalView) -> Data? {
++
++        // Refused: output must not read what the user copied (OSC 52).
++        nil
++    }
++
++
++    func iTermContent(source: TerminalView, content: ArraySlice<UInt8>) {
++
++        // Inline file transfers from output are not accepted.
++    }
++}
++
++
++// MARK: - Host View
++
++/// The terminal view with the app's keyboard and appearance adjustments.
++final class TerminalHostView: LocalProcessTerminalView {
++
++    override func performKeyEquivalent(with event: NSEvent) -> Bool {
++
++        // Control-key combinations such as ⌃C, ⌃D and ⌃Z belong to the shell. Without this, a menu item
++        // that the user bound to a Control shortcut would take them before the terminal sees them.
++        let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
++        if self.window?.firstResponder === self,
++           modifiers.contains(.control), !modifiers.contains(.command)
++        {
++            self.keyDown(with: event)
++            return true
++        }
++
++        // ⌘← and ⌘→ arrive here first, and a menu item could otherwise claim them.
++        if self.window?.firstResponder === self, let sequence = self.lineEditingSequence(for: event) {
++            self.send(sequence)
++            return true
++        }
++
++        return super.performKeyEquivalent(with: event)
++    }
++
++
++    override func interpretKeyEvents(_ eventArray: [NSEvent]) {
++
++        // SwiftTerm's `keyDown(with:)` cannot be overridden, but it passes the arrow keys with Option
++        // or Command on to here, where AppKit would turn them into text-editing commands.
++        if eventArray.count == 1, let sequence = self.lineEditingSequence(for: eventArray[0]) {
++            self.send(sequence)
++            return
++        }
++
++        super.interpretKeyEvents(eventArray)
++    }
++
++
++    /// The bytes for the Mac's word and line movement keys, or `nil` to leave the event to SwiftTerm.
++    ///
++    /// With Option not acting as Meta, SwiftTerm turns ⌥← and ⌥→ into Cocoa's word movement
++    /// commands, which it ignores, and ⌘← and ⌘→ into line movement commands, which it sends as
++    /// word movement. Instead, these keys send what shells expect, as Terminal and iTerm do:
++    /// ⌥← and ⌥→ the Emacs word movement (ESC b and ESC f), ⌘← and ⌘→ the start and end of the line (⌃A and ⌃E).
++    ///
++    /// A full-screen program that switches the cursor keys to application mode, such as vim, gets
++    /// Home and End for ⌘← and ⌘→ instead, since ⌃A means something else there (vim increments a number).
++    /// A program that asked for the kitty keyboard protocol receives SwiftTerm's own encoding,
++    /// which it has to understand anyway.
++    private func lineEditingSequence(for event: NSEvent) -> [UInt8]? {
++
++        let terminal = self.getTerminal()
++        guard
++            event.type == .keyDown,
++            terminal.keyboardEnhancementFlags.isEmpty,
++            let key = event.charactersIgnoringModifiers?.unicodeScalars.first.map({ Int($0.value) }),
++            [NSLeftArrowFunctionKey, NSRightArrowFunctionKey].contains(key)
++        else { return nil }
++
++        let isLeft = (key == NSLeftArrowFunctionKey)
++        switch event.modifierFlags.intersection([.shift, .control, .option, .command]) {
++            case .option:
++                return isLeft ? EscapeSequences.emacsBack : EscapeSequences.emacsForward
++            case .command where terminal.applicationCursor:
++                return isLeft ? EscapeSequences.moveHomeApp : EscapeSequences.moveEndApp
++            case .command:
++                return isLeft ? [0x01] : [0x05]
++            default:
++                return nil
++        }
++    }
++
++
++    override func viewDidChangeEffectiveAppearance() {
++
++        super.viewDidChangeEffectiveAppearance()
++
++        self.applyThemeColors()
++    }
++
++
++    /// The colors currently applied, to skip redrawing when nothing changed.
++    private(set) var themeColors: TerminalColors?
++
++
++    /// Applies the terminal theme for the current light or dark appearance.
++    func applyThemeColors() {
++
++        var colors = TerminalColors.current(isDark: false)
++        self.effectiveAppearance.performAsCurrentDrawingAppearance {
++            colors = TerminalColors.current(isDark: self.effectiveAppearance.isDark)
++        }
++
++        guard colors != self.themeColors else { return }
++        self.themeColors = colors
++
++        self.nativeForegroundColor = colors.foreground.usingColorSpace(.sRGB) ?? colors.foreground
++        self.nativeBackgroundColor = colors.background.usingColorSpace(.sRGB) ?? colors.background
++        self.caretColor = colors.caret.usingColorSpace(.sRGB) ?? colors.caret
++        self.selectedTextBackgroundColor = colors.selection.usingColorSpace(.sRGB) ?? colors.selection
++        self.installColors((colors.palette ?? TerminalColors.standardPalette).map(Color.init(color:)))
++
++        // The container paints the margins around the grid in the same color.
++        self.superview?.needsDisplay = true
++    }
++
++
++    /// The width that SwiftTerm keeps free on the trailing edge for its scroller.
++    ///
++    /// SwiftTerm reserves it whether or not the scroller is visible, so no column is ever drawn there.
++    var reservedScrollerWidth: CGFloat {
++
++        NSScroller.scrollerWidth(for: .regular, scrollerStyle: self.scrollerStyle)
++    }
++
++
++    /// The size of one character cell, or `nil` before the terminal has a size.
++    var cellSize: NSSize? {
++
++        // SwiftTerm snaps its cell size to the pixel grid internally and exposes it only through
++        // the optimal frame, so it is recovered from there rather than measured from the font again.
++        let terminal = self.getTerminal()
++        guard terminal.cols > 0, terminal.rows > 0 else { return nil }
++
++        let frame = self.getOptimalFrameSize()
++        let size = NSSize(width: (frame.width - self.reservedScrollerWidth) / CGFloat(terminal.cols),
++                          height: frame.height / CGFloat(terminal.rows))
++
++        guard size.width > 0, size.height > 0 else { return nil }
++
++        return size
++    }
++}
++
++
++// MARK: - Container
++
++/// Holds the terminal view, centers its character grid, and only passes usable sizes on to it.
++///
++/// Every size change of the terminal view resizes the pseudo-terminal, which the program inside sees.
++/// While the tab is hidden, or during a transient layout pass, the container can be arbitrarily small;
++/// such sizes are not forwarded, so a full-screen program never redraws for a zero-sized screen.
++///
++/// The terminal fits only whole cells, so the space left over is split evenly on all four edges
++/// instead of collecting at the trailing and bottom edges. SwiftTerm draws its scroller in a strip of
++/// its own beside the grid, so every margin is at least that wide: the strip then lies inside the
++/// trailing margin, and the grid still looks centered.
++final class TerminalContainerView: NSView {
++
++    /// The smallest size worth telling the program about.
++    private static let minimumSize = NSSize(width: 40, height: 20)
++
++    let terminalView: TerminalHostView
++
++
++    init(terminalView: TerminalHostView) {
++
++        self.terminalView = terminalView
++
++        super.init(frame: terminalView.frame)
++
++        // In a pane too small for the margins, the scroller strip would otherwise reach past the edge.
++        self.clipsToBounds = true
++
++        terminalView.autoresizingMask = []
++        self.addSubview(terminalView)
++    }
++
++
++    @available(*, unavailable)
++    required init?(coder: NSCoder) {
++
++        fatalError("init(coder:) has not been implemented")
++    }
++
++
++    override func resizeSubviews(withOldSize oldSize: NSSize) {
++
++        super.resizeSubviews(withOldSize: oldSize)
++
++        self.fitTerminalView()
++    }
++
++
++    override func layout() {
++
++        super.layout()
++
++        self.fitTerminalView()
++    }
++
++
++    override var isOpaque: Bool {
++
++        true
++    }
++
++
++    override func draw(_ dirtyRect: NSRect) {
++
++        self.terminalView.nativeBackgroundColor.setFill()
++        dirtyRect.fill()
++    }
++
++
++    override func mouseDown(with event: NSEvent) {
++
++        // A click in the margin should work like a click on the terminal itself.
++        self.window?.makeFirstResponder(self.terminalView)
++    }
++
++
++    override func viewDidChangeBackingProperties() {
++
++        super.viewDidChangeBackingProperties()
++
++        // The cell size and the pixel grid that the margins snap to both depend on the scale.
++        self.needsLayout = true
++    }
++
++
++    private func fitTerminalView() {
++
++        guard
++            self.window != nil,
++            self.bounds.width >= Self.minimumSize.width,
++            self.bounds.height >= Self.minimumSize.height
++        else { return }
++
++        let frame = self.terminalFrame(in: self.bounds)
++
++        guard self.terminalView.frame != frame else { return }
++
++        self.terminalView.frame = frame
++    }
++
++
++    /// The frame of the terminal view that centers the largest grid of whole cells in the given bounds.
++    private func terminalFrame(in bounds: NSRect) -> NSRect {
++
++        guard let cell = self.terminalView.cellSize else { return bounds }
++
++        let scrollerWidth = self.terminalView.reservedScrollerWidth
++        let scale = self.window?.backingScaleFactor ?? 2
++        let alignToPixel = { (value: CGFloat) in (value * scale).rounded(.down) / scale }
++
++        let columns = max(1, ((bounds.width - 2 * scrollerWidth) / cell.width).rounded(.down))
++        let rows = max(1, ((bounds.height - 2 * scrollerWidth) / cell.height).rounded(.down))
++        let grid = NSSize(width: columns * cell.width, height: rows * cell.height)
++
++        let leading = alignToPixel((bounds.width - grid.width) / 2)
++        let top = alignToPixel((bounds.height - grid.height) / 2)
++
++        // SwiftTerm derives its row and column counts by dividing its size by the cell size.
++        // Half a pixel more keeps rounding errors from losing a row or column, and stays invisible:
++        // the grid is laid out from the top leading corner, which is on the pixel grid.
++        let slack = 0.5 / scale
++        let size = NSSize(width: grid.width + scrollerWidth + slack, height: grid.height + slack)
++
++        return NSRect(x: bounds.minX + leading,
++                      y: bounds.maxY - top - size.height,
++                      width: size.width,
++                      height: size.height)
++    }
++}
++
++
++private extension SwiftTerm.Color {
++    
++    /// A terminal color with the same sRGB components.
++    convenience init(color: NSColor) {
++        
++        let color = color.usingColorSpace(.sRGB) ?? color
++        let component = { (value: CGFloat) in UInt16((min(max(value, 0), 1) * 65535).rounded()) }
++        
++        self.init(red: component(color.redComponent), green: component(color.greenComponent), blue: component(color.blueComponent))
++    }
++}
+diff --git a/CotEditor/Sources/Terminal/Terminal+DirectoryDocument.swift b/CotEditor/Sources/Terminal/Terminal+DirectoryDocument.swift
+new file mode 100644
+index 000000000..2c7b3293e
+--- /dev/null
++++ b/CotEditor/Sources/Terminal/Terminal+DirectoryDocument.swift
+@@ -0,0 +1,297 @@
++//
++//  Terminal+DirectoryDocument.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import Defaults
++
++
++/// Terminal tabs in a directory window.
++///
++/// Terminals are tabs that are not files (see `DirectoryTabItem`): they share the file tabs' order,
++/// selection, strip and close paths, but never appear in the document registry, never mark the window
++/// as edited, and leave `activeFileDocument` nil while selected.
++extension DirectoryDocument {
++
++    // MARK: Public Properties
++
++    var terminalSessions: [TerminalSession] {
++
++        self.tabItems.compactMap { $0 as? TerminalSession }
++    }
++
++
++    /// The terminal the window shows, if a terminal tab is selected.
++    var activeTerminalSession: TerminalSession? {
++
++        self.activeTabItem as? TerminalSession
++    }
++
++
++    // MARK: Opening
++
++    /// Opens a terminal tab, first offering to turn file tabs on if they are off.
++    ///
++    /// - Parameter directory: The folder to start in, or `nil` for the directory itself.
++    func requestTerminalTab(in directory: URL? = nil) async {
++
++        guard !self.isClosed, directory != nil || self.canOpenTerminals else { return }
++
++        if !UserDefaults.standard[.usesDirectoryFileTabs] {
++            guard await TerminalPrompts.current.confirmEnablingTabs(window: self.windowForSheet) else { return }
++            guard !self.isClosed else { return }
++            // Reuses the file-tab transition: the preference observer reconciles every directory window.
++            UserDefaults.standard[.usesDirectoryFileTabs] = true
++        }
++
++        // A root whose terminals run elsewhere prepares where; nothing starts in a local folder instead.
++        if directory == nil, !self.hasLocalFolderForTerminals, let provider = self.root as? any TerminalLaunchProviding {
++            do {
++                let launcher = try await provider.makeTerminalLauncher(for: self)
++                guard !self.isClosed else { return }
++                self.openTerminalTab(launcher: launcher)
++            } catch {
++                self.presentErrorAsSheet(error)
++            }
++            return
++        }
++
++        self.openTerminalTab(in: directory)
++    }
++
++
++    /// Opens, selects and starts a terminal tab whose processes a launcher starts.
++    ///
++    /// - Returns: The new session, or `nil` if the window cannot have terminal tabs now.
++    @discardableResult func openTerminalTab(launcher: TerminalLauncher) -> TerminalSession? {
++
++        guard !self.isClosed, UserDefaults.standard[.usesDirectoryFileTabs] else { return nil }
++
++        let session = TerminalSession(defaultTitle: self.nextTerminalTitle(), startingDirectory: FileManager.default.homeDirectoryForCurrentUser,
++                                      launcher: launcher)
++        guard self.openTabItem(session) else { return nil }
++        session.start()
++        self.windowContentViewController?.focusActiveTab()
++
++        return session
++    }
++
++
++    /// Opens, selects and starts a terminal tab.
++    ///
++    /// - Parameter directory: The folder to start in, or `nil` for the directory itself.
++    /// - Returns: The new session, or `nil` if the window cannot have terminal tabs now.
++    @discardableResult func openTerminalTab(in directory: URL? = nil) -> TerminalSession? {
++
++        guard
++            !self.isClosed,
++            UserDefaults.standard[.usesDirectoryFileTabs],
++            let startingDirectory = directory ?? self.fileURL
++        else { return nil }
++
++        let session = TerminalSession(defaultTitle: self.nextTerminalTitle(), startingDirectory: startingDirectory)
++        guard self.openTabItem(session) else { return nil }
++        session.start()
++        self.windowContentViewController?.focusActiveTab()
++
++        return session
++    }
++
++
++    // MARK: Selection
++
++    func selectTerminal(_ session: TerminalSession) {
++
++        self.selectTabItem(session)
++    }
++
++
++    // MARK: Closing
++
++    /// Closes a terminal tab, asking first if it is running.
++    ///
++    /// - Parameter session: The terminal to close.
++    /// - Returns: `true` if the tab closed.
++    @discardableResult func closeTerminal(_ session: TerminalSession) async -> Bool {
++
++        await self.closeTabItem(session)
++    }
++
++
++    /// Asks once for all running terminals of the window, without stopping anything.
++    ///
++    /// - Parameter reason: What the user is doing.
++    /// - Returns: `true` if there is nothing running or the user agreed to stop it.
++    func confirmClosingLiveTerminals(reason: TerminalCloseRequest.Scope) async -> Bool {
++
++        let liveCount = self.terminalSessions.count(where: \.isLive)
++
++        guard liveCount > 0 else { return true }
++
++        return await TerminalPrompts.current.confirmClosing(.many(scope: reason, liveCount: liveCount), window: self.windowForSheet)
++    }
++
++
++    /// Removes every terminal tab without asking, stopping the processes.
++    ///
++    /// For callers that already have the user's approval, or that must end terminals anyway.
++    func closeAllTerminals() {
++
++        for session in self.terminalSessions {
++            self.removeTabItem(session)
++        }
++    }
++
++
++    // MARK: Private Methods
++
++    /// The first of “Terminal”, “Terminal 2”, “Terminal 3”… not used by another tab in the window.
++    ///
++    /// - Parameter others: Sessions that are about to join the window and whose titles are taken too.
++    fileprivate func nextTerminalTitle(besides others: [TerminalSession] = []) -> String {
++
++        let used = Set((self.terminalSessions + others).map(\.defaultTitle))
++
++        return (1...).lazy
++            .map { number in
++                number == 1
++                    ? String(localized: "TerminalSession.defaultTitle", defaultValue: "Shell", table: "Terminal",
++                             comment: "default name of the first terminal tab in a window")
++                    : String(localized: "TerminalSession.numberedTitle", defaultValue: "Shell \(number)", table: "Terminal",
++                             comment: "default name of further terminal tabs in a window (%lld is a number starting at 2)")
++            }
++            .first { !used.contains($0) }!
++    }
++}
++
++
++// MARK: - Tab Contract
++
++extension TerminalSession: DirectoryTabItem {
++
++    var tabKind: String  { TerminalTabArchive.kind }
++
++    var tabTitle: String  { self.title }
++
++    var tabIcon: NSImage?  { NSImage(systemSymbolName: "apple.terminal", accessibilityDescription: nil) }
++
++    /// The tooltip names the starting folder only; the shell may have moved elsewhere since.
++    var tabToolTip: String {
++
++        if let launcher = self.launcher {
++            return String(localized: "TerminalTab.tooltip.elsewhere", defaultValue: "Shell started in \(launcher.location)", table: "Terminal",
++                          comment: "tooltip of a terminal tab that runs elsewhere, such as on a server (%@ is a location such as user@host:/path)")
++        }
++
++        return String(localized: "TerminalTab.tooltip", defaultValue: "Shell started in \(self.startingDirectory.path(percentEncoded: false))",
++               table: "Terminal",
++               comment: "tooltip and accessibility hint of a terminal tab; it names the starting folder, not the shell’s current folder (%@ is a path)")
++    }
++
++
++    func makeTabViewController(in directory: DirectoryDocument) -> any DirectoryTabViewController {
++
++        TerminalTabViewController(session: self, directoryDocument: directory)
++    }
++
++
++    /// Makes the tab close by itself when its shell exits, as after typing `exit`.
++    ///
++    /// Nothing runs any more, so no confirmation is needed. The tab closes on the next turn of the main
++    /// queue rather than inside the exit callback, which the terminal view is still executing. By then
++    /// the tab may already be gone, for example after a close the user confirmed meanwhile.
++    func didJoin(_ directory: DirectoryDocument) {
++
++        self.onExit = { [weak directory, weak self] in
++            Task { @MainActor in
++                guard
++                    let directory, let self,
++                    case .exited = self.lifecycle,
++                    !self.keepsTabAfterExit,
++                    directory.tabState.entry(for: self) != nil
++                else { return }
++
++                directory.removeTabItem(self)
++            }
++        }
++    }
++
++
++    func approveTabClose(in directory: DirectoryDocument) async -> Bool {
++
++        // Whether it is still running once the user answers does not matter: the user agreed to stop it.
++        guard self.isLive else { return true }
++
++        return await TerminalPrompts.current.confirmClosing(.tab(title: self.title), window: directory.windowForSheet)
++    }
++
++
++    func tearDown() {
++
++        self.close()
++    }
++
++
++    func archivedFields() -> [String: Any]? {
++
++        // Only the launcher knows how to start its terminals again.
++        guard self.launcher == nil else { return nil }
++
++        return TerminalTabArchive.tab(for: self, id: self.id).fields
++    }
++
++
++    func tabContextMenuItems(in directory: DirectoryDocument) -> [DirectoryTabBar.MenuItem] {
++
++        directory.terminalContextMenuItems(for: self)
++    }
++}
++
++
++extension DirectoryTabKind {
++
++    /// Terminal tabs.
++    ///
++    /// Restored terminals are placeholders that the user starts explicitly. No shell starts during
++    /// restoration: a process that ran before the app quit is gone, and silently starting another one,
++    /// possibly running startup files, is not what the user asked for.
++    static let terminal = DirectoryTabKind(
++        archiveKind: TerminalTabArchive.kind,
++        approveClosingWindow: { _, directory in await directory.confirmClosingLiveTerminals(reason: .window) },
++        restore: { entries, directory in
++            TerminalTabArchive(entries: entries).terminals.reduce(into: [TerminalSession]()) { sessions, entry in
++                sessions.append(TerminalSession(id: entry.id, defaultTitle: directory.nextTerminalTitle(besides: sessions),
++                                                customTitle: entry.customTitle, startingDirectory: entry.startingDirectory,
++                                                shellPath: entry.shellPath))
++            }
++        },
++        addMenuItems: { [$0.newTerminalMenuItem] })
++}
++
++
++extension DirectoryTabState.Entry {
++
++    var terminalSession: TerminalSession? {
++
++        self.item as? TerminalSession
++    }
++}
+diff --git a/CotEditor/Sources/Terminal/TerminalColors.swift b/CotEditor/Sources/Terminal/TerminalColors.swift
+new file mode 100644
+index 000000000..6c0cf276a
+--- /dev/null
++++ b/CotEditor/Sources/Terminal/TerminalColors.swift
+@@ -0,0 +1,217 @@
++//
++//  TerminalColors.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import Defaults
++
++
++extension DefaultKeys {
++
++    /// The theme for terminals, or an empty string to use the editor's theme.
++    static let terminalTheme = DefaultKey<String>("terminalTheme")
++
++    /// Whether the colors programs choose from are derived from the terminal theme.
++    static let terminalUsesThemeColors = DefaultKey<Bool>("terminalUsesThemeColors")
++}
++
++
++/// The terminal settings and their defaults.
++enum TerminalSettings {
++
++    /// Registers the terminal settings' default values. Kept apart from `DefaultSettings`, whose list
++    /// is shared with the builds without terminals.
++    static func registerDefaults() {
++
++        UserDefaults.standard.register(defaults: [
++            DefaultKeys.terminalTheme.rawValue: "",
++            DefaultKeys.terminalUsesThemeColors.rawValue: true,
++        ])
++    }
++}
++
++
++/// The colors of a terminal, taken from a CotEditor theme.
++///
++/// CotEditor themes describe text, background, selection and caret, and ten syntax colors, but not the
++/// 16 ANSI colors that programs such as `ls` or `git` choose from. Those can be derived from the syntax
++/// colors: each ANSI color takes the theme color closest to it in hue, so that red still reads as an
++/// error, as long as it stays readable on the background; otherwise it keeps the standard color.
++struct TerminalColors: Equatable {
++
++    var foreground: NSColor
++    var background: NSColor
++    var caret: NSColor
++    var selection: NSColor
++
++    /// The 16 ANSI colors in order (black, red, green, yellow, blue, magenta, cyan, white, then the
++    /// bright variants), or `nil` for the standard palette.
++    var palette: [NSColor]?
++
++
++    /// The standard palette, as in Terminal.app, which is also what the terminal uses by default.
++    static let standardPalette: [NSColor] = [
++        (0, 0, 0), (194, 54, 33), (37, 188, 36), (173, 173, 39), (73, 46, 225), (211, 56, 211), (51, 187, 200), (203, 204, 205),
++        (129, 131, 131), (252, 57, 31), (49, 231, 34), (234, 236, 35), (88, 51, 255), (249, 53, 248), (20, 240, 240), (233, 235, 235),
++    ].map { NSColor(srgbRed: CGFloat($0.0) / 255, green: CGFloat($0.1) / 255, blue: CGFloat($0.2) / 255, alpha: 1) }
++
++    /// The minimum contrast ratio against the background for a theme color to replace a standard one.
++    static let minimumContrast: Double = 3
++
++
++    /// Takes the colors from a theme.
++    ///
++    /// Themes can use dynamic system colors, for the selection for example. They are resolved to plain
++    /// sRGB colors here, for the current drawing appearance, so that the terminal gets fixed values and
++    /// equal settings give equal colors.
++    init(theme: Theme, derivesPalette: Bool) {
++
++        self.foreground = theme.text.color.srgb
++        self.background = theme.background.color.srgb
++        self.caret = theme.insertionPointColor.srgb
++        self.selection = theme.selectionColor.srgb
++        self.palette = derivesPalette ? Self.palette(for: theme) : nil
++    }
++
++
++    // MARK: Theme Resolution
++
++    /// The terminal colors for the current settings.
++    ///
++    /// - Parameter isDark: Whether the terminal is shown in a dark appearance.
++    @MainActor static func current(isDark: Bool) -> Self {
++
++        let name = self.themeName(setting: UserDefaults.standard[.terminalTheme], isDark: isDark,
++                                  pinsAppearance: UserDefaults.standard[.pinsThemeAppearance])
++        let theme = (try? ThemeManager.shared.setting(name: name)) ?? Theme()
++
++        return Self(theme: theme, derivesPalette: UserDefaults.standard[.terminalUsesThemeColors])
++    }
++
++
++    /// The theme a terminal uses.
++    ///
++    /// An empty setting follows the editor's theme exactly as editors do. A chosen theme switches to its
++    /// light or dark variant with the appearance, like the editor's theme, unless the user pinned themes
++    /// to their appearance. A theme that no longer exists falls back to the editor's theme.
++    ///
++    /// - Parameters:
++    ///   - setting: The terminal theme setting.
++    ///   - isDark: Whether the terminal is shown in a dark appearance.
++    ///   - pinsAppearance: Whether themes keep their own appearance.
++    /// - Returns: A theme name.
++    @MainActor static func themeName(setting: String, isDark: Bool, pinsAppearance: Bool) -> String {
++
++        let manager = ThemeManager.shared
++
++        guard !setting.isEmpty, manager.settingNames.contains(setting) else {
++            return manager.userDefaultSettingName(inDarkMode: isDark)
++        }
++
++        if !pinsAppearance, let equivalent = manager.equivalentSettingName(to: setting, forDark: manager.usesDarkAppearance(inDarkMode: isDark)) {
++            return equivalent
++        }
++
++        return setting
++    }
++
++
++    // MARK: Palette
++
++    /// Derives the 16 ANSI colors from a theme.
++    static func palette(for theme: Theme) -> [NSColor] {
++
++        let background = theme.background.color.srgb
++        let text = theme.text.color.srgb
++        let isDark = theme.isDarkTheme
++        let candidates = [theme.keywords, theme.commands, theme.types, theme.attributes, theme.variables,
++                          theme.values, theme.numbers, theme.strings, theme.characters, theme.comments]
++            .map(\.color.srgb)
++            .filter { $0.saturationComponent >= 0.25 && $0.contrastRatio(to: background) >= Self.minimumContrast }
++
++        // The hues of red, green, yellow, blue, magenta and cyan, in ANSI order.
++        let hues: [CGFloat] = [0, 120, 60, 240, 300, 180]
++        let chromatic = hues.enumerated().map { index, hue in
++            candidates
++                .map { (color: $0, distance: $0.hueDistance(to: hue)) }
++                .filter { $0.distance <= 35 }
++                .min { $0.distance < $1.distance }?
++                .color ?? Self.standardPalette[index + 1]
++        }
++
++        let black = isDark ? background.blended(with: text, fraction: 0.25) : text.blended(with: background, fraction: 0.1)
++        let white = isDark ? text.blended(with: background, fraction: 0.15) : background.blended(with: text, fraction: 0.25)
++        let comments = theme.comments.color.srgb
++        let brightBlack = comments.contrastRatio(to: background) >= 2 ? comments : background.blended(with: text, fraction: 0.5)
++        let brightWhite = isDark ? text.blended(with: .white, fraction: 0.5) : background.blended(with: text, fraction: 0.1)
++        // Bright variants are lighter on dark backgrounds; on light ones lightening would cost readability.
++        let brightChromatic = chromatic.map { isDark ? $0.blended(with: .white, fraction: 0.25) : $0 }
++
++        return [black] + chromatic + [white, brightBlack] + brightChromatic + [brightWhite]
++    }
++}
++
++
++private extension NSColor {
++
++    /// The color in the sRGB color space, which the hue and contrast calculations assume.
++    var srgb: NSColor {
++
++        self.usingColorSpace(.sRGB) ?? self
++    }
++
++
++    /// The shortest distance in degrees between the color's hue and the given hue.
++    func hueDistance(to hue: CGFloat) -> CGFloat {
++
++        let distance = abs(self.hueComponent * 360 - hue).truncatingRemainder(dividingBy: 360)
++
++        return min(distance, 360 - distance)
++    }
++
++
++    /// The relative luminance as defined for contrast ratios in WCAG 2.
++    var relativeLuminance: Double {
++
++        func linear(_ component: CGFloat) -> Double {
++            let value = Double(component)
++            return value <= 0.04045 ? value / 12.92 : pow((value + 0.055) / 1.055, 2.4)
++        }
++
++        return 0.2126 * linear(self.redComponent) + 0.7152 * linear(self.greenComponent) + 0.0722 * linear(self.blueComponent)
++    }
++
++
++    /// The WCAG 2 contrast ratio between two colors, from 1 to 21.
++    func contrastRatio(to other: NSColor) -> Double {
++
++        let luminances = [self.relativeLuminance, other.relativeLuminance].sorted()
++
++        return (luminances[1] + 0.05) / (luminances[0] + 0.05)
++    }
++
++
++    func blended(with color: NSColor, fraction: CGFloat) -> NSColor {
++
++        self.blended(withFraction: fraction, of: color)?.srgb ?? self
++    }
++}
+diff --git a/CotEditor/Sources/Terminal/TerminalCommands.swift b/CotEditor/Sources/Terminal/TerminalCommands.swift
+new file mode 100644
+index 000000000..bea2b830a
+--- /dev/null
++++ b/CotEditor/Sources/Terminal/TerminalCommands.swift
+@@ -0,0 +1,150 @@
++//
++//  TerminalCommands.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import SwiftUI
++
++
++// MARK: Main Menu
++
++@MainActor enum TerminalMenu {
++
++    /// Adds the terminal commands to the File menu.
++    ///
++    /// No shortcut is assigned to New Shell Tab: the common ⌃⇧` already moves the focus between
++    /// split editors here. Users can assign one in the Shortcuts settings, since the items exist
++    /// before the key bindings are read.
++    static func install(in mainMenu: NSMenu) {
++
++        guard
++            let fileMenu = mainMenu.items.lazy.compactMap(\.submenu)
++                .first(where: { $0.items.contains { $0.action == #selector(NSWindow.performClose(_:)) } })
++        else { return assertionFailure() }
++
++        if let index = fileMenu.items.firstIndex(where: { $0.action == Selector(("newDocumentAsTab:")) }) {
++            let newTerminal = NSMenuItem(title: String(localized: "TerminalMenu.newTerminalTab", defaultValue: "New Shell Tab", table: "Terminal",
++                                                       comment: "File menu item opening a terminal tab in the folder window"),
++                                         action: #selector(DirectoryDocument.newTerminalTab(_:)), keyEquivalent: "")
++            newTerminal.image = NSImage(systemSymbolName: "apple.terminal", accessibilityDescription: nil)
++            let rename = NSMenuItem(title: String(localized: "TerminalMenu.renameTerminalTab", defaultValue: "Rename Shell Tab…", table: "Terminal",
++                                                  comment: "File menu item"),
++                                    action: #selector(DirectoryDocument.renameTerminalTab(_:)), keyEquivalent: "")
++            fileMenu.insertItem(newTerminal, at: index + 1)
++            fileMenu.insertItem(rename, at: index + 2)
++        }
++    }
++}
++
++
++// MARK: Directory Commands
++
++extension DirectoryDocument {
++
++    @IBAction func newTerminalTab(_ sender: Any?) {
++
++        Task {
++            await self.requestTerminalTab()
++        }
++    }
++
++
++    @IBAction func renameTerminalTab(_ sender: Any?) {
++
++        guard let session = self.activeTerminalSession else { return }
++
++        self.rename(session)
++    }
++
++
++    /// Validates the terminal commands.
++    ///
++    /// - Returns: The validation result, or `nil` for other commands.
++    func validateTerminalItem(_ item: any NSValidatedUserInterfaceItem) -> Bool? {
++
++        switch item.action {
++            case #selector(newTerminalTab(_:)):
++                return !self.isClosed && self.canOpenTerminals
++            case #selector(renameTerminalTab(_:)):
++                return self.activeTerminalSession != nil
++            default:
++                return nil
++        }
++    }
++
++
++    /// The commands in a terminal tab's context menu.
++    func terminalContextMenuItems(for session: TerminalSession) -> [DirectoryTabBar.MenuItem] {
++
++        [
++            .init(title: String(localized: "TerminalMenu.rename", defaultValue: "Rename…", table: "Terminal",
++                                comment: "context menu item of a terminal tab")) { [weak self, weak session] in
++                guard let self, let session else { return }
++                self.rename(session)
++            },
++        ]
++    }
++
++
++    private func rename(_ session: TerminalSession) {
++
++        Task {
++            guard let title = await TerminalPrompts.current.askForTitle(current: session.customTitle ?? session.title, window: self.windowForSheet) else { return }
++
++            session.rename(to: title)
++            self.invalidateRestorableState()
++        }
++    }
++}
++
++
++// MARK: Tab Bar
++
++extension DirectoryDocument {
++    
++    /// The entry of the tab strip's “+” menu that opens a terminal tab.
++    var newTerminalMenuItem: DirectoryTabBar.MenuItem {
++        
++        .init(title: String(localized: "TerminalMenu.newTerminal", defaultValue: "New Shell", table: "Terminal",
++                            comment: "menu item in the tab strip’s add menu"),
++              systemImage: "apple.terminal", isEnabled: self.canOpenTerminals) { [weak self] in
++            Task { await self?.requestTerminalTab() }
++        }
++    }
++
++
++    /// Whether the window has a folder on this Mac for terminals to start in.
++    ///
++    /// A window whose folder is elsewhere, such as on a server, has none, and a shell in some other
++    /// local folder would look as though it ran in the window's folder.
++    var hasLocalFolderForTerminals: Bool {
++
++        self.fileURL != nil
++    }
++
++
++    /// Whether the window can open terminals: in its folder on this Mac, or where its root runs them.
++    var canOpenTerminals: Bool {
++
++        self.hasLocalFolderForTerminals || self.root is any TerminalLaunchProviding
++    }
++}
+diff --git a/CotEditor/Sources/Terminal/TerminalLaunchConfiguration.swift b/CotEditor/Sources/Terminal/TerminalLaunchConfiguration.swift
+new file mode 100644
+index 000000000..1d26f32dc
+--- /dev/null
++++ b/CotEditor/Sources/Terminal/TerminalLaunchConfiguration.swift
+@@ -0,0 +1,200 @@
++//
++//  TerminalLaunchConfiguration.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import Foundation
++
++
++/// Everything needed to spawn one terminal process, validated before the spawn.
++struct TerminalLaunchConfiguration: Equatable {
++
++    /// The shell used when the account's login shell cannot be run.
++    static let fallbackShell = "/bin/zsh"
++
++    var executable: String
++
++    /// The process name. A leading hyphen asks every common shell to act as a login shell.
++    var argv0: String
++    var arguments: [String]
++    var environment: [String]
++    var currentDirectory: String
++
++
++    /// Validates the directory and resolves the shell for a new process.
++    ///
++    /// The directory is passed to the spawn itself, so it only applies to the child: the app's own
++    /// working directory never changes, and folder names never pass through a shell command line.
++    ///
++    /// - Parameters:
++    ///   - directory: The folder to start in.
++    ///   - shellPath: A specific shell, or `nil` for the account's login shell.
++    ///   - baseEnvironment: The environment to derive the child's environment from.
++    /// - Throws: `TerminalLaunchError` if the folder or every candidate shell is unusable.
++    init(directory: URL, shellPath: String? = nil, baseEnvironment: [String: String] = ProcessInfo.processInfo.environment) throws(TerminalLaunchError) {
++
++        guard Self.isUsableDirectory(directory) else { throw .directoryUnavailable(directory) }
++
++        let shell = try Self.resolveShell(preferred: shellPath)
++
++        self.executable = shell
++        self.argv0 = "-" + (shell as NSString).lastPathComponent
++        self.arguments = []
++        self.environment = Self.environment(base: baseEnvironment, shell: shell)
++        self.currentDirectory = directory.path(percentEncoded: false)
++    }
++
++
++    /// Direct initializer for tests that launch a controlled shell.
++    init(executable: String, argv0: String, arguments: [String], environment: [String], currentDirectory: String) {
++
++        self.executable = executable
++        self.argv0 = argv0
++        self.arguments = arguments
++        self.environment = environment
++        self.currentDirectory = currentDirectory
++    }
++
++
++    // MARK: Shell
++
++    /// Picks the shell to run.
++    ///
++    /// A saved or configured shell is untrusted input, so each candidate must be an existing executable
++    /// file at an absolute path. The order is: the requested shell, the account's login shell, then `/bin/zsh`.
++    ///
++    /// - Parameter preferred: The shell requested for this session, if any.
++    /// - Returns: The path of the shell to run.
++    /// - Throws: `TerminalLaunchError.shellUnavailable` naming the first candidate if none can run.
++    static func resolveShell(preferred: String?, accountShell: String? = Self.accountShell()) throws(TerminalLaunchError) -> String {
++
++        let candidates = [preferred, accountShell, Self.fallbackShell].compactMap(\.self)
++
++        guard let shell = candidates.first(where: Self.isUsableShell) else {
++            throw .shellUnavailable(candidates.first ?? Self.fallbackShell)
++        }
++
++        return shell
++    }
++
++
++    /// The login shell recorded in the user's account.
++    ///
++    /// `$SHELL` is not used: an app launched from the Finder inherits it from launchd, not from the account.
++    static func accountShell() -> String? {
++
++        var record = passwd()
++        var result: UnsafeMutablePointer<passwd>?
++        var buffer = [CChar](repeating: 0, count: max(Int(sysconf(Int32(_SC_GETPW_R_SIZE_MAX))), 4096))
++
++        guard
++            getpwuid_r(getuid(), &record, &buffer, buffer.count, &result) == 0,
++            result != nil,
++            let shell = record.pw_shell
++        else { return nil }
++
++        return String(cString: shell)
++    }
++
++
++    static func isUsableShell(_ path: String) -> Bool {
++
++        var isDirectory: ObjCBool = false
++
++        return path.hasPrefix("/")
++            && FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
++            && !isDirectory.boolValue
++            && FileManager.default.isExecutableFile(atPath: path)
++    }
++
++
++    // MARK: Directory
++
++    /// Whether the folder exists and can be entered.
++    static func isUsableDirectory(_ url: URL) -> Bool {
++
++        guard url.isFileURL else { return false }
++
++        let path = url.path(percentEncoded: false)
++        var isDirectory: ObjCBool = false
++
++        return FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
++            && isDirectory.boolValue
++            && access(path, X_OK) == 0
++    }
++
++
++    // MARK: Environment
++
++    /// Variables passed through from the app's own environment.
++    ///
++    /// An allowlist rather than a copy: an app's environment also carries launch-service, debugger
++    /// and dynamic-linker variables that must not leak into the user's shell.
++    private static let inheritedVariables: Set<String> = [
++        "HOME", "USER", "LOGNAME", "TMPDIR", "PATH", "SSH_AUTH_SOCK", "__CF_USER_TEXT_ENCODING",
++        "LANG", "LC_ALL", "LC_CTYPE", "LC_COLLATE", "LC_MESSAGES", "LC_MONETARY", "LC_NUMERIC", "LC_TIME",
++    ]
++
++
++    /// Builds the child environment.
++    ///
++    /// - Parameters:
++    ///   - base: The app's environment.
++    ///   - shell: The shell being launched.
++    ///   - fallbackLocale: The locale name to use when the base names no character encoding.
++    /// - Returns: `KEY=value` pairs, sorted for a stable result.
++    static func environment(base: [String: String], shell: String, fallbackLocale: @autoclosure () -> String = Self.defaultLocaleName()) -> [String] {
++
++        var environment = base.filter { Self.inheritedVariables.contains($0.key) }
++
++        environment["SHELL"] = shell
++        environment["TERM"] = "xterm-256color"
++        environment["COLORTERM"] = "truecolor"
++        environment["TERM_PROGRAM"] = "CotEditor"
++        environment["TERM_PROGRAM_VERSION"] = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
++
++        // Login shells extend PATH through path_helper, but they need a working default to start from.
++        if environment["PATH"]?.isEmpty != false {
++            environment["PATH"] = "/usr/bin:/bin:/usr/sbin:/sbin"
++        }
++
++        // Without a UTF-8 locale, many programs print non-ASCII text as escapes.
++        if environment["LANG"] == nil, environment["LC_ALL"] == nil, environment["LC_CTYPE"] == nil {
++            environment["LANG"] = fallbackLocale()
++        }
++
++        return environment.map { "\($0.key)=\($0.value)" }.sorted()
++    }
++
++
++    /// The user's language and region as a UTF-8 locale that the system provides, or `en_US.UTF-8`.
++    static func defaultLocaleName(locale: Locale = .current, isInstalled: (String) -> Bool = { FileManager.default.fileExists(atPath: "/usr/share/locale/" + $0) }) -> String {
++
++        if let language = locale.language.languageCode?.identifier,
++           let region = locale.region?.identifier
++        {
++            let name = "\(language)_\(region).UTF-8"
++            if isInstalled(name) { return name }
++        }
++
++        return "en_US.UTF-8"
++    }
++}
+diff --git a/CotEditor/Sources/Terminal/TerminalProcessReaper.swift b/CotEditor/Sources/Terminal/TerminalProcessReaper.swift
+new file mode 100644
+index 000000000..19a3a3c44
+--- /dev/null
++++ b/CotEditor/Sources/Terminal/TerminalProcessReaper.swift
+@@ -0,0 +1,104 @@
++//
++//  TerminalProcessReaper.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import Foundation
++
++
++/// Stops and reaps the processes of one terminal session.
++///
++/// Every signal here targets a process group that is provably ours. The shell is spawned as the
++/// leader of a new session, so its process group ID equals its PID. As long as the shell has not been
++/// reaped, the kernel keeps that PID reserved (a zombie still holds it), so neither the PID nor the
++/// group ID can belong to an unrelated process. Once the shell is reaped, nothing is signaled again.
++///
++/// A job the user deliberately detached (for example with `nohup`, `disown` or `setsid`) leaves the
++/// session's control and may outlive the terminal. That is intended; no attempt is made to hunt down
++/// every descendant.
++struct TerminalProcessReaper: Sendable {
++
++    /// The shell's PID, which is also its process group and session ID.
++    let shell: pid_t
++
++    /// The terminal's foreground process group when shutdown began, if different from the shell's.
++    let foreground: pid_t?
++
++
++    init(shell: pid_t, foreground: pid_t) {
++
++        self.shell = shell
++        self.foreground = (foreground > 1 && foreground != shell) ? foreground : nil
++    }
++
++
++    /// Asks the session to end, the same way closing a terminal window does.
++    ///
++    /// SIGHUP makes interactive shells exit and pass the hangup on to their jobs. SIGCONT lets a
++    /// stopped job receive it.
++    func hangUp() {
++
++        for group in [self.foreground, self.shell].compactMap(\.self) {
++            killpg(group, SIGHUP)
++            killpg(group, SIGCONT)
++        }
++    }
++
++
++    /// Waits for the shell to exit, then forcibly stops what is left of the session if it has not.
++    ///
++    /// - Parameter grace: How long the session may take to exit on its own.
++    /// - Returns: `true` if the shell exited within the grace period.
++    @discardableResult func reap(grace: Duration) -> Bool {
++
++        let deadline = ContinuousClock.now + grace
++        repeat {
++            if self.reapIfExited() { return true }
++            usleep(10_000)
++        } while ContinuousClock.now < deadline
++
++        if self.reapIfExited() { return true }
++
++        // Still unreaped, so the IDs checked below cannot have been reused.
++        if let foreground, getsid(foreground) == self.shell {
++            killpg(foreground, SIGKILL)
++        }
++        killpg(self.shell, SIGKILL)
++
++        var status: Int32 = 0
++        while waitpid(self.shell, &status, 0) == -1, errno == EINTR {}
++
++        return false
++    }
++
++
++    /// Reaps the shell without blocking.
++    ///
++    /// - Returns: `true` if the shell has been reaped, by this call or before it.
++    private func reapIfExited() -> Bool {
++
++        var status: Int32 = 0
++        let result = waitpid(self.shell, &status, WNOHANG)
++
++        // ECHILD: already reaped elsewhere, so it must not be signaled any more.
++        return result == self.shell || (result == -1 && errno == ECHILD)
++    }
++}
+diff --git a/CotEditor/Sources/Terminal/TerminalPrompts.swift b/CotEditor/Sources/Terminal/TerminalPrompts.swift
+new file mode 100644
+index 000000000..519c464d3
+--- /dev/null
++++ b/CotEditor/Sources/Terminal/TerminalPrompts.swift
+@@ -0,0 +1,168 @@
++//
++//  TerminalPrompts.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++
++
++/// A request to stop terminal work, described for the confirmation.
++enum TerminalCloseRequest: Equatable {
++
++    enum Scope: Equatable {
++
++        /// Closing a directory window.
++        case window
++        /// Quitting the app.
++        case quit
++        /// Turning off file tabs, which closes every terminal tab.
++        case disablingTabs
++    }
++
++
++    /// Closing one running terminal tab.
++    case tab(title: String)
++
++    /// Closing several terminal tabs at once, of which `liveCount` are running.
++    case many(scope: Scope, liveCount: Int)
++}
++
++
++/// The confirmations terminal tabs need.
++///
++/// Every decision goes through this protocol so that tests can answer without showing alerts.
++@MainActor protocol TerminalPrompting {
++
++    /// Asks whether terminal work may be stopped. Nothing may be stopped before this returns `true`.
++    func confirmClosing(_ request: TerminalCloseRequest, window: NSWindow?) async -> Bool
++
++    /// Asks whether to turn on file tabs, which terminals need.
++    func confirmEnablingTabs(window: NSWindow?) async -> Bool
++
++    /// Asks for a new tab name.
++    ///
++    /// - Returns: The entered name, which may be empty, or `nil` if canceled.
++    func askForTitle(current: String, window: NSWindow?) async -> String?
++}
++
++
++@MainActor enum TerminalPrompts {
++
++    /// The prompts in use; tests replace them.
++    static var current: any TerminalPrompting = TerminalAlertPrompts()
++}
++
++
++/// The standard prompts, as alerts.
++@MainActor struct TerminalAlertPrompts: TerminalPrompting {
++
++    func confirmClosing(_ request: TerminalCloseRequest, window: NSWindow?) async -> Bool {
++
++        let alert = NSAlert()
++        alert.alertStyle = .warning
++
++        let stopsWork = String(localized: "TerminalPrompt.stopsWork", defaultValue: "Anything running in it will be stopped.", table: "Terminal",
++                               comment: "explanation when closing a running terminal tab")
++        let stopsAllWork = String(localized: "TerminalPrompt.stopsAllWork", defaultValue: "Anything running in the shell tabs will be stopped.", table: "Terminal",
++                                  comment: "explanation when closing several terminal tabs")
++
++        switch request {
++            case .tab(let title):
++                alert.messageText = String(localized: "TerminalPrompt.closeTab.message", defaultValue: "Close the shell “\(title)”?", table: "Terminal",
++                                           comment: "%@ is the name of the terminal tab")
++                alert.informativeText = stopsWork
++                alert.addButton(withTitle: String(localized: "TerminalPrompt.closeTab.button", defaultValue: "Close Shell", table: "Terminal",
++                                                  comment: "button label"))
++
++            case .many(.window, _):
++                alert.messageText = String(localized: "TerminalPrompt.closeWindow.message", defaultValue: "Close this window with running shells?", table: "Terminal")
++                alert.informativeText = stopsAllWork
++                alert.addButton(withTitle: String(localized: "TerminalPrompt.closeWindow.button", defaultValue: "Close Window", table: "Terminal",
++                                                  comment: "button label"))
++
++            case .many(.quit, _):
++                alert.messageText = String(localized: "TerminalPrompt.quit.message", defaultValue: "Quit with running shells?", table: "Terminal")
++                alert.informativeText = stopsAllWork
++                alert.addButton(withTitle: String(localized: "TerminalPrompt.quit.button", defaultValue: "Quit", table: "Terminal",
++                                                  comment: "button label"))
++
++            case .many(.disablingTabs, let liveCount):
++                alert.messageText = String(localized: "TerminalPrompt.disableTabs.message", defaultValue: "Turn off file tabs?", table: "Terminal")
++                let closes = String(localized: "TerminalPrompt.disableTabs.information",
++                                    defaultValue: "Shells are only shown as tabs, so every shell tab in every folder window will be closed.",
++                                    table: "Terminal")
++                alert.informativeText = liveCount > 0 ? closes + " " + stopsAllWork : closes
++                alert.addButton(withTitle: String(localized: "TerminalPrompt.disableTabs.button", defaultValue: "Turn Off and Close Shells", table: "Terminal",
++                                                  comment: "button label"))
++        }
++        alert.addButton(withTitle: String(localized: "TerminalPrompt.cancel", defaultValue: "Cancel", table: "Terminal", comment: "button label"))
++
++        return await Self.run(alert, window: window) == .alertFirstButtonReturn
++    }
++
++
++    func confirmEnablingTabs(window: NSWindow?) async -> Bool {
++
++        let alert = NSAlert()
++        alert.messageText = String(localized: "TerminalPrompt.enableTabs.message", defaultValue: "Shells open as tabs", table: "Terminal")
++        alert.informativeText = String(localized: "TerminalPrompt.enableTabs.information",
++                                       defaultValue: "Shell tabs appear next to file tabs, which are turned off. Turning on file tabs applies to all folder windows.",
++                                       table: "Terminal")
++        alert.addButton(withTitle: String(localized: "TerminalPrompt.enableTabs.button", defaultValue: "Enable Tabs and Open Shell", table: "Terminal",
++                                          comment: "button label"))
++        alert.addButton(withTitle: String(localized: "TerminalPrompt.cancel", defaultValue: "Cancel", table: "Terminal", comment: "button label"))
++
++        return await Self.run(alert, window: window) == .alertFirstButtonReturn
++    }
++
++
++    func askForTitle(current: String, window: NSWindow?) async -> String? {
++
++        let field = NSTextField(string: current)
++        field.frame.size.width = 260
++        field.placeholderString = String(localized: "TerminalPrompt.rename.placeholder", defaultValue: "Automatic", table: "Terminal",
++                                         comment: "placeholder of the tab name field; leaving it empty returns to the automatic name")
++
++        let alert = NSAlert()
++        alert.messageText = String(localized: "TerminalPrompt.rename.message", defaultValue: "Rename Shell Tab", table: "Terminal")
++        alert.informativeText = String(localized: "TerminalPrompt.rename.information",
++                                       defaultValue: "Leave the name empty to use the automatic name.", table: "Terminal")
++        alert.accessoryView = field
++        alert.addButton(withTitle: String(localized: "TerminalPrompt.rename.button", defaultValue: "Rename", table: "Terminal", comment: "button label"))
++        alert.addButton(withTitle: String(localized: "TerminalPrompt.cancel", defaultValue: "Cancel", table: "Terminal", comment: "button label"))
++        alert.window.initialFirstResponder = field
++
++        guard await Self.run(alert, window: window) == .alertFirstButtonReturn else { return nil }
++
++        return field.stringValue
++    }
++
++
++    /// Shows the alert as a sheet on the window, or as an application-modal alert without one.
++    private static func run(_ alert: NSAlert, window: NSWindow?) async -> NSApplication.ModalResponse {
++
++        if let window, window.isVisible, window.attachedSheet == nil {
++            await alert.beginSheetModal(for: window)
++        } else {
++            alert.runModal()
++        }
++    }
++}
+diff --git a/CotEditor/Sources/Terminal/TerminalSession.swift b/CotEditor/Sources/Terminal/TerminalSession.swift
+new file mode 100644
+index 000000000..d3619473e
+--- /dev/null
++++ b/CotEditor/Sources/Terminal/TerminalSession.swift
+@@ -0,0 +1,430 @@
++//
++//  TerminalSession.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import Observation
++
++
++/// The terminal emulator and process behind one terminal tab.
++///
++/// The session talks to its engine only through this protocol, so tests can drive the whole tab
++/// lifecycle with a fake engine instead of spawning processes.
++@MainActor protocol TerminalEngine: AnyObject {
++
++    /// The view showing the terminal. It lives as long as the engine, so hiding a tab never recreates it.
++    var view: NSView { get }
++    
++    /// The view that takes keyboard input.
++    var focusView: NSView { get }
++
++    /// Called at most once, when the process has exited and been reaped. Never called after `shutDown()`.
++    var onExit: ((TerminalExitStatus) -> Void)? { get set }
++
++    /// Called when the program in the terminal sets the window title.
++    var onTitleChange: ((String) -> Void)? { get set }
++
++    /// Launches the process.
++    func start(_ configuration: TerminalLaunchConfiguration) throws(TerminalLaunchError)
++
++    /// Stops the processes this engine owns and releases the pseudo-terminal.
++    ///
++    /// Must be idempotent: a close and a quit can both reach the same engine.
++    func shutDown()
++    
++    /// Starts stopping the processes for application termination and returns what remains to wait for.
++    ///
++    /// The app is about to exit, so waiting happens once for all sessions instead of in the background.
++    func shutDownForTermination() -> TerminalProcessReaper?
++}
++
++
++extension TerminalEngine {
++    
++    func shutDownForTermination() -> TerminalProcessReaper? {
++        
++        self.shutDown()
++        return nil
++    }
++}
++
++
++/// How a terminal process ended.
++struct TerminalExitStatus: Equatable {
++
++    /// The exit code, or `nil` if a signal ended the process.
++    var code: Int32?
++
++    /// The signal that ended the process, if any.
++    var signal: Int32?
++
++
++    /// Decodes a raw `waitpid(2)` status.
++    init(waitStatus status: Int32) {
++
++        // Swift does not import the WIFEXITED family of macros, so decode the status layout directly.
++        let signal = status & 0x7f
++        if signal == 0 {
++            self.code = (status >> 8) & 0xff
++            self.signal = nil
++        } else {
++            self.code = nil
++            self.signal = signal
++        }
++    }
++
++
++    init(code: Int32?, signal: Int32? = nil) {
++
++        self.code = code
++        self.signal = signal
++    }
++}
++
++
++/// Why a terminal could not start.
++enum TerminalLaunchError: Error, Equatable {
++
++    case directoryUnavailable(URL)
++    case shellUnavailable(String)
++    case spawnFailed
++}
++
++
++extension TerminalLaunchError: LocalizedError {
++
++    var errorDescription: String? {
++
++        switch self {
++            case .directoryUnavailable(let url):
++                String(localized: "TerminalLaunchError.directoryUnavailable.description",
++                       defaultValue: "The folder “\(url.lastPathComponent)” is no longer available.", table: "Terminal",
++                       comment: "error shown in a terminal tab whose starting folder was renamed, moved or deleted (%@ is the folder name)")
++            case .shellUnavailable(let path):
++                String(localized: "TerminalLaunchError.shellUnavailable.description",
++                       defaultValue: "The shell “\(path)” can’t be run.", table: "Terminal",
++                       comment: "error shown in a terminal tab (%@ is the path to the shell program)")
++            case .spawnFailed:
++                String(localized: "TerminalLaunchError.spawnFailed.description",
++                       defaultValue: "The shell session couldn’t be started.", table: "Terminal",
++                       comment: "error shown in a terminal tab when the system refused to create the process")
++        }
++    }
++
++
++    var recoverySuggestion: String? {
++
++        switch self {
++            case .directoryUnavailable:
++                String(localized: "TerminalLaunchError.directoryUnavailable.recoverySuggestion",
++                       defaultValue: "Choose another folder to start the shell in.", table: "Terminal")
++            case .shellUnavailable, .spawnFailed:
++                String(localized: "TerminalLaunchError.retry.recoverySuggestion",
++                       defaultValue: "Try again, or close this tab.", table: "Terminal")
++        }
++    }
++}
++
++
++/// Where the processes of a terminal run when it is not a shell in a folder on this Mac, such as a shell
++/// on the server a folder window's folder is on.
++///
++/// A launcher's terminals are not archived, since only the launcher knows how to start them again, and
++/// one whose process fails keeps its tab and output, which usually say why.
++struct TerminalLauncher {
++
++    /// Where the terminal runs, such as `user@host:/path`, for its tooltip and status.
++    var location: String
++
++    /// Makes the launch configuration of each start.
++    var configuration: @MainActor () throws(TerminalLaunchError) -> TerminalLaunchConfiguration
++}
++
++
++/// A folder window's root whose terminals run elsewhere, such as on the server its folder is on.
++@MainActor protocol TerminalLaunchProviding {
++
++    /// Prepares the launcher of a new terminal of the window.
++    ///
++    /// - Throws: An error to show if no terminal can start, such as when the folder's location changed.
++    func makeTerminalLauncher(for directory: DirectoryDocument) async throws -> TerminalLauncher
++}
++
++
++/// One terminal tab: its title, starting folder, and at most one running process.
++///
++/// A session starts either immediately or, when restored, as an inactive placeholder that the user
++/// starts explicitly. It never replays commands: a restart is a new process in the saved folder.
++@MainActor @Observable final class TerminalSession: Identifiable {
++
++    enum Lifecycle: Equatable {
++
++        /// Not started, for example restored after relaunch. Processes and output are never restored.
++        case inactive
++        case running
++        case exited(TerminalExitStatus)
++        case failed(TerminalLaunchError)
++        /// Closed for good; the session never runs again.
++        case closed
++    }
++
++
++    /// Creates the engine for new sessions' processes.
++    ///
++    /// Tests replace it with a fake so that no process is spawned.
++    static var defaultEngineFactory: @MainActor () -> any TerminalEngine = { SwiftTermEngine() }
++
++
++    let id: UUID
++
++    /// The generated title such as “Terminal 2”, unique within its window.
++    let defaultTitle: String
++
++    /// A name the user gave the tab. It wins over titles the shell sets.
++    private(set) var customTitle: String?
++
++    /// The folder every process of this session starts in.
++    private(set) var startingDirectory: URL
++
++    /// The shell to run, or `nil` for the user's login shell at launch time.
++    let shellPath: String?
++
++    /// Where the processes run instead of a shell in the starting folder, if anywhere else.
++    let launcher: TerminalLauncher?
++
++    private(set) var lifecycle: Lifecycle
++    private(set) var shellTitle: String?
++
++    /// The current engine. It is replaced on restart so that a new process never inherits the old output.
++    @ObservationIgnored private(set) var engine: (any TerminalEngine)?
++
++    /// Increments whenever `engine` changes, so that views can observe engine replacement.
++    private(set) var engineGeneration = 0
++
++    /// Called once the process has exited on its own, for the owner to close the tab.
++    @ObservationIgnored var onExit: (() -> Void)?
++    
++    @ObservationIgnored private var holdsSuddenTerminationBlock = false
++    @ObservationIgnored private let makeEngine: @MainActor () -> any TerminalEngine
++
++
++    init(id: UUID = UUID(), defaultTitle: String, customTitle: String? = nil, startingDirectory: URL, shellPath: String? = nil, launcher: TerminalLauncher? = nil,
++         makeEngine: @escaping @MainActor () -> any TerminalEngine = TerminalSession.defaultEngineFactory)
++    {
++        self.makeEngine = makeEngine
++        self.launcher = launcher
++        self.id = id
++        self.defaultTitle = defaultTitle
++        self.customTitle = customTitle.flatMap(Self.sanitizedTitle)
++        self.startingDirectory = startingDirectory
++        self.shellPath = shellPath
++        self.lifecycle = .inactive
++    }
++
++
++    // MARK: Public Properties
++
++    var title: String {
++
++        self.customTitle ?? self.shellTitle ?? self.defaultTitle
++    }
++
++
++    /// Whether closing the session would stop running work.
++    var isLive: Bool {
++
++        self.lifecycle == .running
++    }
++
++
++    /// Whether the process ended with a failure that the tab stays open to show, as a launcher's does.
++    var keepsTabAfterExit: Bool {
++
++        guard self.launcher != nil, case .exited(let status) = self.lifecycle else { return false }
++
++        return status.code != 0
++    }
++
++
++    // MARK: Public Methods
++
++    /// Starts a new process in the starting directory, replacing an exited or failed one.
++    ///
++    /// A running or closed session does nothing.
++    func start() {
++
++        switch self.lifecycle {
++            case .running, .closed: return
++            case .inactive, .exited, .failed: break
++        }
++
++        self.releaseEngine()
++
++        let configuration: TerminalLaunchConfiguration
++        do {
++            if let launcher = self.launcher {
++                configuration = try launcher.configuration()
++            } else {
++                configuration = try TerminalLaunchConfiguration(directory: self.startingDirectory, shellPath: self.shellPath)
++            }
++        } catch {
++            self.lifecycle = .failed(error)
++            return
++        }
++
++        let engine = self.makeEngine()
++        engine.onExit = { [weak self, weak engine] status in
++            // A late callback from a replaced engine must not change the new process's state.
++            guard let self, let engine, self.engine === engine else { return }
++            self.processDidExit(status)
++        }
++        engine.onTitleChange = { [weak self, weak engine] title in
++            guard let self, let engine, self.engine === engine else { return }
++            self.shellTitle = Self.sanitizedTitle(title)
++        }
++        self.engine = engine
++        self.engineGeneration += 1
++
++        do {
++            try engine.start(configuration)
++        } catch {
++            self.releaseEngine()
++            self.lifecycle = .failed(error)
++            return
++        }
++
++        self.shellTitle = nil
++        self.lifecycle = .running
++        self.setBlocksSuddenTermination(true)
++    }
++
++
++    /// Renames the tab.
++    ///
++    /// - Parameter title: The new name, or an empty string to return to the automatic title.
++    func rename(to title: String) {
++
++        self.customTitle = Self.sanitizedTitle(title)
++    }
++
++
++    /// Changes the folder that the next start uses, for example after the old one was deleted.
++    ///
++    /// - Parameter url: The new starting folder.
++    func changeStartingDirectory(to url: URL) {
++
++        guard !self.isLive, self.lifecycle != .closed else { return }
++
++        self.startingDirectory = url
++    }
++
++
++    /// Stops the process and releases every resource. The session cannot be started again.
++    func close() {
++
++        guard self.lifecycle != .closed else { return }
++
++        self.lifecycle = .closed
++        self.releaseEngine()
++    }
++
++
++    /// Stops the process because the app is terminating.
++    ///
++    /// - Returns: The reaper to wait on, if a process is still running.
++    func closeForTermination() -> TerminalProcessReaper? {
++
++        guard self.lifecycle != .closed else { return nil }
++
++        self.lifecycle = .closed
++        self.setBlocksSuddenTermination(false)
++
++        guard let engine = self.engine else { return nil }
++
++        engine.onExit = nil
++        engine.onTitleChange = nil
++        self.engine = nil
++        self.engineGeneration += 1
++
++        return engine.shutDownForTermination()
++    }
++
++
++    // MARK: Private Methods
++
++    private func processDidExit(_ status: TerminalExitStatus) {
++
++        guard self.lifecycle == .running else { return }
++
++        self.lifecycle = .exited(status)
++        self.setBlocksSuddenTermination(false)
++        self.onExit?()
++    }
++
++
++    private func releaseEngine() {
++
++        self.setBlocksSuddenTermination(false)
++
++        guard let engine = self.engine else { return }
++
++        engine.onExit = nil
++        engine.onTitleChange = nil
++        engine.shutDown()
++        self.engine = nil
++        self.engineGeneration += 1
++    }
++
++
++    /// Keeps the system from killing the app without asking while a process runs.
++    ///
++    /// The app enables sudden termination because documents autosave, but a running shell has no
++    /// autosave: the app must get the chance to confirm and to stop the process properly.
++    private func setBlocksSuddenTermination(_ blocks: Bool) {
++
++        guard blocks != self.holdsSuddenTerminationBlock else { return }
++
++        self.holdsSuddenTerminationBlock = blocks
++        if blocks {
++            ProcessInfo.processInfo.disableSuddenTermination()
++        } else {
++            ProcessInfo.processInfo.enableSuddenTermination()
++        }
++    }
++
++
++    /// Removes control characters from a title and bounds its length.
++    ///
++    /// Titles come from escape sequences the shell prints, so they are untrusted and may contain anything.
++    ///
++    /// - Parameter title: The raw title.
++    /// - Returns: The cleaned title, or `nil` if nothing printable remains.
++    nonisolated static func sanitizedTitle(_ title: String) -> String? {
++
++        let printable = String(String.UnicodeScalarView(title.unicodeScalars.filter { !CharacterSet.controlCharacters.contains($0) }))
++            .trimmingCharacters(in: .whitespacesAndNewlines)
++
++        guard !printable.isEmpty else { return nil }
++
++        return String(printable.prefix(120))
++    }
++}
+diff --git a/CotEditor/Sources/Terminal/TerminalSettingsView.swift b/CotEditor/Sources/Terminal/TerminalSettingsView.swift
+new file mode 100644
+index 000000000..0962d7825
+--- /dev/null
++++ b/CotEditor/Sources/Terminal/TerminalSettingsView.swift
+@@ -0,0 +1,143 @@
++//
++//  TerminalSettingsView.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import SwiftUI
++import Defaults
++
++
++/// The Terminal pane of the settings window.
++struct TerminalSettingsView: View {
++
++    @Namespace private var accessibility
++
++    @Environment(\.colorScheme) private var colorScheme
++
++    @AppStorage(.terminalTheme) private var theme
++    @AppStorage(.terminalUsesThemeColors) private var usesThemeColors
++    @AppStorage(.pinsThemeAppearance) private var pinsThemeAppearance
++
++
++    var body: some View {
++
++        Grid(alignment: .leadingFirstTextBaseline, verticalSpacing: 10) {
++            GridRow {
++                Text(String(localized: "TerminalSettings.theme.label", defaultValue: "Theme:", table: "Terminal",
++                            comment: "label of the terminal theme picker in the settings"))
++                    .accessibilityLabeledPair(role: .label, id: "theme", in: self.accessibility)
++                    .gridColumnAlignment(.trailing)
++
++                VStack(alignment: .leading, spacing: 6) {
++                    Picker(selection: $theme) {
++                        Text(String(localized: "TerminalSettings.theme.sameAsEditor", defaultValue: "Same as Editor", table: "Terminal",
++                                    comment: "terminal theme choice that follows the editor’s theme")).tag("")
++                        Divider()
++                        ForEach(ThemeManager.shared.settingNames, id: \.self) { name in
++                            Text(name).tag(name)
++                        }
++                    } label: {
++                        EmptyView()
++                    }
++                    .frame(maxWidth: 240)
++                    .accessibilityLabeledPair(role: .content, id: "theme", in: self.accessibility)
++
++                    Text(String(localized: "TerminalSettings.theme.description",
++                                defaultValue: "Text, background, cursor and selection colors come from the theme, including its light or dark variant.",
++                                table: "Terminal"))
++                        .foregroundStyle(.secondary)
++                        .controlSize(.small)
++                        .fixedSize(horizontal: false, vertical: true)
++                }
++            }
++
++            GridRow {
++                Color.clear.frame(width: 1, height: 1)
++
++                VStack(alignment: .leading, spacing: 6) {
++                    Toggle(String(localized: "TerminalSettings.themeColors.label", defaultValue: "Match program colors to the theme", table: "Terminal",
++                                  comment: "toggle deriving the 16 ANSI colors from the theme"),
++                           isOn: $usesThemeColors)
++
++                    Text(String(localized: "TerminalSettings.themeColors.description",
++                                defaultValue: "Programs such as ls and git choose from 16 standard colors. Each then takes the theme color closest to it in hue, as long as it stays readable; otherwise the standard color is kept.",
++                                table: "Terminal"))
++                        .foregroundStyle(.secondary)
++                        .controlSize(.small)
++                        .fixedSize(horizontal: false, vertical: true)
++                }
++            }
++
++            GridRow {
++                Color.clear.frame(width: 1, height: 1)
++
++                TerminalColorsPreview(colors: self.previewColors)
++            }
++        }
++        .scenePadding()
++        .frame(width: SettingsPane.width)
++    }
++
++
++    /// The colors a terminal would show now, for the preview.
++    private var previewColors: TerminalColors {
++
++        // Reading the settings here makes the preview follow them.
++        _ = (self.theme, self.usesThemeColors, self.pinsThemeAppearance, ThemeManager.shared.settingNames)
++
++        return TerminalColors.current(isDark: self.colorScheme == .dark)
++    }
++}
++
++
++/// A small sample of the terminal colors: text, a cursor, and the 16 program colors.
++private struct TerminalColorsPreview: View {
++
++    let colors: TerminalColors
++
++
++    var body: some View {
++
++        let palette = self.colors.palette ?? TerminalColors.standardPalette
++
++        VStack(alignment: .leading, spacing: 6) {
++            HStack(spacing: 0) {
++                Text(verbatim: "~/project % ls ")
++                Rectangle().fill(Color(nsColor: self.colors.caret)).frame(width: 7, height: 14)
++            }
++            .foregroundStyle(Color(nsColor: self.colors.foreground))
++
++            ForEach(0..<2) { row in
++                HStack(spacing: 4) {
++                    ForEach(0..<8) { column in
++                        RoundedRectangle(cornerRadius: 2)
++                            .fill(Color(nsColor: palette[row * 8 + column]))
++                            .frame(width: 18, height: 12)
++                    }
++                }
++            }
++        }
++        .font(.system(.body, design: .monospaced))
++        .padding(10)
++        .background(Color(nsColor: self.colors.background), in: RoundedRectangle(cornerRadius: 6))
++        .accessibilityHidden(true)
++    }
++}
+diff --git a/CotEditor/Sources/Terminal/TerminalTabArchive.swift b/CotEditor/Sources/Terminal/TerminalTabArchive.swift
+new file mode 100644
+index 000000000..bafcb60c5
+--- /dev/null
++++ b/CotEditor/Sources/Terminal/TerminalTabArchive.swift
+@@ -0,0 +1,126 @@
++//
++//  TerminalTabArchive.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import Foundation
++
++
++/// The terminal part of a directory's tab archive.
++///
++/// Terminal tabs are entries of kind `terminal` in the versioned `DirectoryTabArchive` list, which keeps
++/// the order of every tab and hands entries of kinds it does not reopen itself to later code. A build
++/// without terminals skips them, so this adds to version 1 without breaking it.
++///
++/// Only what is needed to offer a new session is kept: the tab ID, the user's name for the tab, the
++/// shell, and the starting folder. Output, commands, environment and clipboard contents are never archived.
++struct TerminalTabArchive: Equatable {
++
++    struct Entry: Equatable {
++
++        var id: UUID
++        var customTitle: String?
++        var shellPath: String?
++        var startingDirectory: URL
++    }
++
++
++    static let kind = "terminal"
++
++    var terminals: [Entry]
++
++
++    // MARK: Encoding
++
++    /// The archive form of a terminal tab.
++    @MainActor static func tab(for session: TerminalSession, id: UUID) -> DirectoryTabArchive.Tab {
++
++        self.tab(for: Entry(id: id, customTitle: session.customTitle, shellPath: session.shellPath,
++                            startingDirectory: session.startingDirectory))
++    }
++
++
++    /// The archive form of a terminal entry.
++    static func tab(for entry: Entry) -> DirectoryTabArchive.Tab {
++
++        var fields: [String: Any] = ["path": entry.startingDirectory.path(percentEncoded: false)]
++        fields["title"] = entry.customTitle
++        fields["shell"] = entry.shellPath
++        fields["directory"] = try? entry.startingDirectory.bookmarkData()
++
++        return DirectoryTabArchive.Tab(id: entry.id, kind: Self.kind, fields: fields)
++    }
++
++
++    // MARK: Decoding
++
++    /// Reads the terminal entries of an archive.
++    ///
++    /// Archived values are untrusted: titles are sanitized, shells must be absolute paths (they are
++    /// validated again at launch), and a starting folder that no longer resolves keeps its saved path
++    /// so that the tab can offer to choose another. The directory archive has already dropped entries
++    /// without a valid and unique ID.
++    ///
++    /// - Parameters:
++    ///   - archive: The decoded directory archive.
++    ///   - resolveBookmark: Resolves a folder bookmark, or returns `nil`.
++    init(archive: DirectoryTabArchive, resolveBookmark: (Data) -> URL? = Self.resolveBookmark) {
++
++        self.init(entries: archive.foreignEntries(ofKind: Self.kind), resolveBookmark: resolveBookmark)
++    }
++
++
++    /// Reads archived terminal entries, as `init(archive:resolveBookmark:)` does.
++    ///
++    /// - Parameters:
++    ///   - entries: The directory archive's entries of kind `terminal`.
++    ///   - resolveBookmark: Resolves a folder bookmark, or returns `nil`.
++    init(entries: [DirectoryTabArchive.ForeignEntry], resolveBookmark: (Data) -> URL? = Self.resolveBookmark) {
++
++        self.terminals = entries.filter { $0.kind == Self.kind }.compactMap { entry in
++            let fields = entry.fields
++            let savedPath = (fields["path"] as? String).flatMap { $0.hasPrefix("/") ? $0 : nil }
++            guard let directory = (fields["directory"] as? Data).flatMap(resolveBookmark)
++                    ?? savedPath.map({ URL(filePath: $0, directoryHint: .isDirectory) })
++            else { return nil }
++
++            return Entry(id: entry.id,
++                         customTitle: (fields["title"] as? String).flatMap(TerminalSession.sanitizedTitle),
++                         shellPath: (fields["shell"] as? String).flatMap { $0.hasPrefix("/") ? $0 : nil },
++                         startingDirectory: directory)
++        }
++    }
++
++
++    /// Resolves a folder bookmark.
++    ///
++    /// An app with terminals is not sandboxed, so a plain bookmark suffices: it follows a renamed or moved folder.
++    static func resolveBookmark(_ data: Data) -> URL? {
++
++        var isStale = false
++        guard
++            let url = try? URL(resolvingBookmarkData: data, options: [.withoutUI, .withoutMounting], bookmarkDataIsStale: &isStale),
++            url.isFileURL
++        else { return nil }
++
++        return url
++    }
++}
+diff --git a/CotEditor/Sources/Terminal/TerminalTabViewController.swift b/CotEditor/Sources/Terminal/TerminalTabViewController.swift
+new file mode 100644
+index 000000000..b09264a36
+--- /dev/null
++++ b/CotEditor/Sources/Terminal/TerminalTabViewController.swift
+@@ -0,0 +1,328 @@
++//
++//  TerminalTabViewController.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import SwiftUI
++
++
++/// Shows one terminal tab: the session's terminal view, and its state when it is not running.
++///
++/// The terminal view belongs to the session's engine, not to this controller, so switching tabs
++/// only moves the view in and out of the window. The process and its screen keep going meanwhile.
++final class TerminalTabViewController: NSViewController, DirectoryTabViewController {
++
++    let session: TerminalSession
++
++    private weak var directoryDocument: DirectoryDocument?
++    private var statusView: NSHostingView<TerminalStatusView>?
++    
++    /// Stretches the status view over the whole tab while there is no terminal view to show.
++    private var statusFillConstraint: NSLayoutConstraint?
++    private weak var embeddedEngineView: NSView?
++    private var observationTask: Task<Void, Never>?
++
++
++    init(session: TerminalSession, directoryDocument: DirectoryDocument?) {
++
++        self.session = session
++        self.directoryDocument = directoryDocument
++
++        super.init(nibName: nil, bundle: nil)
++    }
++
++
++    @available(*, unavailable)
++    required init?(coder: NSCoder) {
++
++        fatalError("init(coder:) has not been implemented")
++    }
++
++
++    isolated deinit {
++        self.observationTask?.cancel()
++    }
++
++
++    override func loadView() {
++
++        let view = NSView()
++        view.setAccessibilityElement(true)
++        view.setAccessibilityRole(.group)
++        self.view = view
++        
++        self.update()
++    }
++
++
++    override func viewWillAppear() {
++
++        super.viewWillAppear()
++
++        self.update()
++
++        self.observationTask?.cancel()
++        self.observationTask = Task { [weak self, session] in
++            for await _ in Observations({ (session.lifecycle, session.engineGeneration, session.title, session.startingDirectory) }) {
++                guard !Task.isCancelled else { return }
++                self?.update()
++            }
++        }
++    }
++
++
++    override func viewDidDisappear() {
++
++        super.viewDidDisappear()
++
++        self.observationTask?.cancel()
++        self.observationTask = nil
++    }
++
++
++    // MARK: Public Methods
++
++    func focusTabContent() {
++
++        self.focus()
++    }
++
++
++    /// Moves keyboard focus to the terminal, or to the primary button while it is not running.
++    func focus() {
++
++        self.update()
++
++        guard let window = self.view.window else { return }
++
++        if let engine = self.session.engine, engine.focusView.window === window {
++            window.makeFirstResponder(engine.focusView)
++        } else if let statusView, statusView.window === window {
++            window.makeFirstResponder(statusView)
++        }
++    }
++
++
++    // MARK: Private Methods
++
++    private func update() {
++
++        guard self.isViewLoaded else { return }
++
++        // Embed the current engine's view, replacing a previous engine's.
++        let engineView = self.session.engine?.view
++        if self.embeddedEngineView !== engineView {
++            if self.embeddedEngineView?.superview === self.view {
++                self.embeddedEngineView?.removeFromSuperview()
++            }
++            if let engineView {
++                engineView.translatesAutoresizingMaskIntoConstraints = false
++                self.view.addSubview(engineView, positioned: .below, relativeTo: nil)
++                NSLayoutConstraint.activate([
++                    engineView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
++                    engineView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
++                    engineView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
++                    engineView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
++                ])
++            }
++            self.embeddedEngineView = engineView
++        }
++
++        let status = TerminalStatusView(session: self.session,
++                                        start: { [weak self] in self?.start() },
++                                        chooseFolder: { [weak self] in self?.chooseFolder() },
++                                        close: { [weak self] in self?.closeTab() })
++        if let statusView {
++            statusView.rootView = status
++        } else {
++            let statusView = NSHostingView(rootView: status)
++            // Only the height of the status content matters. By default a hosting view also turns the
++            // content's minimum and maximum size into required constraints, and the empty status of a
++            // running terminal has a maximum width of zero, which would squeeze the whole content pane.
++            statusView.sizingOptions = [.intrinsicContentSize]
++            statusView.setContentHuggingPriority(.defaultLow, for: .horizontal)
++            statusView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
++            statusView.translatesAutoresizingMaskIntoConstraints = false
++            self.view.addSubview(statusView)
++            NSLayoutConstraint.activate([
++                statusView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
++                statusView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
++                statusView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
++                statusView.topAnchor.constraint(greaterThanOrEqualTo: self.view.safeAreaLayoutGuide.topAnchor),
++            ])
++            self.statusView = statusView
++            self.statusFillConstraint = statusView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor)
++        }
++        // An exited shell's tab is about to close by itself, so there is nothing to explain, unless it stays to show a failure.
++        self.statusView?.isHidden = switch self.session.lifecycle {
++            case .running, .closed: true
++            case .exited: !self.session.keepsTabAfterExit
++            case .inactive, .failed: false
++        }
++        self.statusFillConstraint?.isActive = (engineView == nil)
++
++        self.view.setAccessibilityLabel(self.session.title)
++    }
++
++
++    private func start() {
++
++        self.session.start()
++        self.focus()
++    }
++
++
++    private func closeTab() {
++
++        Task { [session, directoryDocument] in
++            await directoryDocument?.closeTabItem(session)
++        }
++    }
++
++
++    /// Lets the user pick another starting folder, then starts there.
++    private func chooseFolder() {
++
++        guard let window = self.view.window else { return }
++
++        let panel = NSOpenPanel()
++        panel.canChooseFiles = false
++        panel.canChooseDirectories = true
++        panel.canCreateDirectories = false
++        panel.allowsMultipleSelection = false
++        panel.prompt = String(localized: "TerminalStatus.chooseFolder.prompt", defaultValue: "Start Here", table: "Terminal",
++                              comment: "button label in the panel choosing the folder a terminal starts in")
++        panel.directoryURL = TerminalLaunchConfiguration.isUsableDirectory(self.session.startingDirectory)
++            ? self.session.startingDirectory
++            : self.directoryDocument?.fileURL
++
++        Task {
++            guard await panel.beginSheetModal(for: window) == .OK, let url = panel.url else { return }
++
++            self.session.changeStartingDirectory(to: url)
++            self.directoryDocument?.invalidateRestorableState()
++            self.start()
++        }
++    }
++}
++
++
++// MARK: - Status View
++
++/// Explains a terminal that is not running and offers what can be done about it.
++struct TerminalStatusView: View {
++
++    let session: TerminalSession
++    let start: () -> Void
++    let chooseFolder: () -> Void
++    let close: () -> Void
++
++
++    var body: some View {
++
++        switch self.session.lifecycle {
++            case .exited where self.session.keepsTabAfterExit:
++                // The output stays visible above, since it usually says why the session ended.
++                HStack {
++                    Label(String(localized: "TerminalStatus.ended", defaultValue: "Session ended", table: "Terminal"), systemImage: "exclamationmark.triangle")
++                        .foregroundStyle(.secondary)
++                    Spacer()
++                    Button(String(localized: "TerminalStatus.startNewSession", defaultValue: "Start New Session", table: "Terminal", comment: "button label"),
++                           action: self.start)
++                    Button(String(localized: "TerminalStatus.closeTab", defaultValue: "Close Tab", table: "Terminal", comment: "button label"),
++                           action: self.close)
++                }
++                .controlSize(.small)
++                .padding(.horizontal, 12)
++                .padding(.vertical, 8)
++                .background(.bar)
++
++            case .running, .exited, .closed:
++                EmptyView()
++
++            case .inactive:
++                self.placeholder(
++                    systemImage: "apple.terminal",
++                    title: String(localized: "TerminalStatus.inactive.title", defaultValue: "Shell Not Running", table: "Terminal"),
++                    message: String(localized: "TerminalStatus.inactive.message",
++                                    defaultValue: "Processes and their output are not restored after CotEditor quits.", table: "Terminal"),
++                    primary: String(localized: "TerminalStatus.startNewSession", defaultValue: "Start New Session", table: "Terminal",
++                                    comment: "button label"))
++
++            case .failed(let error):
++                self.placeholder(
++                    systemImage: "exclamationmark.triangle",
++                    title: error.errorDescription ?? "",
++                    message: error.recoverySuggestion ?? "",
++                    primary: String(localized: "TerminalStatus.retry", defaultValue: "Try Again", table: "Terminal", comment: "button label"))
++        }
++    }
++
++
++    private func placeholder(systemImage: String, title: String, message: String, primary: String) -> some View {
++
++        let directory = self.session.startingDirectory
++        let launcher = self.session.launcher
++        // A launcher's terminal starts where the launcher says, so it has no local folder to be missing or to choose.
++        let directoryIsUsable = launcher != nil || TerminalLaunchConfiguration.isUsableDirectory(directory)
++        let location = launcher?.location ?? directory.path(percentEncoded: false)
++
++        return VStack(spacing: 12) {
++            Image(systemName: systemImage)
++                .font(.system(size: 36))
++                .foregroundStyle(.secondary)
++                .accessibilityHidden(true)
++            Text(title)
++                .font(.headline)
++            Text(message)
++                .foregroundStyle(.secondary)
++                .multilineTextAlignment(.center)
++            Text(directoryIsUsable
++                 ? String(localized: "TerminalStatus.startsIn", defaultValue: "Starts in “\(location)”.", table: "Terminal",
++                          comment: "%@ is the folder path a new terminal session starts in")
++                 : String(localized: "TerminalStatus.missingFolder",
++                          defaultValue: "The starting folder “\(directory.path(percentEncoded: false))” no longer exists.", table: "Terminal",
++                          comment: "%@ is the folder path"))
++                .font(.callout)
++                .foregroundStyle(directoryIsUsable ? AnyShapeStyle(.secondary) : AnyShapeStyle(.orange))
++                .multilineTextAlignment(.center)
++                .textSelection(.enabled)
++            HStack {
++                if directoryIsUsable {
++                    Button(primary, action: self.start)
++                        .keyboardShortcut(.defaultAction)
++                }
++                if launcher == nil {
++                    Button(String(localized: "TerminalStatus.chooseFolder", defaultValue: "Choose Folder…", table: "Terminal", comment: "button label"),
++                           action: self.chooseFolder)
++                }
++                Button(String(localized: "TerminalStatus.closeTab", defaultValue: "Close Tab", table: "Terminal", comment: "button label"),
++                       action: self.close)
++            }
++        }
++        .padding(24)
++        .frame(maxWidth: 480)
++        .frame(maxWidth: .infinity, maxHeight: .infinity)
++        .accessibilityElement(children: .contain)
++    }
++}
++
+diff --git a/CotEditor/Sources/Terminal/TerminalTermination.swift b/CotEditor/Sources/Terminal/TerminalTermination.swift
+new file mode 100644
+index 000000000..ffcbadb23
+--- /dev/null
++++ b/CotEditor/Sources/Terminal/TerminalTermination.swift
+@@ -0,0 +1,137 @@
++//
++//  TerminalTermination.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import Defaults
++
++
++/// Coordinates terminals across all windows when the app quits.
++///
++/// Quitting does not close documents, so window-close confirmations never run. Instead, consent is
++/// asked once, before the unsaved-document review, and remembered until the termination either
++/// happens or is canceled. Processes are stopped only in `applicationWillTerminate`.
++@MainActor enum TerminalTermination {
++
++    private static var hasConsent = false
++    private static var isAsking = false
++
++
++    /// Every terminal in every directory window.
++    static var allSessions: [TerminalSession] {
++
++        NSDocumentController.shared.documents
++            .compactMap { $0 as? DirectoryDocument }
++            .flatMap(\.terminalSessions)
++    }
++
++
++    /// Whether quitting now would stop running work the user has not agreed to stop.
++    static var needsConsent: Bool {
++
++        !self.hasConsent && self.allSessions.contains(where: \.isLive)
++    }
++
++
++    /// Asks, once per termination attempt, whether running terminals may be stopped.
++    ///
++    /// - Returns: `true` if nothing is running or the user agreed.
++    static func requestConsent() async -> Bool {
++
++        guard self.needsConsent else { return true }
++        // A second request while the alert is up belongs to the same attempt.
++        guard !self.isAsking else { return false }
++
++        self.isAsking = true
++        defer { self.isAsking = false }
++
++        let liveCount = self.allSessions.count(where: \.isLive)
++        self.hasConsent = await TerminalPrompts.current.confirmClosing(.many(scope: .quit, liveCount: liveCount), window: nil)
++
++        return self.hasConsent
++    }
++
++
++    /// Forgets the consent after a canceled termination, so that the next attempt asks again.
++    static func revokeConsent() {
++
++        self.hasConsent = false
++    }
++
++
++    /// Stops every terminal process, waiting a bounded time in total before forcing owned groups to stop.
++    static func stopAllSessions(grace: Duration = .seconds(1)) {
++
++        let reapers = self.allSessions.compactMap { $0.closeForTermination() }
++
++        guard !reapers.isEmpty else { return }
++
++        let deadline = ContinuousClock.now + grace
++        for reaper in reapers {
++            reaper.reap(grace: max(deadline - ContinuousClock.now, .zero))
++        }
++    }
++}
++
++
++/// Changes the file-tabs preference in a way terminal tabs can survive.
++@MainActor enum TerminalTabsPreference {
++
++    private static var isChanging = false
++
++
++    /// Sets the preference, first closing every terminal tab with the user's approval when turning tabs off.
++    ///
++    /// Nothing changes before the approval, and canceling leaves the preference and every terminal as
++    /// they were. Placeholders that run nothing are closed too, since they cannot be shown without tabs.
++    ///
++    /// - Parameter usesTabs: The new value.
++    /// - Returns: `true` if the preference now has the requested value.
++    @discardableResult static func setUsesDirectoryFileTabs(_ usesTabs: Bool) async -> Bool {
++
++        guard !self.isChanging else { return false }
++
++        guard !usesTabs else {
++            UserDefaults.standard[.usesDirectoryFileTabs] = true
++            return true
++        }
++
++        let directories = NSDocumentController.shared.documents.compactMap { $0 as? DirectoryDocument }
++        let sessions = directories.flatMap(\.terminalSessions)
++
++        if !sessions.isEmpty {
++            self.isChanging = true
++            defer { self.isChanging = false }
++
++            let request = TerminalCloseRequest.many(scope: .disablingTabs, liveCount: sessions.count(where: \.isLive))
++            guard await TerminalPrompts.current.confirmClosing(request, window: nil) else { return false }
++
++            for directory in directories {
++                directory.closeAllTerminals()
++            }
++        }
++
++        UserDefaults.standard[.usesDirectoryFileTabs] = false
++
++        return true
++    }
++}

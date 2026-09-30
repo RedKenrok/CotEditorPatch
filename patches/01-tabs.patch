@@ -1,0 +1,4817 @@
+diff --git a/CotEditor/Localizables/Document Window/Document.xcstrings b/CotEditor/Localizables/Document Window/Document.xcstrings
+index 2ccc9a52e..8ed99e6c2 100644
+--- a/CotEditor/Localizables/Document Window/Document.xcstrings	
++++ b/CotEditor/Localizables/Document Window/Document.xcstrings	
+@@ -2492,109 +2492,1249 @@
+         }
+       }
+     },
++    "DirectoryTabBar.accessibilityLabel" : {
++      "comment" : "accessibility label for the tab bar listing the files open in a folder window",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "cs" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Karty souborů"
++          }
++        },
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Dateireiter"
++          }
++        },
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "File Tabs"
++          }
++        },
++        "en-GB" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "File Tabs"
++          }
++        },
++        "es" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Pestañas de archivos"
++          }
++        },
++        "fr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Onglets de fichiers"
++          }
++        },
++        "it" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Pannelli dei file"
++          }
++        },
++        "ja" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "ファイルタブ"
++          }
++        },
++        "ko" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "파일 탭"
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Bestandstabbladen"
++          }
++        },
++        "pl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Karty plików"
++          }
++        },
++        "pt" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Abas de arquivos"
++          }
++        },
++        "ru" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Вкладки файлов"
++          }
++        },
++        "tr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Dosya sekmeleri"
++          }
++        },
++        "uk" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Вкладки файлів"
++          }
++        },
++        "zh-Hans" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "文件标签页"
++          }
++        },
++        "zh-Hant" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "檔案標籤頁"
++          }
++        },
++        "zh-HK" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "檔案分頁"
++          }
++        }
++      }
++    },
++    "DirectoryTabBar.add.accessibilityLabel" : {
++      "comment" : "accessibility label and tooltip of the menu at the end of the tab bar that opens a new tab",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "cs" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Nový panel"
++          }
++        },
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Neuer Tab"
++          }
++        },
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "New Tab"
++          }
++        },
++        "en-GB" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "New Tab"
++          }
++        },
++        "es" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Nueva pestaña"
++          }
++        },
++        "fr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Nouvel onglet"
++          }
++        },
++        "it" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Nuovo pannello"
++          }
++        },
++        "ja" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "新規タブ"
++          }
++        },
++        "ko" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "새로운 탭"
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Nieuw tabblad"
++          }
++        },
++        "pl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Nowa karta"
++          }
++        },
++        "pt" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Novo separador"
++          }
++        },
++        "ru" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Новая вкладка"
++          }
++        },
++        "tr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Yeni Sekme"
++          }
++        },
++        "uk" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Нова вкладка"
++          }
++        },
++        "zh-Hans" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "新建标签页"
++          }
++        },
++        "zh-Hant" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "新增分頁"
++          }
++        },
++        "zh-HK" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "新增分頁"
++          }
++        }
++      }
++    },
++    "DirectoryTabBar.close.accessibilityLabel" : {
++      "comment" : "accessibility label and tooltip for the button closing a file tab (%@ is the file name)",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "cs" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Zavřít %@"
++          }
++        },
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "%@ schließen"
++          }
++        },
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Close %@"
++          }
++        },
++        "en-GB" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Close %@"
++          }
++        },
++        "es" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Cerrar %@"
++          }
++        },
++        "fr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Fermer %@"
++          }
++        },
++        "it" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Chiudi %@"
++          }
++        },
++        "ja" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "%@を閉じる"
++          }
++        },
++        "ko" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "%@ 닫기"
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Sluit %@"
++          }
++        },
++        "pl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Zamknij %@"
++          }
++        },
++        "pt" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Fechar %@"
++          }
++        },
++        "ru" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Закрыть %@"
++          }
++        },
++        "tr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "%@ öğesini kapat"
++          }
++        },
++        "uk" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Закрити %@"
++          }
++        },
++        "zh-Hans" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "关闭“%@”"
++          }
++        },
++        "zh-Hant" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "關閉「%@」"
++          }
++        },
++        "zh-HK" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "關閉「%@」"
++          }
++        }
++      }
++    },
++    "DirectoryTabBar.edited.accessibilityValue" : {
++      "comment" : "accessibility value of a file tab whose document has unsaved changes",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "cs" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Upraveno"
++          }
++        },
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Bearbeitet"
++          }
++        },
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Edited"
++          }
++        },
++        "en-GB" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Edited"
++          }
++        },
++        "es" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Editado"
++          }
++        },
++        "fr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Modifié"
++          }
++        },
++        "it" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Modificato"
++          }
++        },
++        "ja" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "編集済み"
++          }
++        },
++        "ko" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "편집됨"
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Bewerkt"
++          }
++        },
++        "pl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Edytowano"
++          }
++        },
++        "pt" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Editado"
++          }
++        },
++        "ru" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Изменён"
++          }
++        },
++        "tr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Düzenlendi"
++          }
++        },
++        "uk" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Змінено"
++          }
++        },
++        "zh-Hans" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "已编辑"
++          }
++        },
++        "zh-Hant" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "已編輯"
++          }
++        },
++        "zh-HK" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "已編輯"
++          }
++        }
++      }
++    },
++    "DirectoryTabBar.moveLeft" : {
++      "comment" : "accessibility action moving a tab one place to the left",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "cs" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Přesunout doleva"
++          }
++        },
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Nach links bewegen"
++          }
++        },
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Move Left"
++          }
++        },
++        "en-GB" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Move Left"
++          }
++        },
++        "es" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Mover a la izquierda"
++          }
++        },
++        "fr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Déplacer vers la gauche"
++          }
++        },
++        "it" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Sposta a sinistra"
++          }
++        },
++        "ja" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "左に移動"
++          }
++        },
++        "ko" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "왼쪽으로 이동"
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Verplaats naar links"
++          }
++        },
++        "pl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Przenieś w lewo"
++          }
++        },
++        "pt" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Mover para a esquerda"
++          }
++        },
++        "ru" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Переместить влево"
++          }
++        },
++        "tr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Sola Taşı"
++          }
++        },
++        "uk" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Перемістити ліворуч"
++          }
++        },
++        "zh-Hans" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "向左移动"
++          }
++        },
++        "zh-Hant" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "向左移動"
++          }
++        },
++        "zh-HK" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "向左移動"
++          }
++        }
++      }
++    },
++    "DirectoryTabBar.moveRight" : {
++      "comment" : "accessibility action moving a tab one place to the right",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "cs" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Přesunout doprava"
++          }
++        },
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Nach rechts bewegen"
++          }
++        },
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Move Right"
++          }
++        },
++        "en-GB" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Move Right"
++          }
++        },
++        "es" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Mover a la derecha"
++          }
++        },
++        "fr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Déplacer vers la droite"
++          }
++        },
++        "it" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Sposta a destra"
++          }
++        },
++        "ja" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "右に移動"
++          }
++        },
++        "ko" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "오른쪽으로 이동"
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Verplaats naar rechts"
++          }
++        },
++        "pl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Przenieś w prawo"
++          }
++        },
++        "pt" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Mover para a direita"
++          }
++        },
++        "ru" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Переместить вправо"
++          }
++        },
++        "tr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Sağa Taşı"
++          }
++        },
++        "uk" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Перемістити праворуч"
++          }
++        },
++        "zh-Hans" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "向右移动"
++          }
++        },
++        "zh-Hant" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "向右移動"
++          }
++        },
++        "zh-HK" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "向右移動"
++          }
++        }
++      }
++    },
++    "DirectoryTabBar.moveToNewWindow" : {
++      "comment" : "context menu item and accessibility action moving a tab into a window of its own",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "cs" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Přesunout do nového okna"
++          }
++        },
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "In neues Fenster bewegen"
++          }
++        },
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Move to New Window"
++          }
++        },
++        "en-GB" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Move to New Window"
++          }
++        },
++        "es" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Mover a una ventana nueva"
++          }
++        },
++        "fr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Déplacer vers une nouvelle fenêtre"
++          }
++        },
++        "it" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Sposta in una nuova finestra"
++          }
++        },
++        "ja" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "新規ウインドウに移動"
++          }
++        },
++        "ko" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "새로운 윈도우로 이동"
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Verplaats naar nieuw venster"
++          }
++        },
++        "pl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Przenieś do nowego okna"
++          }
++        },
++        "pt" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Mover para nova janela"
++          }
++        },
++        "ru" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Переместить в новое окно"
++          }
++        },
++        "tr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Yeni Pencereye Taşı"
++          }
++        },
++        "uk" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Перемістити в нове вікно"
++          }
++        },
++        "zh-Hans" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "移到新窗口"
++          }
++        },
++        "zh-Hant" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "移到新視窗"
++          }
++        },
++        "zh-HK" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "移到新視窗"
++          }
++        }
++      }
++    },
+     "Document has unsaved changes" : {
+       "comment" : "tooltip for the “edited” indicator in the window tab",
+       "localizations" : {
+         "cs" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Dokument obsahuje neuložené změny"
++            "value" : "Dokument obsahuje neuložené změny"
++          }
++        },
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Das Dokument enthält ungesicherte Änderungen."
++          }
++        },
++        "en-GB" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Document has unsaved changes"
++          }
++        },
++        "es" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "El documento tiene cambios no guardados"
++          }
++        },
++        "fr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Le document contient des modifications non enregistrées."
++          }
++        },
++        "it" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Il documento contiene modifiche non salvate"
++          }
++        },
++        "ja" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "書類に保存されていない変更があります"
++          }
++        },
++        "ko" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "문서에 저장하지 않은 변경 사항이 있습니다."
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Document heeft niet-bewaarde wijzigingen."
++          }
++        },
++        "pl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Dokument ma niezachowane zmiany"
++          }
++        },
++        "pt" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Documento contém alterações não salvas"
++          }
++        },
++        "ru" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "В документе есть несохраненные изменения"
++          }
++        },
++        "tr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Belgede kaydedilmemiş değişiklikler var"
++          }
++        },
++        "uk" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Документ містить незбережені зміни"
++          }
++        },
++        "zh-Hans" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "文稿中存在未保存的更改"
++          }
++        },
++        "zh-Hant" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "文件內包含尚未存檔的內容變更"
++          }
++        },
++        "zh-HK" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "文件包括未儲存的變更"
++          }
++        }
++      }
++    },
++    "DocumentWindow.closeWindow" : {
++      "comment" : "File menu item closing the whole window rather than its selected file tab",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "cs" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Zavřít okno"
+           }
+         },
+         "de" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Das Dokument enthält ungesicherte Änderungen."
++            "value" : "Fenster schließen"
++          }
++        },
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Close Window"
+           }
+         },
+         "en-GB" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Document has unsaved changes"
++            "value" : "Close Window"
+           }
+         },
+         "es" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "El documento tiene cambios no guardados"
++            "value" : "Cerrar ventana"
+           }
+         },
+         "fr" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Le document contient des modifications non enregistrées."
++            "value" : "Fermer la fenêtre"
+           }
+         },
+         "it" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Il documento contiene modifiche non salvate"
++            "value" : "Chiudi finestra"
+           }
+         },
+         "ja" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "書類に保存されていない変更があります"
++            "value" : "ウインドウを閉じる"
+           }
+         },
+         "ko" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "문서에 저장하지 않은 변경 사항이 있습니다."
++            "value" : "윈도우 닫기"
+           }
+         },
+         "nl" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Document heeft niet-bewaarde wijzigingen."
++            "value" : "Venster sluiten"
+           }
+         },
+         "pl" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Dokument ma niezachowane zmiany"
++            "value" : "Zamknij okno"
+           }
+         },
+         "pt" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Documento contém alterações não salvas"
++            "value" : "Fechar Janela"
+           }
+         },
+         "ru" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "В документе есть несохраненные изменения"
++            "value" : "Закрыть окно"
+           }
+         },
+         "tr" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Belgede kaydedilmemiş değişiklikler var"
++            "value" : "Pencereyi Kapat"
+           }
+         },
+         "uk" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Документ містить незбережені зміни"
++            "value" : "Закрити вікно"
+           }
+         },
+         "zh-Hans" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "文稿中存在未保存的更改"
++            "value" : "关闭窗口"
+           }
+         },
+         "zh-Hant" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "文件內包含尚未存檔的內容變更"
++            "value" : "關閉視窗"
+           }
+         },
+         "zh-HK" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "文件包括未儲存的變更"
++            "value" : "關閉視窗"
++          }
++        }
++      }
++    },
++    "DocumentWindow.showNextTab" : {
++      "comment" : "Window menu item selecting the tab to the right",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "cs" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Zobrazit další panel"
++          }
++        },
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Nächsten Tab zeigen"
++          }
++        },
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Show Next Tab"
++          }
++        },
++        "en-GB" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Show Next Tab"
++          }
++        },
++        "es" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Mostrar pestaña siguiente"
++          }
++        },
++        "fr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Afficher l’onglet suivant"
++          }
++        },
++        "it" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Mostra pannello successivo"
++          }
++        },
++        "ja" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "次のタブを表示"
++          }
++        },
++        "ko" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "다음 탭 보기"
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Toon volgende tabblad"
++          }
++        },
++        "pl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Pokaż następną kartę"
++          }
++        },
++        "pt" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Mostrar separador seguinte"
++          }
++        },
++        "ru" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Показать следующую вкладку"
++          }
++        },
++        "tr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Sonraki Sekmeyi Göster"
++          }
++        },
++        "uk" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Показати наступну вкладку"
++          }
++        },
++        "zh-Hans" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "显示下一个标签页"
++          }
++        },
++        "zh-Hant" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "顯示下一個標籤頁"
++          }
++        },
++        "zh-HK" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "顯示下一個標籤頁"
++          }
++        }
++      }
++    },
++    "DocumentWindow.showPreviousTab" : {
++      "comment" : "Window menu item selecting the tab to the left",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "cs" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Zobrazit předchozí panel"
++          }
++        },
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Vorherigen Tab zeigen"
++          }
++        },
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Show Previous Tab"
++          }
++        },
++        "en-GB" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Show Previous Tab"
++          }
++        },
++        "es" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Mostrar pestaña anterior"
++          }
++        },
++        "fr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Afficher l’onglet précédent"
++          }
++        },
++        "it" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Mostra pannello precedente"
++          }
++        },
++        "ja" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "前のタブを表示"
++          }
++        },
++        "ko" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "이전 탭 보기"
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Toon vorige tabblad"
++          }
++        },
++        "pl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Pokaż poprzednią kartę"
++          }
++        },
++        "pt" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Mostrar separador anterior"
++          }
++        },
++        "ru" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Показать предыдущую вкладку"
++          }
++        },
++        "tr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Önceki Sekmeyi Göster"
++          }
++        },
++        "uk" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Показати попередню вкладку"
++          }
++        },
++        "zh-Hans" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "显示上一个标签页"
++          }
++        },
++        "zh-Hant" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "顯示上一個標籤頁"
++          }
++        },
++        "zh-HK" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "顯示上一個標籤頁"
+           }
+         }
+       }
+diff --git a/CotEditor/Localizables/Settings/Panes/WindowSettings.xcstrings b/CotEditor/Localizables/Settings/Panes/WindowSettings.xcstrings
+index 31ac18ef7..0ac8a87d0 100644
+--- a/CotEditor/Localizables/Settings/Panes/WindowSettings.xcstrings
++++ b/CotEditor/Localizables/Settings/Panes/WindowSettings.xcstrings
+@@ -3301,6 +3301,113 @@
+         }
+       }
+     },
++    "Use file tabs in directory windows" : {
++      "comment" : "Distinct from macOS window tabs; this enables tabs for files opened within a directory window.",
++      "localizations" : {
++        "cs" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Používat karty souborů v oknech složek"
++          }
++        },
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Dateireiter in Ordnerfenstern verwenden"
++          }
++        },
++        "en-GB" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Use file tabs in directory windows"
++          }
++        },
++        "es" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Usar pestañas de archivos en ventanas de directorio"
++          }
++        },
++        "fr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Utiliser des onglets de fichiers dans les fenêtres de dossier"
++          }
++        },
++        "it" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Usa pannelli per i file nelle finestre di cartella"
++          }
++        },
++        "ja" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "フォルダウインドウでファイルをタブ表示"
++          }
++        },
++        "ko" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "폴더 윈도우에서 파일 탭 사용"
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Bestandstabbladen in mapvensters gebruiken"
++          }
++        },
++        "pl" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Używaj kart plików w oknach folderów"
++          }
++        },
++        "pt" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Usar abas de arquivos em janelas de pastas"
++          }
++        },
++        "ru" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Использовать вкладки файлов в окнах папок"
++          }
++        },
++        "tr" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Klasör pencerelerinde dosya sekmelerini kullan"
++          }
++        },
++        "uk" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Використовувати вкладки файлів у вікнах папок"
++          }
++        },
++        "zh-Hans" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "在文件夹窗口中使用文件标签页"
++          }
++        },
++        "zh-Hant" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "在資料夾視窗中使用檔案標籤頁"
++          }
++        },
++        "zh-HK" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "在資料夾視窗中使用檔案分頁"
++          }
++        }
++      }
++    },
+     "Width" : {
+       "localizations" : {
+         "cs" : {
+diff --git a/CotEditor/Sources/Application/AppDelegate.swift b/CotEditor/Sources/Application/AppDelegate.swift
+index 2fbfccd3f..ed632d89f 100644
+--- a/CotEditor/Sources/Application/AppDelegate.swift
++++ b/CotEditor/Sources/Application/AppDelegate.swift
+@@ -160,6 +160,8 @@ extension Logger {
+         _ = DocumentController.shared
+         
+         self.prepareMainMenu()
++        DocumentWindow.addCloseWindowMenuItem(to: NSApp.mainMenu!)
++        DocumentWindow.addTabNavigationMenuItems(to: NSApp.mainMenu!)
+         
+         #if SPARKLE
+         UpdaterManager.shared.setup()
+diff --git a/CotEditor/Sources/Application/Defaults/DefaultKeys.swift b/CotEditor/Sources/Application/Defaults/DefaultKeys.swift
+index ad5a369e4..8a52c4ed8 100644
+--- a/CotEditor/Sources/Application/Defaults/DefaultKeys.swift
++++ b/CotEditor/Sources/Application/Defaults/DefaultKeys.swift
+@@ -53,6 +53,7 @@ extension DefaultKeys {
+     
+     // Window
+     static let windowTabbing = DefaultKey<Int>("windowTabbing")
++    static let usesDirectoryFileTabs = DefaultKey<Bool>("usesDirectoryFileTabs")
+     static let windowWidth = DefaultKey<Double?>("windowWidth")
+     static let windowHeight = DefaultKey<Double?>("windowHeight")
+     static let showLineNumbers = DefaultKey<Bool>("showLineNumbers")
+diff --git a/CotEditor/Sources/Application/Defaults/DefaultSettings+Porting.swift b/CotEditor/Sources/Application/Defaults/DefaultSettings+Porting.swift
+index f43a97307..7be75c79a 100644
+--- a/CotEditor/Sources/Application/Defaults/DefaultSettings+Porting.swift
++++ b/CotEditor/Sources/Application/Defaults/DefaultSettings+Porting.swift
+@@ -50,6 +50,7 @@ extension DefaultSettings {
+         
+         // Window
+         .windowTabbing,
++        .usesDirectoryFileTabs,
+         .windowWidth,
+         .windowHeight,
+         .showLineNumbers,
+diff --git a/CotEditor/Sources/Application/Defaults/DefaultSettings.swift b/CotEditor/Sources/Application/Defaults/DefaultSettings.swift
+index 6ed8c35ca..a547cc4a6 100644
+--- a/CotEditor/Sources/Application/Defaults/DefaultSettings.swift
++++ b/CotEditor/Sources/Application/Defaults/DefaultSettings.swift
+@@ -57,6 +57,7 @@ struct DefaultSettings {
+             
+             // Window
+             .windowTabbing: -1,  // = Respect System Setting
++            .usesDirectoryFileTabs: false,
+             .showLineNumbers: true,
+             .showInvisibles: false,
+             .showInvisibleNewLine: true,
+diff --git a/CotEditor/Sources/Document Window/Content View/ContentViewController.swift b/CotEditor/Sources/Document Window/Content View/ContentViewController.swift
+index 2260d3a5f..df1d4cb93 100644
+--- a/CotEditor/Sources/Document Window/Content View/ContentViewController.swift	
++++ b/CotEditor/Sources/Document Window/Content View/ContentViewController.swift	
+@@ -33,6 +33,35 @@ final class ContentViewController: NSViewController {
+     var document: DataDocument?  { didSet { self.updateDocument(from: oldValue) } }
+     
+     private(set) var hostedViewController: NSViewController
++
++    /// Detached editor controllers retain each tab's split layout, selections and scroll views.
++    /// Only the directory host enables this cache; standalone windows keep upstream behavior.
++    var retainsDirectoryEditors = false
++    private var retainedEditors: [ObjectIdentifier: NSViewController] = [:]
++    private var retainedViewports: [ObjectIdentifier: [NSPoint?]] = [:]
++    private var viewportGeneration = 0
++    
++    /// Whether the hosted controller belongs to a tab that is not a file. Such controllers are owned by the caller.
++    private(set) var hostsTabContent = false
++    private var isShowingTabContent = false
++
++    func releaseEditor(for document: DataDocument) {
++
++        self.retainedEditors.removeValue(forKey: ObjectIdentifier(document))
++        self.retainedViewports.removeValue(forKey: ObjectIdentifier(document))
++    }
++
++
++    /// The selection in the editor showing the document, whether it is on screen or cached.
++    ///
++    /// - Parameter document: The document.
++    /// - Returns: The selected ranges of the focused split, or `nil` if the document has no editor here.
++    func selectedRanges(of document: DataDocument) -> [NSValue]? {
++
++        let editor = (document === self.document) ? self.hostedViewController : self.retainedEditors[ObjectIdentifier(document)]
++
++        return (editor as? DocumentViewController)?.focusedTextView?.selectedRanges
++    }
+     
+     
+     // MARK: Lifecycle
+@@ -71,16 +100,161 @@ final class ContentViewController: NSViewController {
+     /// - Parameter oldDocument: The previous document.
+     private func updateDocument(from oldDocument: DataDocument?) {
+         
+-        guard oldDocument != self.document else { return }
++        guard !self.isShowingTabContent else { return }
++        guard oldDocument != self.document || self.hostsTabContent else { return }
++        self.hostsTabContent = false
++        
++        self.detachHostedController(retainingFor: oldDocument)
++        
++        let incomingID = self.document.map(ObjectIdentifier.init)
++        let retainedEditor = incomingID.flatMap { self.retainedEditors.removeValue(forKey: $0) }
++        self.hostedViewController = retainedEditor ?? Self.viewController(document: self.document)
++        
++        // A new editor starts at its own top edge, but its clip view has no insets until it is in the window.
++        // Measuring it before attachment keeps that edge once the toolbar and tab bar insets apply;
++        // otherwise the first lines would stay hidden under them.
++        let editor = self.hostedViewController as? DocumentViewController
++        var offsets: [NSPoint?]?
++        if self.retainsDirectoryEditors, let editor {
++            if let retained = incomingID.flatMap({ self.retainedViewports.removeValue(forKey: $0) }) {
++                offsets = retained
++            } else if retainedEditor == nil {
++                editor.loadViewIfNeeded()  // the split text views exist only once the view is loaded
++                offsets = Self.viewportOffsets(of: editor)
++            }
++        }
++        
++        self.addChild(self.hostedViewController)
++        self.viewIfLoaded?.embedSubview(self.hostedViewController.view)
++        
++        // Retained text views preserve split arrangement, caret and all selected ranges.
++        // Restore independent x/y clip positions *after* attachment, without moving the caret.
++        self.viewportGeneration += 1
++        if let offsets, let editor {
++            self.view.layoutSubtreeIfNeeded()
++            let origins = Self.applyViewportOffsets(offsets, to: editor)
++            
++            // Window layout can still change the insets after this pass, which moves the content
++            // without moving the clip origin. Reapply once afterwards unless something else scrolled
++            // meanwhile, or the host has since switched to another editor.
++            let generation = self.viewportGeneration
++            DispatchQueue.main.async { [weak self, weak editor] in
++                guard
++                    let self, let editor,
++                    self.viewportGeneration == generation,
++                    self.hostedViewController === editor
++                else { return }
++                
++                self.view.window?.layoutIfNeeded()
++                let untouched = zip(offsets, zip(editor.textViews, origins)).map { offset, pair in
++                    pair.0.enclosingScrollView?.contentView.bounds.origin == pair.1 ? offset : nil
++                }
++                Self.applyViewportOffsets(untouched, to: editor)
++            }
++        }
++    }
++    
++    
++    /// Removes the hosted controller, keeping a directory editor for when its document returns.
++    ///
++    /// - Parameter oldDocument: The document the outgoing controller shows, if any.
++    private func detachHostedController(retainingFor oldDocument: DataDocument?) {
+         
+         // remove only the hosted view controller to preserve accessories such as the status bar
+         // -> Split view item accessory controllers can be attached as children (2026-05, macOS 26).
++        if self.retainsDirectoryEditors, let oldDocument {
++            let id = ObjectIdentifier(oldDocument)
++            self.retainedEditors[id] = self.hostedViewController
++            if let editor = self.hostedViewController as? DocumentViewController {
++                self.retainedViewports[id] = Self.viewportOffsets(of: editor)
++            }
++        }
++        
+         self.hostedViewController.viewIfLoaded?.removeFromSuperview()
+         self.hostedViewController.removeFromParent()
++    }
++    
++    
++    /// Shows the controller of a tab that is not a file, in place of any document.
++    ///
++    /// The outgoing editor is retained as if another file had been selected, and `document` becomes nil
++    /// so that nothing routes file commands to it. The controller is owned by the caller.
++    ///
++    /// - Parameter viewController: The tab's controller.
++    func showTabContent(_ viewController: NSViewController) {
+         
+-        self.hostedViewController = Self.viewController(document: self.document)
+-        self.addChild(self.hostedViewController)
+-        self.viewIfLoaded?.embedSubview(self.hostedViewController.view)
++        guard self.hostedViewController !== viewController else { return }
++        
++        if !self.hostsTabContent {
++            self.detachHostedController(retainingFor: self.document)
++        } else {
++            self.hostedViewController.viewIfLoaded?.removeFromSuperview()
++            self.hostedViewController.removeFromParent()
++        }
++        
++        self.isShowingTabContent = true
++        self.document = nil
++        self.isShowingTabContent = false
++        self.hostsTabContent = true
++        self.viewportGeneration += 1
++        
++        self.hostedViewController = viewController
++        self.addChild(viewController)
++        self.viewIfLoaded?.embedSubview(viewController.view)
++    }
++    
++    
++    /// Returns each split's clip position measured from its inset-adjusted top-left corner.
++    ///
++    /// Raw origins are not stored because the topmost legal origin is negative by the content insets
++    /// (for example under the toolbar), and those insets may differ by the time the editor is shown again.
++    ///
++    /// - Parameter editor: The editor whose splits to measure.
++    /// - Returns: One offset per text view, or `nil` for a text view without a scroll view.
++    private static func viewportOffsets(of editor: DocumentViewController) -> [NSPoint?] {
++        
++        editor.textViews.map { textView in
++            textView.enclosingScrollView.map { scrollView in
++                let clip = scrollView.contentView
++                return NSPoint(x: clip.bounds.origin.x + clip.contentInsets.left,
++                               y: clip.bounds.origin.y + clip.contentInsets.top)
++            }
++        }
++    }
++    
++    
++    /// Scrolls each split to its stored offset under the current insets.
++    ///
++    /// - Parameters:
++    ///   - offsets: The offsets from `viewportOffsets(of:)`; `nil` leaves that split alone.
++    ///   - editor: The editor to scroll.
++    /// - Returns: The clip origins after scrolling, to detect later scrolling by others.
++    @discardableResult private static func applyViewportOffsets(_ offsets: [NSPoint?], to editor: DocumentViewController) -> [NSPoint?] {
++        
++        zip(editor.textViews, offsets).map { textView, offset in
++            guard let scrollView = textView.enclosingScrollView else { return nil }
++            
++            let clip = scrollView.contentView
++            guard let offset else { return clip.bounds.origin }
++            
++            // Text is laid out lazily, so the document may not yet be as tall as the offset needs, and
++            // the clamping below would pull the view up. Laying out as far as the view will show avoids that.
++            if let layoutManager = textView.layoutManager, let container = textView.textContainer {
++                layoutManager.ensureLayout(forBoundingRect: NSRect(x: 0, y: 0, width: container.size.width,
++                                                                   height: offset.y + clip.bounds.height), in: container)
++            }
++            
++            var bounds = clip.bounds
++            bounds.origin = NSPoint(x: offset.x - clip.contentInsets.left,
++                                    y: offset.y - clip.contentInsets.top)
++            // constrainBoundsRect(_:) clamps within the inset-adjusted scrollable range,
++            // so a view left at the very top returns there although that origin is negative,
++            // and an offset past the end of since-shortened content lands on the last page.
++            clip.scroll(to: clip.constrainBoundsRect(bounds).origin)
++            scrollView.reflectScrolledClipView(clip)
++            
++            return clip.bounds.origin
++        }
+     }
+     
+     
+diff --git a/CotEditor/Sources/Document Window/Content View/DirectoryFileTabBar.swift b/CotEditor/Sources/Document Window/Content View/DirectoryFileTabBar.swift
+new file mode 100644
+index 000000000..106b43c35
+--- /dev/null
++++ b/CotEditor/Sources/Document Window/Content View/DirectoryFileTabBar.swift	
+@@ -0,0 +1,410 @@
++//
++//  DirectoryFileTabBar.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++
++import AppKit
++import SwiftUI
++
++
++/// Display-only metadata. The directory retains document and tab ownership.
++struct DirectoryTabPresentation: Identifiable {
++
++    let id: UUID
++    let title: String
++    let icon: NSImage?
++    let tooltip: String
++    let isModified: Bool
++    let canClose: Bool
++    let canMoveToNewWindow: Bool
++    /// A symbol after the title that points out where the tab's document lives.
++    var badgeSymbolName: String?
++}
++
++
++struct DirectoryTabBar: View {
++
++    /// A command offered in the tab strip's “+” menu or in a tab's context menu.
++    struct MenuItem: Identifiable {
++
++        let id = UUID()
++        var title: String
++        var systemImage: String?
++        var isEnabled = true
++        var action: () -> Void
++    }
++
++
++    /// A tab being dragged along or out of the strip.
++    private struct TabDrag: Equatable {
++
++        var id: UUID
++        /// The pointer's distance from the tab's leading edge when the drag began.
++        var grabOffset: CGFloat
++        /// The pointer, in the strip's coordinate space.
++        var location: CGPoint
++    }
++
++
++    /// The height of the strip.
++    static let height: CGFloat = 30
++
++    /// How far above or below the strip a tab must be pulled to move to a window of its own.
++    static let pullOutDistance: CGFloat = 24
++
++    private static let stripSpace = "DirectoryTabBar.strip"
++
++
++    let presentations: [DirectoryTabPresentation]
++    let selectedID: UUID?
++    let onSelect: (UUID) -> Void
++    let onClose: (UUID) -> Void
++    /// Moves a tab to an index among all tabs.
++    var onMove: (UUID, Int) -> Void = { _, _ in }
++    /// Moves a tab to a window of its own whose top-left corner is at the given screen point.
++    var onMoveToNewWindow: (UUID, NSPoint) -> Void = { _, _ in }
++    /// The commands of the “+” menu after the tabs; the menu is hidden when there are none.
++    var addMenuItems: [MenuItem] = []
++    var contextMenuItems: (UUID) -> [MenuItem] = { _ in [] }
++
++    @State private var drag: TabDrag?
++    @State private var tabFrames: [UUID: CGRect] = [:]
++
++    /// The order shown while a tab is dragged, ahead of the model catching up.
++    ///
++    /// Reordering changes this in a single animated transaction, so every part of every tab moves
++    /// together. Animating the model's order instead would animate each later rebuild of the strip
++    /// again, and parts of the tabs, such as their icons, would trail behind their titles.
++    @State private var dragOrder: [UUID]?
++
++
++    /// The tabs in the order shown.
++    private var displayedPresentations: [DirectoryTabPresentation] {
++
++        guard let dragOrder else { return self.presentations }
++
++        return self.presentations.enumerated()
++            .sorted { (dragOrder.firstIndex(of: $0.element.id) ?? dragOrder.count + $0.offset)
++                < (dragOrder.firstIndex(of: $1.element.id) ?? dragOrder.count + $1.offset) }
++            .map(\.element)
++    }
++
++    var body: some View {
++        HStack(spacing: 0) {
++            ScrollViewReader { proxy in
++                ScrollView(.horizontal) {
++                    HStack(spacing: 2) {
++                        ForEach(self.displayedPresentations) { presentation in
++                            tab(presentation)
++                                .id(presentation.id)
++                        }
++                    }
++                    .padding(.horizontal, 4)
++                    .padding(.vertical, 1)
++                    .coordinateSpace(.named(Self.stripSpace))
++                    .onPreferenceChange(TabFramesKey.self) { self.tabFrames = $0 }
++                }
++                .scrollIndicators(.hidden)
++                // No scrolling while a tab is dragged: it would move the strip under the pointer.
++                .onChange(of: self.selectedID) { _, id in
++                    guard self.drag == nil, let id else { return }
++                    withAnimation(.easeInOut(duration: 0.2)) { proxy.scrollTo(id, anchor: .trailing) }
++                }
++                .onChange(of: self.presentations.map(\.id)) { _, _ in
++                    guard self.drag == nil else { return }
++                    // The model has caught up with the drag, or changed in some other way.
++                    self.dragOrder = nil
++                    if let selectedID { proxy.scrollTo(selectedID, anchor: .trailing) }
++                }
++                .onAppear {
++                    if let selectedID { proxy.scrollTo(selectedID, anchor: .trailing) }
++                }
++            }
++            if !self.addMenuItems.isEmpty {
++                self.addMenu
++            }
++        }
++        // No background of its own: the bar stays visible in an empty window,
++        // so it must take on whatever the window shows beneath it, editor or placeholder.
++        .frame(height: Self.height)
++        .accessibilityElement(children: .contain)
++        .accessibilityLabel(String(localized: "DirectoryTabBar.accessibilityLabel", defaultValue: "File Tabs", table: "Document",
++                                   comment: "accessibility label for the tab bar listing the files open in a folder window"))
++    }
++
++    /// The accessibility label and tooltip of the “+” menu.
++    static var addMenuLabel: String {
++
++        String(localized: "DirectoryTabBar.add.accessibilityLabel", defaultValue: "New Tab", table: "Document",
++               comment: "accessibility label and tooltip of the menu at the end of the tab bar that opens a new tab")
++    }
++
++
++    static var moveToNewWindowLabel: String {
++
++        String(localized: "DirectoryTabBar.moveToNewWindow", defaultValue: "Move to New Window", table: "Document",
++               comment: "context menu item and accessibility action moving a tab into a window of its own")
++    }
++
++
++    static var moveLeftLabel: String {
++
++        String(localized: "DirectoryTabBar.moveLeft", defaultValue: "Move Left", table: "Document",
++               comment: "accessibility action moving a tab one place to the left")
++    }
++
++
++    static var moveRightLabel: String {
++
++        String(localized: "DirectoryTabBar.moveRight", defaultValue: "Move Right", table: "Document",
++               comment: "accessibility action moving a tab one place to the right")
++    }
++
++
++    /// The index a dragged tab belongs at: after every other tab whose middle lies before the dragged tab's middle.
++    ///
++    /// Comparing middles gives natural hysteresis: once the tabs have swapped, the dragged tab has to travel
++    /// back past the other tab's new middle to swap again, so it does not flicker at the boundary.
++    ///
++    /// - Parameters:
++    ///   - id: The dragged tab.
++    ///   - midX: The middle of the dragged tab where the pointer puts it.
++    ///   - order: All tab IDs in their current order.
++    ///   - frames: The current frames of the tabs.
++    /// - Returns: The index among all tabs.
++    static func dropIndex(for id: UUID, midX: CGFloat, order: [UUID], frames: [UUID: CGRect]) -> Int {
++
++        order.lazy
++            .filter { $0 != id }
++            .count { (frames[$0]?.midX ?? .infinity) < midX }
++    }
++
++
++    /// Whether a pointer at this location, in the strip's coordinate space, pulls a tab out of the strip.
++    static func isPulledOut(_ location: CGPoint) -> Bool {
++
++        location.y < -Self.pullOutDistance || location.y > Self.height + Self.pullOutDistance
++    }
++
++
++    /// The accessibility label and tooltip of a tab's close button, which must name the file it closes.
++    ///
++    /// - Parameter presentation: The tab.
++    /// - Returns: A localized label.
++    static func closeLabel(for presentation: DirectoryTabPresentation) -> String {
++
++        String(localized: "DirectoryTabBar.close.accessibilityLabel", defaultValue: "Close \(presentation.title)", table: "Document",
++               comment: "accessibility label and tooltip for the button closing a file tab (%@ is the file name)")
++    }
++
++
++    private var addMenu: some View {
++
++        Menu {
++            ForEach(self.addMenuItems) { item in
++                Self.button(for: item)
++            }
++        } label: {
++            Image(systemName: "plus")
++        }
++        .menuStyle(.button)
++        .buttonStyle(.borderless)
++        .menuIndicator(.hidden)
++        .fixedSize()
++        .padding(.horizontal, 6)
++        .accessibilityLabel(Self.addMenuLabel)
++        .help(Self.addMenuLabel)
++    }
++
++
++    @ViewBuilder private static func button(for item: MenuItem) -> some View {
++
++        Group {
++            if let systemImage = item.systemImage {
++                Button(item.title, systemImage: systemImage, action: item.action)
++            } else {
++                Button(item.title, action: item.action)
++            }
++        }
++        .disabled(!item.isEnabled)
++    }
++
++
++    private func tab(_ presentation: DirectoryTabPresentation) -> some View {
++
++        HStack(spacing: 4) {
++            Button { self.onSelect(presentation.id) } label: {
++                HStack(spacing: 6) {
++                    if let icon = presentation.icon {
++                        Image(nsImage: icon).resizable().frame(width: 14, height: 14)
++                    }
++                    Text(presentation.title).lineLimit(1).truncationMode(.middle)
++                    if let badgeSymbolName = presentation.badgeSymbolName {
++                        Image(systemName: badgeSymbolName)
++                            .font(.system(size: 9))
++                            .foregroundStyle(.secondary)
++                            .accessibilityHidden(true)
++                    }
++                    if presentation.isModified {
++                        Circle().fill(.primary).frame(width: 6, height: 6).accessibilityHidden(true)
++                    }
++                }
++                .frame(maxWidth: 180, alignment: .leading)
++                .contentShape(Rectangle())
++            }
++            .buttonStyle(.plain)
++            .accessibilityLabel(presentation.title)
++            .accessibilityValue(presentation.isModified
++                                ? String(localized: "DirectoryTabBar.edited.accessibilityValue", defaultValue: "Edited", table: "Document",
++                                         comment: "accessibility value of a file tab whose document has unsaved changes")
++                                : "")
++            .accessibilityAddTraits(presentation.id == self.selectedID ? .isSelected : [])
++
++            if presentation.canClose {
++                Button { self.onClose(presentation.id) } label: {
++                    Image(systemName: "xmark")
++                        .font(.system(size: 9, weight: .semibold))
++                        .frame(width: 16, height: 16)
++                        .contentShape(Rectangle())
++                }
++                .buttonStyle(.plain)
++                .accessibilityLabel(Self.closeLabel(for: presentation))
++                .help(Self.closeLabel(for: presentation))
++            }
++        }
++        .padding(.leading, 7)
++        .padding(.trailing, 4)
++        .padding(.vertical, 2)
++        .background {
++            ZStack {
++                // Tabs have no background of their own, so a dragged tab needs an opaque one while it
++                // slides over its neighbors; otherwise both titles would show through each other.
++                if self.drag?.id == presentation.id {
++                    RoundedRectangle(cornerRadius: 5)
++                        .fill(Color(nsColor: .windowBackgroundColor))
++                        .shadow(color: .black.opacity(0.25), radius: 2, y: 1)
++                }
++                RoundedRectangle(cornerRadius: 5)
++                    .fill(presentation.id == self.selectedID ? Color.accentColor.opacity(0.22) : .clear)
++            }
++        }
++        .help(presentation.tooltip)
++        .contextMenu {
++            ForEach(self.contextMenuItems(presentation.id)) { item in
++                Self.button(for: item)
++            }
++        }
++        .accessibilityActions {
++            if let index = self.displayedPresentations.firstIndex(where: { $0.id == presentation.id }) {
++                if index > 0 {
++                    Button(Self.moveLeftLabel) { self.onMove(presentation.id, index - 1) }
++                }
++                if index < self.displayedPresentations.count - 1 {
++                    Button(Self.moveRightLabel) { self.onMove(presentation.id, index + 1) }
++                }
++            }
++            if presentation.canMoveToNewWindow {
++                Button(Self.moveToNewWindowLabel) { self.onMoveToNewWindow(presentation.id, NSEvent.mouseLocation) }
++            }
++        }
++        .offset(self.dragOffset(of: presentation))
++        // Measured outside the offset: the reported frame must be the tab's place in the strip. Measured
++        // inside, it would move with the drag offset that is computed from it, and the tab would jitter.
++        .background {
++            GeometryReader { geometry in
++                Color.clear.preference(key: TabFramesKey.self, value: [presentation.id: geometry.frame(in: .named(Self.stripSpace))])
++            }
++        }
++        .opacity(self.isPulledOut(presentation) ? 0.6 : 1)
++        .zIndex(self.drag?.id == presentation.id ? 1 : 0)
++        // The dragged tab follows the pointer directly; only the others animate into place.
++        .transaction { if self.drag?.id == presentation.id { $0.animation = nil } }
++        .simultaneousGesture(self.dragGesture(for: presentation))
++    }
++
++
++    private func isPulledOut(_ presentation: DirectoryTabPresentation) -> Bool {
++
++        guard let drag, drag.id == presentation.id, presentation.canMoveToNewWindow else { return false }
++
++        return Self.isPulledOut(drag.location)
++    }
++
++
++    /// Where the dragged tab is drawn relative to its place in the strip.
++    private func dragOffset(of presentation: DirectoryTabPresentation) -> CGSize {
++
++        guard let drag, drag.id == presentation.id, let frame = self.tabFrames[presentation.id] else { return .zero }
++
++        return CGSize(width: drag.location.x - drag.grabOffset - frame.minX,
++                      height: self.isPulledOut(presentation) ? drag.location.y - frame.midY : 0)
++    }
++
++
++    /// Reorders the tab while it is dragged along the strip, and moves it to a new window when it is let go
++    /// away from the strip.
++    private func dragGesture(for presentation: DirectoryTabPresentation) -> some Gesture {
++
++        DragGesture(minimumDistance: 4, coordinateSpace: .named(Self.stripSpace))
++            .onChanged { value in
++                if self.drag?.id != presentation.id {
++                    let leadingEdge = self.tabFrames[presentation.id]?.minX ?? value.startLocation.x
++                    self.drag = TabDrag(id: presentation.id, grabOffset: value.startLocation.x - leadingEdge, location: value.location)
++                    self.onSelect(presentation.id)
++                }
++                self.drag?.location = value.location
++
++                guard
++                    !Self.isPulledOut(value.location),
++                    let drag = self.drag,
++                    let frame = self.tabFrames[presentation.id]
++                else { return }
++
++                var order = self.displayedPresentations.map(\.id)
++                let index = Self.dropIndex(for: presentation.id, midX: value.location.x - drag.grabOffset + frame.width / 2,
++                                           order: order, frames: self.tabFrames)
++                guard let current = order.firstIndex(of: presentation.id), index != current else { return }
++
++                order.insert(order.remove(at: current), at: index)
++                withAnimation(.easeInOut(duration: 0.15)) {
++                    self.dragOrder = order
++                }
++                self.onMove(presentation.id, index)
++            }
++            .onEnded { value in
++                defer {
++                    self.drag = nil
++                    // Keep showing the dragged order until the model has caught up, to avoid a flash of the old order.
++                    if self.presentations.map(\.id) == self.dragOrder {
++                        self.dragOrder = nil
++                    }
++                }
++
++                guard presentation.canMoveToNewWindow, Self.isPulledOut(value.location) else { return }
++
++                // Put the new window's title bar under the pointer.
++                let pointer = NSEvent.mouseLocation
++                self.onMoveToNewWindow(presentation.id, NSPoint(x: pointer.x - 60, y: pointer.y + 12))
++            }
++    }
++}
++
++
++/// Collects the frames of the tabs in the strip's coordinate space.
++private struct TabFramesKey: PreferenceKey {
++
++    static let defaultValue: [UUID: CGRect] = [:]
++
++
++    static func reduce(value: inout [UUID: CGRect], nextValue: () -> [UUID: CGRect]) {
++
++        value.merge(nextValue()) { $1 }
++    }
++}
+diff --git a/CotEditor/Sources/Document Window/DocumentWindow.swift b/CotEditor/Sources/Document Window/DocumentWindow.swift
+index 2866cecf1..6e0a57431 100644
+--- a/CotEditor/Sources/Document Window/DocumentWindow.swift	
++++ b/CotEditor/Sources/Document Window/DocumentWindow.swift	
+@@ -103,13 +103,63 @@ final class DocumentWindow: NSWindow {
+     
+     
+     // MARK: Actions
+-    
++
++    override func performClose(_ sender: Any?) {
++
++        // The File > Close command closes the selected tab, whatever it shows, not the directory window.
++        // Keep the window's close button, File > Close Window and programmatic window closes unchanged.
++        // The key equivalent is deliberately not checked because users can rebind File > Close.
++        if let item = sender as? NSMenuItem,
++           item.action == #selector(NSWindow.performClose(_:)),
++           // The alternate (Close All) keeps AppKit's path.
++           !item.isAlternate,
++           let directoryDocument = self.fileTabDirectory,
++           let id = directoryDocument.tabState.selectedID
++        {
++            Task { await directoryDocument.closeTab(id: id) }
++            return
++        }
++
++        super.performClose(sender)
++    }
++
++
++    /// Closes the window itself, also where File > Close closes a tab.
++    @IBAction func closeWindow(_ sender: Any?) {
++
++        // Without a menu item as the sender, `performClose(_:)` takes the window path.
++        self.performClose(nil)
++    }
++
++
++    override func selectNextTab(_ sender: Any?) {
++
++        // Directory windows never join a native tab group, so the tab commands walk file tabs instead.
++        guard let directoryDocument = self.fileTabDirectory else { return super.selectNextTab(sender) }
++
++        directoryDocument.selectAdjacentTab(by: 1)
++    }
++
++
++    override func selectPreviousTab(_ sender: Any?) {
++
++        guard let directoryDocument = self.fileTabDirectory else { return super.selectPreviousTab(sender) }
++
++        directoryDocument.selectAdjacentTab(by: -1)
++    }
++
++
+     override func validateUserInterfaceItem(_ item: any NSValidatedUserInterfaceItem) -> Bool {
+         
+         switch item.action {
+             case #selector(toggleKeepOnTop):
+                 (item as? any StatableItem)?.state = self.isFloating ? .on : .off
+                 
++            case #selector(selectNextTab), #selector(selectPreviousTab):
++                if let directoryDocument = self.fileTabDirectory {
++                    return directoryDocument.tabState.entries.count > 1
++                }
++                
+             default:
+                 break
+         }
+@@ -125,8 +175,74 @@ final class DocumentWindow: NSWindow {
+     }
+     
+     
++    // MARK: Public Methods
++    
++    /// Adds File > Close Window right after File > Close.
++    ///
++    /// In a folder window with file tabs, File > Close closes the selected tab, so the window needs a
++    /// command of its own. The item is added before the key bindings are read, so users can rebind it.
++    ///
++    /// - Parameter mainMenu: The application's main menu.
++    static func addCloseWindowMenuItem(to mainMenu: NSMenu) {
++        
++        guard
++            let fileMenu = mainMenu.items.lazy.compactMap(\.submenu)
++                .first(where: { $0.items.contains { $0.action == #selector(NSWindow.performClose(_:)) } }),
++            let index = fileMenu.items.firstIndex(where: { $0.action == #selector(NSWindow.performClose(_:)) }),
++            !fileMenu.items.contains(where: { $0.action == #selector(closeWindow(_:)) })
++        else { return }
++        
++        let item = NSMenuItem(title: String(localized: "DocumentWindow.closeWindow", defaultValue: "Close Window", table: "Document",
++                                            comment: "File menu item closing the whole window rather than its selected file tab"),
++                              action: #selector(closeWindow(_:)), keyEquivalent: "w")
++        item.keyEquivalentModifierMask = [.command, .shift]
++        // An alternate must directly follow its primary item, so insert after any alternates of Close.
++        let position = fileMenu.items[(index + 1)...].firstIndex { !$0.isAlternate } ?? fileMenu.items.endIndex
++        fileMenu.insertItem(item, at: position)
++    }
++    
++    
++    /// Adds Show Previous Tab (⌘⇧[) and Show Next Tab (⌘⇧]) to the Window menu.
++    ///
++    /// AppKit only offers these commands for windows in a native tab group, and not for folder windows,
++    /// whose file tabs are their own. The items use AppKit's actions, so they walk file tabs in a folder
++    /// window and native tabs elsewhere. They are added before the key bindings are read, so users can rebind them.
++    ///
++    /// - Parameter mainMenu: The application's main menu.
++    static func addTabNavigationMenuItems(to mainMenu: NSMenu) {
++        
++        guard
++            let windowMenu = NSApp.windowsMenu ?? mainMenu.items.lazy.compactMap(\.submenu)
++                .first(where: { $0.items.contains { $0.action == #selector(NSWindow.performMiniaturize(_:)) } }),
++            !windowMenu.items.contains(where: { $0.action == #selector(NSWindow.selectNextTab(_:)) })
++        else { return }
++        
++        let previous = NSMenuItem(title: String(localized: "DocumentWindow.showPreviousTab", defaultValue: "Show Previous Tab", table: "Document",
++                                                comment: "Window menu item selecting the tab to the left"),
++                                  action: #selector(NSWindow.selectPreviousTab(_:)), keyEquivalent: "{")
++        let next = NSMenuItem(title: String(localized: "DocumentWindow.showNextTab", defaultValue: "Show Next Tab", table: "Document",
++                                            comment: "Window menu item selecting the tab to the right"),
++                              action: #selector(NSWindow.selectNextTab(_:)), keyEquivalent: "}")
++        
++        // Right after the window sizing commands, as in other apps' Window menus.
++        let anchor = windowMenu.items.lastIndex { [#selector(NSWindow.performZoom(_:)), #selector(toggleKeepOnTop(_:))].contains($0.action) } ?? 1
++        windowMenu.insertItem(.separator(), at: anchor + 1)
++        windowMenu.insertItem(previous, at: anchor + 2)
++        windowMenu.insertItem(next, at: anchor + 3)
++    }
++    
++    
+     // MARK: Private Methods
+     
++    /// The directory whose file tabs the window shows, or `nil` if the window has no file tabs.
++    private var fileTabDirectory: DirectoryDocument? {
++        
++        guard UserDefaults.standard[.usesDirectoryFileTabs] else { return nil }
++        
++        return self.windowController?.document as? DirectoryDocument
++    }
++    
++    
+     /// Whether the window level is floating.
+     private var isFloating: Bool {
+         
+@@ -180,6 +296,21 @@ extension DocumentWindow {
+             return true
+         }
+         
++        // the same `⌘-number` shortcuts select file tabs in a directory window, which cannot be tabbed natively
++        if
++            self.tabbingMode == .disallowed,
++            let directoryDocument = self.fileTabDirectory,
++            let shortcut = Shortcut(keyDownEvent: event),
++            shortcut.modifiers == [.command],
++            let number = Int(shortcut.keyEquivalent), number > 0,
++            let entry = (number == 9) ? directoryDocument.tabState.entries.last : directoryDocument.tabState.entries[safe: number - 1]
++        {
++            guard NSApp.mainMenu?.performKeyEquivalent(with: event) != true else { return true }
++            
++            directoryDocument.selectTab(id: entry.id)
++            return true
++        }
++        
+         return false
+     }
+ }
+diff --git a/CotEditor/Sources/Document Window/DocumentWindowController.swift b/CotEditor/Sources/Document Window/DocumentWindowController.swift
+index 2e33498ba..f75f44a8b 100644
+--- a/CotEditor/Sources/Document Window/DocumentWindowController.swift	
++++ b/CotEditor/Sources/Document Window/DocumentWindowController.swift	
+@@ -223,9 +223,12 @@ final class DocumentWindowController: NSWindowController, NSWindowDelegate {
+         
+         if self.isDirectoryDocument {
+             // display current document title as window subtitle
+-            self.window?.subtitle = self.fileDocument?.fileURL?.lastPathComponent
+-                ?? self.fileDocument?.displayName
++            self.window?.subtitle = self.fileDocument?.subtitleName
++                ?? self.directoryDocument?.activeTabItem?.tabTitle
++                ?? self.directoryDocument?.root?.subtitle
+                 ?? ""
++        } else if let subtitle = self.fileDocument?.standaloneWindowSubtitle {
++            self.window?.subtitle = subtitle
+         }
+     }
+     
+diff --git a/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift b/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift
+index fe6e46a27..4b448983d 100644
+--- a/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift	
++++ b/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift	
+@@ -336,8 +336,13 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
+     /// Selects the current document in the outline view.
+     func selectCurrentDocument() {
+         
++        // Keep the last file highlighted as context while a tab that is not a file is shown.
++        guard self.document.activeTabItem == nil else { return }
++        guard let fileURL = self.document.activeFileDocument?.fileURL else {
++            self.outlineView.deselectAll(nil)
++            return
++        }
+         guard
+-            let fileURL = self.document.currentDocument?.fileURL,
+             let node = self.document.fileNode?.node(at: fileURL)
+         else { return }
+         
+@@ -365,6 +370,20 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
+     }
+     
+     
++    /// Selects a newly created file and starts editing its name, if the file browser is showing.
++    ///
++    /// - Parameter node: The file node to rename.
++    func beginRenaming(_ node: FileNode) {
++        
++        guard self.viewIfLoaded?.window != nil, self.view.isHiddenOrHasHiddenAncestor == false else { return }
++        
++        if self.isFiltering {
++            self.clearFilter()
++        }
++        self.select(node: node, edit: true)
++    }
++    
++    
+     /// Invoked when the file node did updated externally.
+     ///
+     /// - Parameter node: The file node whose children were changed.
+@@ -1216,7 +1235,12 @@ extension FileBrowserViewController: NSOutlineViewDelegate {
+             !node.file.isDirectory
+         else { return }
+         
++        // The file opens on a later turn of the main queue. Selecting a file programmatically also
++        // selects its row here, and a tab selected in between, such as by the next keyboard command,
++        // must not be replaced by the file whose row was highlighted.
++        let generation = self.document.selectionGeneration
+         Task {
++            guard self.document.selectionGeneration == generation else { return }
+             await self.document.openDocument(at: node.file.fileURL, prefersOriginal: node.file.isAlias && !node.file.isFolder)
+         }
+     }
+diff --git a/CotEditor/Sources/Document Window/Sidebar/Folder Find/FolderFinder.swift b/CotEditor/Sources/Document Window/Sidebar/Folder Find/FolderFinder.swift
+index df9ba1b11..2ce19f104 100644
+--- a/CotEditor/Sources/Document Window/Sidebar/Folder Find/FolderFinder.swift	
++++ b/CotEditor/Sources/Document Window/Sidebar/Folder Find/FolderFinder.swift	
+@@ -222,7 +222,7 @@ import TextFind
+             else { return }
+             
+             guard
+-                let document = self.document.currentDocument as? Document,
++                let document = self.document.activeFileDocument as? Document,
+                 let textView = document.textView
+             else { return }
+             
+diff --git a/CotEditor/Sources/Document Window/WindowContentViewController.swift b/CotEditor/Sources/Document Window/WindowContentViewController.swift
+index 34f4cbf49..ba9d44148 100644
+--- a/CotEditor/Sources/Document Window/WindowContentViewController.swift	
++++ b/CotEditor/Sources/Document Window/WindowContentViewController.swift	
+@@ -48,9 +48,18 @@ final class WindowContentViewController: NSSplitViewController, NSToolbarItemVal
+     @ViewLoading private var contentViewItem: NSSplitViewItem
+     @ViewLoading private var inspectorViewItem: NSSplitViewItem
+     
++    private var directoryTabBarView: NSHostingView<DirectoryTabBar>?
++    private var directoryTabBarAccessoryViewController: NSSplitViewItemAccessoryViewController?
++
+     private var versionBrowserObservers: [any NSObjectProtocol] = []
+     
+     private var defaultsObserver: AnyCancellable?
++    private var directoryTabBarDefaultsObserver: AnyCancellable?
++    private var directoryTabBarObservationTask: Task<Void, Never>?
++    private var directoryTabDocumentObservers: [NotificationCenter.ObservationToken] = []
++    
++    /// Controllers of tabs that are not files and have been shown, reused while their tab stays open.
++    private var tabViewControllers: [UUID: (item: ObjectIdentifier, controller: any DirectoryTabViewController)] = [:]
+     
+     
+     // MARK: Split View Controller Methods
+@@ -76,6 +85,7 @@ final class WindowContentViewController: NSSplitViewController, NSToolbarItemVal
+     
+     isolated deinit {
+         self.versionBrowserObservers.forEach(NotificationCenter.default.removeObserver)
++        self.directoryTabBarObservationTask?.cancel()
+     }
+     
+     
+@@ -93,7 +103,15 @@ final class WindowContentViewController: NSSplitViewController, NSToolbarItemVal
+         
+         super.viewDidLoad()
+         
+-        if let directoryDocument {
++        if let directoryDocument, let root = directoryDocument.root {
++            // A folder that is not on this Mac has neither the file browser nor folder find.
++            let sidebarViewItem = NSSplitViewItem(sidebarWithViewController: root.makeSidebarViewController(for: directoryDocument))
++            if let accessory = root.makeSidebarAccessoryViewController(for: directoryDocument) {
++                sidebarViewItem.addTopAlignedAccessoryViewController(accessory)
++            }
++            self.addSplitViewItem(sidebarViewItem)
++            self.sidebarViewItem = sidebarViewItem
++        } else if let directoryDocument {
+             let viewController = SidebarViewController(document: directoryDocument)
+             let sidebarViewItem = NSSplitViewItem(sidebarWithViewController: viewController)
+             sidebarViewItem.addTopAlignedAccessoryViewController(viewController.makeAccessoryViewController())
+@@ -102,7 +120,16 @@ final class WindowContentViewController: NSSplitViewController, NSToolbarItemVal
+         }
+         
+         let contentViewController = ContentViewController(document: self.document)
++        contentViewController.retainsDirectoryEditors = self.directoryDocument != nil
+         self.contentViewItem = NSSplitViewItem(viewController: contentViewController)
++        if let directoryDocument {
++            let tabBarView = NSHostingView(rootView: self.makeTabBar(for: directoryDocument))
++            let tabBarAccessoryViewController = NSSplitViewItemAccessoryViewController()
++            tabBarAccessoryViewController.view = tabBarView
++            self.contentViewItem.addTopAlignedAccessoryViewController(tabBarAccessoryViewController)
++            self.directoryTabBarView = tabBarView
++            self.directoryTabBarAccessoryViewController = tabBarAccessoryViewController
++        }
+         let statusBarController = NSSplitViewItemAccessoryViewController()
+         statusBarController.view = NSHostingView(rootView: StatusBar(model: self.statusBarModel))
+         statusBarController.isHidden = !UserDefaults.standard[.showStatusBar]
+@@ -125,6 +152,11 @@ final class WindowContentViewController: NSSplitViewController, NSToolbarItemVal
+         self.inspectorViewItem.isCollapsed = true
+         self.inspectorViewItem.titlebarSeparatorStyle = .none
+         self.addSplitViewItem(self.inspectorViewItem)
++        self.updateDirectoryTabBar()
++        // A tab that is not a file can be selected before the window loads, for example on restoration.
++        if self.directoryDocument?.activeTabItem != nil {
++            self.showActiveTab()
++        }
+     }
+     
+     
+@@ -183,6 +215,35 @@ final class WindowContentViewController: NSSplitViewController, NSToolbarItemVal
+         let statusBarController = self.contentViewItem.bottomAlignedAccessoryViewControllers.first
+         self.defaultsObserver = UserDefaults.standard.publisher(for: .showStatusBar)
+             .sink { statusBarController?.animator().isHidden = !$0 }
++        self.directoryTabBarDefaultsObserver = UserDefaults.standard.publisher(for: .usesDirectoryFileTabs, initial: true)
++            .removeDuplicates()
++            .sink { [weak self] _ in self?.refreshDirectoryTabBar() }
++
++        if let directoryDocument = self.directoryDocument {
++            self.directoryTabBarObservationTask = Task { [weak self] in
++                // The titles and tooltips of tabs that are not files are not part of the tab state either,
++                // but reading them registers whatever observable state they come from.
++                let observations = Observations({ (directoryDocument.tabState.entries.map(\.id), directoryDocument.tabState.selectedID,
++                                                   directoryDocument.tabItems.map { [$0.tabTitle, $0.tabToolTip] }) })
++                for await _ in observations {
++                    guard !Task.isCancelled else { return }
++                    self?.refreshDirectoryTabBar()
++                    if let item = directoryDocument.activeTabItem {
++                        directoryDocument.windowController?.synchronizeWindowTitleWithDocumentName()
++                        self?.contentViewController.view.setAccessibilityLabel(item.tabAccessibilityLabel)
++                    }
++                }
++            }
++            // edited markers and titles are not part of the tab state
++            self.directoryTabDocumentObservers = [
++                NotificationCenter.default.addObserver(for: Document.DidUpdateChangeMessage.self) { [weak self] _ in
++                    self?.refreshDirectoryTabBar()
++                },
++                NotificationCenter.default.addObserver(for: NSDocument.DidChangeFileURLMessage.self) { [weak self] _ in
++                    self?.refreshDirectoryTabBar()
++                },
++            ]
++        }
+     }
+     
+     
+@@ -200,6 +261,11 @@ final class WindowContentViewController: NSSplitViewController, NSToolbarItemVal
+         
+         self.defaultsObserver?.cancel()
+         self.defaultsObserver = nil
++        self.directoryTabBarDefaultsObserver?.cancel()
++        self.directoryTabBarDefaultsObserver = nil
++        self.directoryTabBarObservationTask?.cancel()
++        self.directoryTabBarObservationTask = nil
++        self.directoryTabDocumentObservers.removeAll()
+     }
+     
+     
+@@ -433,6 +499,12 @@ final class WindowContentViewController: NSSplitViewController, NSToolbarItemVal
+     /// Moves the focus to the editor.
+     private func focusEditor() {
+         
++        if self.contentViewController.hostsTabContent,
++           let controller = self.contentViewController.hostedViewController as? any DirectoryTabViewController
++        {
++            return controller.focusTabContent()
++        }
++        
+         guard
+             let window = self.viewIfLoaded?.window,
+             let textView = self.documentViewController?.focusedTextView
+@@ -445,12 +517,161 @@ final class WindowContentViewController: NSSplitViewController, NSToolbarItemVal
+     /// Updates the document in children.
+     private func updateDocument() {
+         
+-        self.contentViewController.document = self.document
++        self.showSelectedTab()
+         self.inspectorViewController.document = self.document
+         self.statusBarModel.document = self.document
+         
+         if self.directoryDocument != nil {
+             self.contentViewController.view.setAccessibilityLabel(self.document?.displayName ?? "")
+         }
++        self.updateDirectoryTabBar()
++    }
++
++
++    /// Updates the directory tab bar's visibility.
++    private func updateDirectoryTabBar() {
++
++        guard self.directoryDocument != nil else { return }
++
++        // The bar depends on the preference alone, not on whether any file is open, so its space is
++        // reserved from the start. Otherwise opening the first file would grow the bar and push the editor down.
++        let isHidden = !UserDefaults.standard[.usesDirectoryFileTabs]
++        guard self.directoryTabBarAccessoryViewController?.isHidden != isHidden else { return }
++        self.directoryTabBarAccessoryViewController?.isHidden = isHidden
++    }
++
++
++    /// Refreshes the directory tab bar's content and visibility.
++    private func refreshDirectoryTabBar() {
++
++        guard let directoryDocument, let directoryTabBarView else { return }
++
++        directoryTabBarView.rootView = self.makeTabBar(for: directoryDocument)
++        self.updateDirectoryTabBar()
++    }
++
++
++    /// Single host transition for file and empty directory content.
++    private func showSelectedTab() {
++
++        // Switching removes the outgoing text view from the window, which drops keyboard focus.
++        // Hand it to the incoming editor unless the user is working in the sidebar or inspector.
++        let window = self.viewIfLoaded?.window
++        let responder = window?.firstResponder
++        let editorHadFocus = responder == nil || responder === window
++            || (responder as? NSView)?.isDescendant(of: self.contentViewController.view) == true
++
++        if let directoryDocument, let item = directoryDocument.activeTabItem {
++            self.contentViewController.showTabContent(self.tabViewController(for: item, in: directoryDocument))
++        } else {
++            self.contentViewController.document = self.directoryDocument?.activeFileDocument ?? self.document
++        }
++
++        if editorHadFocus {
++            self.focusEditor()
++        }
++    }
++
++
++    /// Shows whichever tab the directory has selected.
++    func showActiveTab() {
++
++        guard self.isViewLoaded else { return }
++
++        self.showSelectedTab()
++        // The inspector and status bar describe files only, so they are empty while another kind of tab shows.
++        self.inspectorViewController.document = self.directoryDocument?.activeFileDocument
++        self.statusBarModel.document = self.directoryDocument?.activeFileDocument
++        self.contentViewController.view.setAccessibilityLabel(self.directoryDocument?.activeTabItem?.tabAccessibilityLabel
++                                                              ?? self.directoryDocument?.activeFileDocument?.displayName ?? "")
++    }
++
++
++    /// Moves keyboard focus into the selected tab, wherever it was before.
++    func focusActiveTab() {
++
++        guard self.isViewLoaded else { return }
++
++        self.focusEditor()
++    }
++
++
++    /// Forgets the controller of a closed tab that is not a file.
++    func releaseTabViewController(for item: any DirectoryTabItem) {
++
++        guard let cached = self.tabViewControllers[item.id], cached.item == ObjectIdentifier(item) else { return }
++
++        self.tabViewControllers.removeValue(forKey: item.id)
++    }
++
++
++    private func tabViewController(for item: any DirectoryTabItem, in directory: DirectoryDocument) -> any DirectoryTabViewController {
++
++        if let cached = self.tabViewControllers[item.id], cached.item == ObjectIdentifier(item) { return cached.controller }
++
++        let controller = item.makeTabViewController(in: directory)
++        self.tabViewControllers[item.id] = (ObjectIdentifier(item), controller)
++        return controller
++    }
++
++
++    /// The selection in the editor showing the document, if it has one in this window.
++    func selectedRanges(of document: DataDocument) -> [NSValue]? {
++
++        guard self.isViewLoaded else { return nil }
++        return self.contentViewController.selectedRanges(of: document)
++    }
++
++
++    func releaseEditor(for document: DataDocument) {
++
++        guard self.isViewLoaded else { return }
++        self.contentViewController.releaseEditor(for: document)
++    }
++
++
++    func makeTabBar(for directory: DirectoryDocument) -> DirectoryTabBar {
++
++        DirectoryTabBar(presentations: directory.tabPresentations, selectedID: directory.tabState.selectedID,
++                        onSelect: { [weak directory] id in directory?.selectTab(id: id) },
++                        onClose: { [weak directory] id in
++                            Task { await directory?.closeTab(id: id) }
++                        },
++                        onMove: { [weak directory] id, index in directory?.moveTab(id: id, to: index) },
++                        onMoveToNewWindow: { [weak directory] id, topLeft in directory?.moveTabToNewWindow(id: id, topLeft: topLeft) },
++                        addMenuItems: Self.addMenuItems(for: directory),
++                        contextMenuItems: { [weak directory] id in directory.map { Self.contextMenuItems(for: id, in: $0) } ?? [] })
++    }
++
++
++    /// The commands of the tab strip's “+” menu.
++    private static func addMenuItems(for directory: DirectoryDocument) -> [DirectoryTabBar.MenuItem] {
++
++        // A new file is created in the local folder, or by the root of a window without one, if it can.
++        let canCreateFiles = (directory.fileURL != nil) || (directory.root?.canCreateFiles == true)
++        let newFile: [DirectoryTabBar.MenuItem] = !canCreateFiles ? [] : [
++            .init(title: String(localized: "New File", table: "Document", comment: "menu item label"),
++                  systemImage: "document.badge.plus") { [weak directory] in
++                Task { await directory?.createFileInNewTab() }
++            },
++        ]
++
++        return newFile + directory.tabKinds.flatMap { $0.addMenuItems?(directory) ?? [] }
++    }
++
++
++    /// The commands of a tab's context menu.
++    private static func contextMenuItems(for id: UUID, in directory: DirectoryDocument) -> [DirectoryTabBar.MenuItem] {
++
++        var items: [DirectoryTabBar.MenuItem] = []
++        if directory.canMoveTabToNewWindow(id: id) {
++            items.append(.init(title: DirectoryTabBar.moveToNewWindowLabel, systemImage: "macwindow.badge.plus") { [weak directory] in
++                directory?.moveTabToNewWindow(id: id)
++            })
++        }
++        if let item = directory.tabState.entries.first(where: { $0.id == id })?.item {
++            items += item.tabContextMenuItems(in: directory)
++        }
++        return items
+     }
+ }
+diff --git a/CotEditor/Sources/Document/DataDocument.swift b/CotEditor/Sources/Document/DataDocument.swift
+index ecb70fc2f..0f83a6821 100644
+--- a/CotEditor/Sources/Document/DataDocument.swift
++++ b/CotEditor/Sources/Document/DataDocument.swift
+@@ -34,9 +34,67 @@ import DocumentFile
+     
+     weak var windowController: DocumentWindowController?
+     
+-    
++    /// The directory window that owns the receiver as a member, if any.
++    weak var directoryDocument: DirectoryDocument?
++
++
++    // MARK: Presentation
++
++    // Tabs and window titles describe a document through these properties rather than through its
++    // file URL, so that a document without a local file can still say what it is and where it lives.
++
++    /// The name the document's tab shows.
++    var tabTitle: String  { self.displayName }
++
++    /// The tooltip of the document's tab, naming where the document is.
++    var tabToolTip: String  { self.fileURL?.path ?? self.displayName }
++
++    /// The icon of the document's tab.
++    var tabIcon: NSImage?  { self.fileURL.map { NSWorkspace.shared.icon(forFile: $0.path) } }
++
++    /// The symbol shown after the tab's title to point out where the document lives, or `nil` for none.
++    var tabBadgeSymbolName: String?  { nil }
++
++    /// The name a directory window's subtitle shows while the document is selected.
++    var subtitleName: String  { self.fileURL?.lastPathComponent ?? self.displayName }
++
++    /// The subtitle of the document's own window, or `nil` to show none.
++    var standaloneWindowSubtitle: String?  { nil }
++
++
++    // MARK: Restoration
++
++    /// How a directory window archives the document's tab: the archive kind and the fields that kind
++    /// needs, or `nil` if the tab cannot be restored.
++    ///
++    /// A document with a file is archived as a security-scoped bookmark to it.
++    var tabArchiveRepresentation: (kind: String, fields: [String: Any])? {
++
++        guard let bookmark = try? self.fileURL?.bookmarkData(options: .withSecurityScope) else { return nil }
++
++        return (DirectoryTabArchive.fileKind, ["bookmark": bookmark])
++    }
++
++
+     // MARK: Document Methods
+     
++    override var windowForSheet: NSWindow? {
++        
++        // An inactive member has no window of its own; its prompts belong on the directory window,
++        // not on whichever window happens to be main.
++        self.windowController?.window ?? self.directoryDocument?.windowForSheet ?? super.windowForSheet
++    }
++    
++    
++    override func close() {
++        
++        super.close()
++        
++        // AppKit's Close All and quit review close members directly, bypassing the directory.
++        self.directoryDocument?.memberDidClose(self)
++    }
++    
++    
+     override func validateUserInterfaceItem(_ item: any NSValidatedUserInterfaceItem) -> Bool {
+         
+         switch item.action {
+diff --git a/CotEditor/Sources/Document/DirectoryDocument+Actions.swift b/CotEditor/Sources/Document/DirectoryDocument+Actions.swift
+index 3f4cf10f1..6e387c610 100644
+--- a/CotEditor/Sources/Document/DirectoryDocument+Actions.swift
++++ b/CotEditor/Sources/Document/DirectoryDocument+Actions.swift
+@@ -49,10 +49,10 @@ extension DirectoryDocument {
+                  #selector(changeLineEnding),
+                  #selector(toggleEditable):
+                 // -> PreviewDocument doesn't support file manipulation.
+-                return (self.currentDocument as? Document)?.validateUserInterfaceItem(item) ?? false
++                return (self.activeFileDocument as? Document)?.validateUserInterfaceItem(item) ?? false
+                 
+             case #selector(changeSyntax):
+-                guard let document = self.currentDocument as? Document else {
++                guard let document = self.activeFileDocument as? Document else {
+                     if let item = item as? NSMenuItem, let name = item.representedObject as? String {
+                         item.state = .off
+                         item.isHidden = (item.tag != SyntaxMenuTag.recentItem.rawValue &&
+@@ -66,7 +66,7 @@ extension DirectoryDocument {
+             case #selector(showInFinder),
+                  #selector(copyPath),
+                  #selector(shareDocument):
+-                return self.currentDocument?.validateUserInterfaceItem(item) ?? false
++                return self.activeFileDocument?.validateUserInterfaceItem(item) ?? false
+                 
+             case #selector(navigateDocumentHistory(_:)):
+                 (item as! NSToolbarItemGroup).subitems.forEach { $0.isEnabled = self.validateUserInterfaceItem($0) }
+@@ -86,55 +86,55 @@ extension DirectoryDocument {
+     
+     override func save(_ sender: Any?) {
+         
+-        self.currentDocument?.save(sender)
++        self.activeFileDocument?.save(sender)
+     }
+     
+     
+     override func saveTo(_ sender: Any?) {
+         
+-        self.currentDocument?.saveTo(sender)
++        self.activeFileDocument?.saveTo(sender)
+     }
+     
+     
+     override func duplicate(_ sender: Any?) {
+         
+-        self.currentDocument?.duplicate(sender)
++        self.activeFileDocument?.duplicate(sender)
+     }
+     
+     
+     override func revertToSaved(_ sender: Any?) {
+         
+-        self.currentDocument?.revertToSaved(sender)
++        self.activeFileDocument?.revertToSaved(sender)
+     }
+     
+     
+     override func browseVersions(_ sender: Any?) {
+         
+-        self.currentDocument?.browseVersions(sender)
++        self.activeFileDocument?.browseVersions(sender)
+     }
+     
+     
+     override func lock(_ sender: Any?) {
+         
+-        self.currentDocument?.lock(sender)
++        self.activeFileDocument?.lock(sender)
+     }
+     
+     
+     override func unlock(_ sender: Any?) {
+         
+-        self.currentDocument?.unlock(sender)
++        self.activeFileDocument?.unlock(sender)
+     }
+     
+     
+     override func runPageLayout(_ sender: Any?) {
+         
+-        self.currentDocument?.runPageLayout(sender)
++        self.activeFileDocument?.runPageLayout(sender)
+     }
+     
+     
+     override func printDocument(_ sender: Any?) {
+         
+-        self.currentDocument?.printDocument(sender)
++        self.activeFileDocument?.printDocument(sender)
+     }
+     
+     
+@@ -142,19 +142,19 @@ extension DirectoryDocument {
+     
+     @objc func showInFinder(_ sender: Any?) {
+         
+-        self.currentDocument?.showInFinder(sender)
++        self.activeFileDocument?.showInFinder(sender)
+     }
+     
+     
+     @objc func copyPath(_ sender: Any?) {
+         
+-        self.currentDocument?.copyPath(sender)
++        self.activeFileDocument?.copyPath(sender)
+     }
+     
+     
+     @objc func shareDocument(_ sender: NSMenuItem) {
+         
+-        self.currentDocument?.shareDocument(sender)
++        self.activeFileDocument?.shareDocument(sender)
+     }
+     
+     
+@@ -162,25 +162,25 @@ extension DirectoryDocument {
+     
+     @objc func changeEncoding(_ sender: NSMenuItem) {
+         
+-        (self.currentDocument as? Document)?.changeEncoding(sender)
++        (self.activeFileDocument as? Document)?.changeEncoding(sender)
+     }
+     
+     
+     @objc func changeLineEnding(_ sender: NSMenuItem) {
+         
+-        (self.currentDocument as? Document)?.changeLineEnding(sender)
++        (self.activeFileDocument as? Document)?.changeLineEnding(sender)
+     }
+     
+     
+     @objc func changeSyntax(_ sender: NSMenuItem) {
+         
+-        (self.currentDocument as? Document)?.changeSyntax(sender)
++        (self.activeFileDocument as? Document)?.changeSyntax(sender)
+     }
+     
+     
+     @objc func toggleEditable(_ sender: Any?) {
+         
+-        (self.currentDocument as? Document)?.toggleEditable(sender)
++        (self.activeFileDocument as? Document)?.toggleEditable(sender)
+     }
+     
+     
+diff --git a/CotEditor/Sources/Document/DirectoryDocument+TabItems.swift b/CotEditor/Sources/Document/DirectoryDocument+TabItems.swift
+new file mode 100644
+index 000000000..523299fa9
+--- /dev/null
++++ b/CotEditor/Sources/Document/DirectoryDocument+TabItems.swift
+@@ -0,0 +1,172 @@
++//
++//  DirectoryDocument+TabItems.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import Defaults
++
++
++/// Tabs that are not files, whatever their kind.
++///
++/// They share the file tabs' order, selection, strip and close paths. See `DirectoryTabItem`.
++extension DirectoryDocument {
++
++    // MARK: Public Properties
++
++    /// Every tab that is not a file, in tab order.
++    var tabItems: [any DirectoryTabItem] {
++
++        self.tabState.entries.compactMap(\.item)
++    }
++
++
++    /// The tab the window shows, if the selected tab is not a file.
++    var activeTabItem: (any DirectoryTabItem)? {
++
++        guard UserDefaults.standard[.usesDirectoryFileTabs] else { return nil }
++
++        return self.tabState.entries.first { $0.id == self.tabState.selectedID }?.item
++    }
++
++
++    var windowContentViewController: WindowContentViewController? {
++
++        self.windowController?.contentViewController as? WindowContentViewController
++    }
++
++
++    // MARK: Opening and Selection
++
++    /// Adds a tab and selects it.
++    ///
++    /// - Parameter item: The tab to add.
++    /// - Returns: `false` if the window cannot have such tabs now, because it has closed or tabs are off.
++    @discardableResult func openTabItem(_ item: any DirectoryTabItem) -> Bool {
++
++        guard !self.isClosed, UserDefaults.standard[.usesDirectoryFileTabs] else { return false }
++
++        if self.tabState.entry(for: item) == nil {
++            item.didJoin(self)
++            self.tabState.insert(item)
++            self.membershipGeneration += 1
++        }
++        self.selectTabItem(item)
++
++        return true
++    }
++
++
++    func selectTabItem(_ item: any DirectoryTabItem) {
++
++        guard let entry = self.tabState.entry(for: item) else { return }
++
++        self.selectionGeneration += 1
++        self.tabState.select(entry.id)
++        self.detachCurrentDocument()
++        self.windowContentViewController?.showActiveTab()
++        self.windowController?.synchronizeWindowTitleWithDocumentName()
++        self.invalidateRestorableState()
++        // The file browser keeps highlighting the last file as context; the tab is not a file.
++    }
++
++
++    // MARK: Closing
++
++    /// Closes a tab after its own approval.
++    ///
++    /// - Parameter item: The tab to close.
++    /// - Returns: `true` if the tab closed.
++    @discardableResult func closeTabItem(_ item: any DirectoryTabItem) async -> Bool {
++
++        guard
++            self.tabState.entry(for: item) != nil,
++            !self.isConfirmingClose,
++            self.pendingItemCloses.insert(item.id).inserted
++        else { return false }
++        defer { self.pendingItemCloses.remove(item.id) }
++
++        self.notifyTabItemsOfReview()
++        guard await item.approveTabClose(in: self) else { return false }
++
++        // The tab may have gone while a sheet was up.
++        guard self.tabState.entry(for: item) != nil else { return false }
++
++        self.removeTabItem(item)
++
++        return true
++    }
++
++
++    /// Removes a tab without asking, tears it down and shows the tab that takes over the selection.
++    ///
++    /// For callers that already have the user's approval, or whose tab has nothing left to ask about.
++    func removeTabItem(_ item: any DirectoryTabItem) {
++
++        let wasSelected = self.activeTabItem === item
++
++        guard self.tabState.remove(item) != nil else { return }
++
++        self.membershipGeneration += 1
++        item.tearDown()
++        self.windowContentViewController?.releaseTabViewController(for: item)
++
++        if wasSelected {
++            self.showSelectedTabAfterRemoval()
++        }
++        self.invalidateRestorableState()
++    }
++
++
++    /// Removes every tab that is not a file without asking.
++    func closeAllTabItems() {
++
++        for item in self.tabItems {
++            self.removeTabItem(item)
++        }
++    }
++
++
++    /// Lets every tab that is not a file put away what it shows over the window before a review.
++    func notifyTabItemsOfReview() {
++
++        for item in self.tabItems {
++            item.directoryWillShowReview()
++        }
++    }
++
++
++    // MARK: Private Methods
++
++    /// Shows whatever tab is selected after the selected tab went away.
++    private func showSelectedTabAfterRemoval() {
++
++        switch self.tabState.entries.first(where: { $0.id == self.tabState.selectedID })?.content {
++            case .file(let document):
++                self.selectDocument(document)
++            case .item(let item):
++                self.selectTabItem(item)
++            case nil:
++                self.windowContentViewController?.showActiveTab()
++                self.windowController?.synchronizeWindowTitleWithDocumentName()
++        }
++    }
++}
+diff --git a/CotEditor/Sources/Document/DirectoryDocument.swift b/CotEditor/Sources/Document/DirectoryDocument.swift
+index f1a5f5164..dc1245e8b 100644
+--- a/CotEditor/Sources/Document/DirectoryDocument.swift
++++ b/CotEditor/Sources/Document/DirectoryDocument.swift
+@@ -24,17 +24,21 @@
+ //
+ 
+ import AppKit
++import Combine
++import Observation
+ import UniformTypeIdentifiers
+ import Defaults
+ import DocumentFile
+ import SyntaxFormat
+ import URLUtils
+ 
+-final class DirectoryDocument: NSDocument {
++@Observable final class DirectoryDocument: NSDocument {
+     
+     private enum SerializationKey {
+         
+         static let currentDocument = "currentDocument"
++        static let openDocuments = "openDocuments"  // legacy bookmark list
++        static let tabArchive = "directoryTabsV1"
+     }
+     
+     
+@@ -43,16 +47,87 @@ final class DirectoryDocument: NSDocument {
+     private(set) var fileNode: FileNode?
+     private(set) weak var currentDocument: DataDocument?
+     var documentHistory = DocumentHistory()
++    let tabState = DirectoryTabState()
++
++    /// The active file is nil in an empty host and while a tab that is not a file is selected.
++    var activeFileDocument: DataDocument? {
++
++        if UserDefaults.standard[.usesDirectoryFileTabs] {
++            guard let entry = self.tabState.entries.first(where: { $0.id == self.tabState.selectedID }) else { return nil }
++            switch entry.content {
++                case .file(let document): return document
++                case .item: return nil
++            }
++        }
++        return self.currentDocument
++    }
++
++    var tabDocuments: [DataDocument] {
++
++        UserDefaults.standard[.usesDirectoryFileTabs] ? self.tabState.entries.compactMap(\.document) : []
++    }
++
++    var tabPresentations: [DirectoryTabPresentation] {
++
++        self.tabState.entries.map { entry in
++            switch entry.content {
++                case .file(let document):
++                    DirectoryTabPresentation(id: entry.id, title: document.tabTitle, icon: document.tabIcon, tooltip: document.tabToolTip,
++                                             isModified: document.isDocumentEdited, canClose: true, canMoveToNewWindow: true,
++                                             badgeSymbolName: document.tabBadgeSymbolName)
++                case .item(let item):
++                    DirectoryTabPresentation(id: entry.id, title: item.tabTitle, icon: item.tabIcon, tooltip: item.tabToolTip,
++                                             isModified: false, canClose: true, canMoveToNewWindow: false)
++            }
++        }
++    }
+     
+     weak var fileBrowserViewController: FileBrowserViewController?
+     
++    /// Asks a member for permission to close, which may save it or show a sheet.
++    ///
++    /// Every close path goes through this one function. Tests replace it to decide when and how a
++    /// member answers, since real saving finishes at an unpredictable time.
++    @ObservationIgnored var approveMemberClose: (DataDocument) async -> Bool = { await $0.canClose() }
+     
+-    // MARK: Private Properties
+     
+-    private var documents: [DataDocument] = []
+-    private var windowController: DocumentWindowController?  { self.windowControllers.first as? DocumentWindowController }
++    // MARK: Private Properties
+     
+-    private var documentObserver: NotificationCenter.ObservationToken?
++    private(set) var documents: [DataDocument] = []
++    var windowController: DocumentWindowController?  { self.windowControllers.first as? DocumentWindowController }
++    
++    @ObservationIgnored private var documentObserver: NotificationCenter.ObservationToken?
++    @ObservationIgnored private var fileURLObserver: NotificationCenter.ObservationToken?
++    @ObservationIgnored private var usesDirectoryFileTabsObserver: AnyCancellable?
++    @ObservationIgnored private var pendingCloses: Set<ObjectIdentifier> = []
++    @ObservationIgnored private(set) var isConfirmingClose = false
++    @ObservationIgnored var selectionGeneration = 0
++    @ObservationIgnored var membershipGeneration = 0
++    @ObservationIgnored private var restorationTask: Task<Void, Never>?
++    @ObservationIgnored private(set) var isClosed = false
++
++    /// The tabs that are not files and are waiting for their close approval.
++    @ObservationIgnored var pendingItemCloses: Set<UUID> = []
++
++    /// The kinds of tabs besides files that this directory can have.
++    ///
++    /// Tests give a directory kinds of their own, so that the tab contract is proven without any real kind.
++    @ObservationIgnored var tabKinds: [DirectoryTabKind] = DirectoryTabKind.registered
++
++    /// The folder the window shows when it is not a local folder; `nil` for a local folder, which is the file URL.
++    @ObservationIgnored private(set) var root: (any DirectoryRoot)?
++
++
++    // MARK: Lifecycle
++
++    /// Creates a directory window for a folder that is not on this Mac.
++    ///
++    /// - Parameter root: What the window shows instead of a local folder.
++    convenience init(root: any DirectoryRoot) {
++
++        self.init()
++        self.root = root
++    }
+     
+     
+     // MARK: Document Methods
+@@ -63,7 +138,7 @@ final class DirectoryDocument: NSDocument {
+     }
+     
+     
+-    override nonisolated var fileURL: URL? {
++    @ObservationIgnored override nonisolated var fileURL: URL? {
+         
+         didSet {
+             Task { @MainActor in
+@@ -73,6 +148,33 @@ final class DirectoryDocument: NSDocument {
+     }
+     
+     
++    override func updateChangeCount(_ change: NSDocument.ChangeType) {
++
++        // The folder itself is never edited: its members hold every change. Views that are not file
++        // editors, such as a webpage's fields or the sidebar's, record their undo steps in the window's
++        // document, which is this one; counted as changes, they would make AppKit autosave the folder,
++        // which cannot be written.
++    }
++
++
++    override var displayName: String! {
++
++        get { self.root?.displayName ?? super.displayName }
++        set { super.displayName = newValue }
++    }
++
++
++    override func invalidateRestorableState() {
++
++        super.invalidateRestorableState()
++
++        // A window closing tab by tab would otherwise archive itself empty.
++        if !self.isClosed {
++            self.root?.directoryDidChangeState(self)
++        }
++    }
++
++
+     override func encodeRestorableState(with coder: NSCoder, backgroundQueue queue: OperationQueue) {
+         
+         super.encodeRestorableState(with: coder, backgroundQueue: queue)
+@@ -82,6 +184,8 @@ final class DirectoryDocument: NSDocument {
+         {
+             coder.encode(bookmarkData, forKey: SerializationKey.currentDocument)
+         }
++
++        coder.encode(self.tabArchive, forKey: SerializationKey.tabArchive)
+     }
+     
+     
+@@ -89,18 +193,48 @@ final class DirectoryDocument: NSDocument {
+         
+         super.restoreState(with: coder)
+         
+-        // restore the last opened document
+-        var isStale = false
+-        guard
+-            let fileURL,
+-            let bookmarkData = coder.decodeObject(of: NSData.self, forKey: SerializationKey.currentDocument) as? Data,
+-            let documentURL = try? URL(resolvingBookmarkData: bookmarkData, options: .withSecurityScope, bookmarkDataIsStale: &isStale),
+-            fileURL.isAncestor(of: documentURL),
+-            documentURL.isReachable
+-        else { return }
+-        
+-        Task {
+-            await self.openDocument(at: documentURL)
++        guard let directoryURL = self.fileURL else { return }
++        
++        // With tabs off only the file that was showing comes back; the others were either
++        // disposed or, if edited, already saved or reviewed when the app quit.
++        let usesTabs = UserDefaults.standard[.usesDirectoryFileTabs]
++        let archive = DirectoryTabArchive(
++            archive: usesTabs ? coder.decodeObject(of: DirectoryTabArchive.allowedClasses, forKey: SerializationKey.tabArchive) as? [String: Any] : nil,
++            legacyBookmarks: usesTabs ? coder.decodeObject(of: [NSArray.self, NSData.self], forKey: SerializationKey.openDocuments) as? [Data] : nil,
++            currentBookmark: coder.decodeObject(of: NSData.self, forKey: SerializationKey.currentDocument) as? Data,
++            resolve: { self.resolveBookmark($0, in: directoryURL) })
++        
++        // Tabs of other kinds exist at once; files join them in the archived order as they reopen.
++        let selectsForeignTab = self.restoreForeignTabs(from: archive)
++        
++        guard !archive.entries.isEmpty else { return }
++        
++        self.restorationTask?.cancel()
++        self.restorationTask = Task {
++            // A selection the user makes while members are still reopening wins over the saved one.
++            var generation = self.selectionGeneration
++            var didSelect = selectsForeignTab
++            for (index, entry) in archive.entries.enumerated() {
++                guard !Task.isCancelled, !self.isClosed else { return }
++                let document = await self.openMember(at: entry.fileURL, recordsHistory: false, activates: false, tabID: entry.id)
++                guard !Task.isCancelled, !self.isClosed else { return }
++                self.tabState.arrange(by: archive.order)
++                
++                // Show the saved selection as soon as it exists instead of waiting for every member.
++                if index == archive.selectedIndex, let document, generation == self.selectionGeneration {
++                    self.changeFrontmostDocument(to: document)
++                    self.fileBrowserViewController?.selectCurrentDocument()
++                    generation = self.selectionGeneration
++                    didSelect = true
++                }
++                
++                // let clicks and key presses through between members of a long restoration
++                await Task.yield()
++            }
++            
++            guard !didSelect, generation == self.selectionGeneration, let document = self.documents.last else { return }
++            
++            self.changeFrontmostDocument(to: document)
+             self.fileBrowserViewController?.selectCurrentDocument()
+         }
+     }
+@@ -109,16 +243,50 @@ final class DirectoryDocument: NSDocument {
+     override func makeWindowControllers() {
+         
+         self.addWindowController(DocumentWindowController(directoryDocument: self))
++        // AppKit can restore only documents with a file; a root restores its window itself.
++        if self.root != nil {
++            self.windowController?.window?.isRestorable = false
++        }
+         
+         NotificationCenter.default.post(DidMakeWindowMessage(), subject: self)
+         
+         // observe document updates for the edited marker in the close button
+         if self.documentObserver == nil {
+             self.documentObserver = NotificationCenter.default.addObserver(for: Document.DidUpdateChangeMessage.self) { [unowned self] _ in
+-                let hasEditedDocuments = self.documents.contains(where: \.isDocumentEdited)
+-                self.windowController?.setDocumentEdited(hasEditedDocuments)
++                self.synchronizeEditedState()
+             }
+         }
++
++        // bookmarks follow renamed and moved members, but the archive must be rewritten to reflect them
++        if self.fileURLObserver == nil {
++            self.fileURLObserver = NotificationCenter.default.addObserver(for: NSDocument.DidChangeFileURLMessage.self) { [weak self] _ in
++                self?.invalidateRestorableState()
++            }
++        }
++        
++        if self.usesDirectoryFileTabsObserver == nil {
++            self.usesDirectoryFileTabsObserver = UserDefaults.standard.publisher(for: .usesDirectoryFileTabs, initial: true)
++                .removeDuplicates()
++                .sink { [weak self] usesTabs in
++                    guard let self else { return }
++                    if usesTabs {
++                        self.tabState.reconcile(with: self.documents)
++                        if let currentDocument = self.currentDocument,
++                           let entry = self.tabState.entry(for: currentDocument) {
++                            self.tabState.select(entry.id)
++                        } else if let document = self.activeFileDocument {
++                            // keep the content host showing the file the selected tab names
++                            self.changeFrontmostDocument(to: document)
++                        }
++                    } else {
++                        // Tabs that are not files cannot be shown without tabs, so they close. A kind that
++                        // needs the user's consent for that asks in Settings, before the preference changes.
++                        self.closeAllTabItems()
++                        self.disposeUnusedDocuments()
++                    }
++                    self.invalidateRestorableState()
++                }
++        }
+     }
+     
+     
+@@ -162,31 +330,53 @@ final class DirectoryDocument: NSDocument {
+     
+     override func shouldCloseWindowController(_ windowController: NSWindowController, delegate: Any?, shouldClose shouldCloseSelector: Selector?, contextInfo: UnsafeMutableRawPointer?) {
+         
++        let context = DelegateContext(delegate: delegate, selector: shouldCloseSelector, contextInfo: contextInfo)
+         Task {
+-            // save unsaved changes in the file documents before closing
+-            var canClose = true
+-            for document in self.documents where document.isDocumentEdited {
+-                // ask to the user one-by-one
+-                guard await document.canClose() else {
+-                    canClose = false
+-                    break
+-                }
+-            }
+-            
+-            DelegateContext(delegate: delegate, selector: shouldCloseSelector, contextInfo: contextInfo).perform(from: self, flag: canClose)
++            context.perform(from: self, flag: await self.canCloseMembers())
++        }
++    }
++    
++    
++    override func canClose(withDelegate delegate: Any, shouldClose shouldCloseSelector: Selector?, contextInfo: UnsafeMutableRawPointer?) {
++        
++        // Close All reaches the directory through this method rather than through its window.
++        // Closing the directory closes every member, so edited members must be confirmed here too.
++        let context = DelegateContext(delegate: delegate, selector: shouldCloseSelector, contextInfo: contextInfo)
++        Task {
++            context.perform(from: self, flag: await self.canCloseMembers())
+         }
+     }
+     
+     
+     override func close() {
+         
++        // Closing the window closes the document again from within `super.close()`.
++        let isFirstClose = !self.isClosed
++        self.isClosed = true
++        self.restorationTask?.cancel()
++        self.restorationTask = nil
+         super.close()
+         
+-        for document in self.documents {
++        // Every approval has been collected by now, so tabs that run something may stop.
++        self.closeAllTabItems()
++        
++        // Detach the registry first so that members closing below are not reconciled one by one.
++        let documents = self.documents
++        self.documents.removeAll()
++        self.tabState.reconcile(with: [])
++        for document in documents {
++            document.directoryDocument = nil
++            document.windowController = nil
+             document.close()
+         }
+         
+         self.documentObserver = nil
++        self.fileURLObserver = nil
++        self.usesDirectoryFileTabsObserver = nil
++
++        if isFirstClose {
++            self.root?.directoryDidClose(self)
++        }
+     }
+     
+     
+@@ -256,6 +446,50 @@ final class DirectoryDocument: NSDocument {
+     
+     
+     // MARK: Public Methods
++
++    /// The versioned archive of the tabs, as the restorable state stores it.
++    ///
++    /// With tabs on, the archive follows the tabs, whatever they show. With tabs off, every owned
++    /// member is archived, including edited files kept hidden, so turning tabs back on after a
++    /// relaunch still shows them.
++    var tabArchive: NSDictionary {
++
++        let tabs: [DirectoryTabArchive.Tab]
++        let selectedID: UUID?
++        if UserDefaults.standard[.usesDirectoryFileTabs] {
++            tabs = self.tabState.entries.compactMap(self.archivedTab(for:))
++            selectedID = self.tabState.selectedID
++        } else {
++            let members = self.documents.map { (id: self.tabState.entry(for: $0)?.id ?? UUID(), document: $0) }
++            tabs = members.compactMap { member in
++                member.document.tabArchiveRepresentation.map { DirectoryTabArchive.Tab(id: member.id, kind: $0.kind, fields: $0.fields) }
++            }
++            selectedID = members.first { $0.document === self.activeFileDocument }?.id
++        }
++
++        return DirectoryTabArchive.encode(tabs, selectedID: selectedID)
++    }
++
++
++    /// Recreates the tabs of a window that has no local folder from the archive its root kept.
++    ///
++    /// Only tabs of the registered kinds come back; file tabs name local files by bookmark, and such a
++    /// window has no folder to resolve them in. With file tabs off, the kinds' member documents come
++    /// back without tabs, and the one that was showing shows again, since no restoration of AppKit's
++    /// brings back a document of a window without a file.
++    ///
++    /// - Parameter archive: A property list from `tabArchive`. It is untrusted, as restorable state is.
++    func restoreTabs(fromArchive archive: [String: Any]) {
++
++        guard self.fileURL == nil, !self.isClosed else { return }
++
++        let archive = DirectoryTabArchive(archive: archive, legacyBookmarks: nil, currentBookmark: nil, resolve: { _ in nil })
++        if UserDefaults.standard[.usesDirectoryFileTabs] {
++            _ = self.restoreForeignTabs(from: archive)
++        } else {
++            self.restoreForeignMembers(from: archive)
++        }
++    }
+     
+     /// Returns the opened document at the given file node.
+     ///
+@@ -267,6 +501,132 @@ final class DirectoryDocument: NSDocument {
+     }
+     
+     
++    /// Selects an already-open file document.
++    ///
++    /// - Parameter document: The document to select.
++    func selectDocument(_ document: DataDocument) {
++
++        guard self.documents.contains(where: { $0 === document }) else { return }
++        guard document !== self.currentDocument else { return }
++
++        self.selectionGeneration += 1
++        self.changeFrontmostDocument(to: document)
++        self.fileBrowserViewController?.selectCurrentDocument()
++    }
++
++
++    func selectTab(id: UUID) {
++
++        guard let entry = self.tabState.entries.first(where: { $0.id == id }) else { return }
++        switch entry.content {
++            case .file(let document): self.selectDocument(document)
++            case .item(let item): self.selectTabItem(item)
++        }
++    }
++
++
++    /// Selects the tab the given number of positions away from the selected one, wrapping around at either end.
++    ///
++    /// - Parameter offset: The distance to move; negative values move backward.
++    func selectAdjacentTab(by offset: Int) {
++
++        let entries = self.tabState.entries
++        guard !entries.isEmpty else { return }
++
++        let index = entries.firstIndex { $0.id == self.tabState.selectedID } ?? 0
++        let count = entries.count
++        self.selectTab(id: entries[((index + offset) % count + count) % count].id)
++    }
++
++
++    func closeTab(id: UUID) async {
++
++        guard let entry = self.tabState.entries.first(where: { $0.id == id }) else { return }
++        switch entry.content {
++            case .file(let document): await self.closeDocument(document)
++            case .item(let item): await self.closeTabItem(item)
++        }
++    }
++
++
++    /// Moves a tab to another position, as when the user drags it.
++    ///
++    /// - Parameters:
++    ///   - id: The tab to move.
++    ///   - index: Its new index among all tabs.
++    func moveTab(id: UUID, to index: Int) {
++
++        let previousOrder = self.tabState.entries.map(\.id)
++        self.tabState.move(id, to: index)
++        guard self.tabState.entries.map(\.id) != previousOrder else { return }
++
++        // The registry follows the tab order, so that turning tabs off and on again keeps the user's order.
++        let tabbed = self.tabState.entries.compactMap(\.document)
++        self.documents = tabbed.filter { document in self.documents.contains { $0 === document } }
++            + self.documents.filter { document in !tabbed.contains { $0 === document } }
++        self.invalidateRestorableState()
++    }
++
++
++    /// Whether the tab can move to a window of its own.
++    func canMoveTabToNewWindow(id: UUID) -> Bool {
++
++        self.tabState.entries.first { $0.id == id }?.document != nil
++    }
++
++
++    /// Moves a file tab into a window of its own.
++    ///
++    /// The document itself moves, so unsaved changes and undo history go with it; the selection is
++    /// carried over from the tab's editor. The file then belongs to the new window, not to this directory.
++    ///
++    /// - Parameters:
++    ///   - id: The tab to move.
++    ///   - topLeft: Where to put the new window's top-left corner, in screen coordinates, or `nil` to cascade.
++    /// - Returns: `true` if the tab moved.
++    @discardableResult func moveTabToNewWindow(id: UUID, topLeft: NSPoint? = nil) -> Bool {
++
++        guard
++            !self.isConfirmingClose,
++            let document = self.tabState.entries.first(where: { $0.id == id })?.document,
++            !self.pendingCloses.contains(ObjectIdentifier(document))
++        else { return false }
++
++        self.moveToOwnWindow(document, topLeft: topLeft)
++        return true
++    }
++
++
++    /// Closes an open file document after confirming any unsaved changes.
++    ///
++    /// - Parameter document: The document to close.
++    /// - Returns: `true` if the document closed, or `false` if it was not open or the user canceled.
++    @discardableResult func closeDocument(_ document: DataDocument) async -> Bool {
++
++        let id = ObjectIdentifier(document)
++        guard self.documents.contains(where: { $0 === document }),
++              !self.pendingCloses.contains(id), !self.isConfirmingClose else { return false }
++        self.pendingCloses.insert(id)
++        defer { self.pendingCloses.remove(id) }
++        guard await self.approveMemberClose(document) else { return false }
++        // Never keep a registry offset across an asynchronous confirmation.
++        guard self.documents.contains(where: { $0 === document }) else { return false }
++        self.removeOwnedDocument(document)
++        return true
++    }
++
++
++    /// Reconciles a member that was closed without going through the directory, such as by Close All.
++    ///
++    /// - Parameter document: The member that closed.
++    func memberDidClose(_ document: DataDocument) {
++
++        guard !self.isClosed else { return }
++
++        self.removeOwnedDocument(document, closesDocument: false)
++    }
++
++
+     /// Opens a document as a member.
+     ///
+     /// This method opens the alias destination instead, only if the URL already has permission.
+@@ -276,75 +636,13 @@ final class DirectoryDocument: NSDocument {
+     ///   - asPlainText: If `true`, the document is forcibly opened as a plain text file.
+     ///   - prefersOriginal: If `true`, opens the alias destination only if the URL already has permission. Otherwise, opens the original file.
+     ///   - recordsHistory: If `true`, records the opened document in the document history.
++    ///   - activates: If `true`, shows the document; otherwise it only joins the registry and tabs.
+     /// - Returns: Return `true` if the document of the given file did successfully open.
+-    @discardableResult func openDocument(at fileURL: URL, asPlainText: Bool = false, prefersOriginal: Bool = false, recordsHistory: Bool = true) async -> Bool {
+-        
+-        if let currentDocument,
+-           fileURL == currentDocument.fileURL,
+-           !asPlainText || currentDocument is Document
+-        {
+-            return true  // already open
+-        }
+-        
+-        // open alias target if the URL already has permission
+-        var fileURL = fileURL
+-        if prefersOriginal,
+-           let resolvedURL = try? URL(resolvingAliasFileAt: fileURL),
+-           (try? resolvedURL.isReadable) == true
+-        {
+-            if let currentDocument,
+-               resolvedURL == currentDocument.fileURL,
+-               !asPlainText || currentDocument is Document
+-            {
+-                return true  // already open
+-            }
+-            
+-            fileURL = resolvedURL
+-        }
+-        
+-        // existing document
+-        if let document = NSDocumentController.shared.document(for: fileURL) as? Document {
+-            if self.documents.contains(document) {
+-                self.changeFrontmostDocument(to: document)
+-                if recordsHistory {
+-                    self.recordDocumentHistory(document: document, opensAsPlainText: asPlainText)
+-                }
+-                return true
+-                
+-            } else {
+-                return await withCheckedContinuation { continuation in
+-                    self.presentErrorAsSheet(DirectoryDocumentError.alreadyOpen(fileURL)) { _ in
+-                        document.showWindows()
+-                        continuation.resume(returning: false)
+-                    }
+-                }
+-            }
+-        }
+-        
+-        let contentType = (try? fileURL.resourceValues(forKeys: [.contentTypeKey]).contentType) ?? .data
+-        
+-        // make document
+-        let document: NSDocument
+-        do {
+-            document = (asPlainText || Self.shouldOpen(url: fileURL, ofType: contentType))
+-                ? try NSDocumentController.shared.makeDocument(withContentsOf: fileURL, ofType: contentType.identifier)
+-                : try PreviewDocument(contentsOf: fileURL, ofType: contentType.identifier)
+-        } catch {
+-            self.presentErrorAsSheet(error)
+-            return false
+-        }
+-        
+-        guard let document = document as? DataDocument else { return false }
+-        
+-        self.documents.append(document)
+-        NSDocumentController.shared.addDocument(document)
+-        
+-        self.changeFrontmostDocument(to: document)
+-        if recordsHistory {
+-            self.recordDocumentHistory(document: document, opensAsPlainText: asPlainText)
+-        }
+-        
+-        return true
++    @discardableResult func openDocument(at fileURL: URL, asPlainText: Bool = false, prefersOriginal: Bool = false,
++                                          recordsHistory: Bool = true, activates: Bool = true) async -> Bool {
++
++        await self.openMember(at: fileURL, asPlainText: asPlainText, prefersOriginal: prefersOriginal,
++                              recordsHistory: recordsHistory, activates: activates) != nil
+     }
+     
+     
+@@ -382,6 +680,36 @@ final class DirectoryDocument: NSDocument {
+     }
+     
+     
++    /// Creates an empty file and opens it in a new tab.
++    ///
++    /// The file goes into the folder of the file in the selected tab, or into the directory itself, and
++    /// the file browser then starts editing its name, as it does for its own New File command.
++    func createFileInNewTab() async {
++        
++        if let root = self.root {
++            return await root.createFileInNewTab(in: self)
++        }
++        
++        guard let rootNode = self.fileNode else { return }
++        
++        let folderNode = self.activeFileDocument?.fileURL
++            .flatMap { rootNode.node(at: $0)?.parent }
++            ?? rootNode
++        
++        let node: FileNode
++        do {
++            node = try self.addFile(at: folderNode)
++        } catch {
++            return self.presentErrorAsSheet(error)
++        }
++        self.notifyNodeUpdate(at: folderNode)
++        
++        guard await self.openDocument(at: node.file.fileURL) else { return }
++        
++        self.fileBrowserViewController?.beginRenaming(node)
++    }
++    
++    
+     /// Creates a folder at the same level in the given file node.
+     ///
+     /// - Parameter parentNode: The file node where creates a new file.
+@@ -557,23 +885,23 @@ final class DirectoryDocument: NSDocument {
+             throw CocoaError(.fileWriteUnknown)
+         }
+         
+-        if !documentsToClose.isEmpty {
+-            if let currentDocument, documentsToClose.contains(where: { $0 === currentDocument }) {
+-                self.windowController?.fileDocument = nil
+-                self.currentDocument = nil
+-            }
+-            
+-            for document in documentsToClose {
+-                self.documents.removeFirst(document)
+-                document.close()
+-            }
+-            self.invalidateRestorableState()
++        for document in documentsToClose {
++            self.removeOwnedDocument(document)
+         }
+         
+         node.removeFromParent()
+     }
+     
+     
++    /// Closes a member document without reviewing it, such as one whose file was deleted from the server.
++    ///
++    /// - Parameter document: The member document to close.
++    func closeMemberWithoutReview(_ document: DataDocument) {
++        
++        self.removeOwnedDocument(document)
++    }
++    
++    
+     /// Reveals a file in the file browser.
+     ///
+     /// - Parameter fileURL: The file URL to reveal.
+@@ -628,30 +956,58 @@ final class DirectoryDocument: NSDocument {
+         }
+         
+         if let document = self.documents.first(where: { $0.fileURL == fileURL }) {
+-            // detach the document from the receiver
+-            if document === self.currentDocument {
+-                self.windowController?.fileDocument = nil
+-                self.currentDocument = nil
++            return self.moveToOwnWindow(document)
++        }
++        
++        NSDocumentController.shared.openDocument(withContentsOf: fileURL, display: true) { [weak self] _, _, error in
++            if let error {
++                self?.presentError(error)
+             }
+-            self.documents.removeFirst(document)
+-            self.invalidateRestorableState()
+-            
+-            if let document = document as? Document {
+-                // create a new window for the document
+-                document.windowController = nil
+-                document.makeWindowControllers()
+-                document.showWindows()
+-                return
++        }
++    }
++    
++    
++    /// Detaches a member from the receiver and shows it in a window of its own.
++    ///
++    /// - Parameters:
++    ///   - document: The member to move.
++    ///   - topLeft: Where to put the new window's top-left corner, in screen coordinates, or `nil` to cascade.
++    private func moveToOwnWindow(_ document: DataDocument, topLeft: NSPoint? = nil) {
++        
++        let selectedRanges = (self.windowController?.contentViewController as? WindowContentViewController)?.selectedRanges(of: document)
++        
++        // detach the document from the receiver
++        self.removeOwnedDocument(document, closesDocument: false)
++        
++        if let document = document as? Document {
++            // create a new window for the document
++            document.makeWindowControllers()
++            document.showWindows()
++            if let windowController = document.windowControllers.first as? DocumentWindowController {
++                if let topLeft, let window = windowController.window {
++                    window.setFrameTopLeftPoint(topLeft)
++                    window.setFrame(window.constrainFrameRect(window.frame, to: window.screen), display: false)
++                }
++                if let selectedRanges, let textView = (windowController.contentViewController as? WindowContentViewController)?.documentViewController?.focusedTextView {
++                    textView.selectedRanges = selectedRanges
++                    textView.scrollRangeToVisible(textView.selectedRange())
++                }
+             }
+-            
+-            // reopen the file as a normal document
+-            // -> A PreviewDocument cannot create its own window.
+-            document.close()
++            return
+         }
+         
+-        NSDocumentController.shared.openDocument(withContentsOf: fileURL, display: true) { [weak self] _, _, error in
++        // reopen the file as a normal document
++        // -> A PreviewDocument cannot create its own window.
++        guard let fileURL = document.fileURL else { return document.close() }
++        document.close()
++        NSDocumentController.shared.openDocument(withContentsOf: fileURL, display: true) { [weak self] document, _, error in
+             if let error {
+                 self?.presentError(error)
++                return
++            }
++            if let topLeft, let window = document?.windowControllers.first?.window {
++                window.setFrameTopLeftPoint(topLeft)
++                window.setFrame(window.constrainFrameRect(window.frame, to: window.screen), display: false)
+             }
+         }
+     }
+@@ -672,7 +1028,290 @@ final class DirectoryDocument: NSDocument {
+     
+     
+     // MARK: Private Methods
+-    
++
++    /// Opens or reuses a member document.
++    ///
++    /// - Parameters:
++    ///   - tabID: The tab ID to give a newly opened member, so that restoration keeps archived identities.
++    /// - Returns: The opened or reused member, or `nil` if the file could not become a member.
++    /// - SeeAlso: `openDocument(at:asPlainText:prefersOriginal:recordsHistory:activates:)` for the other parameters.
++    private func openMember(at fileURL: URL, asPlainText: Bool = false, prefersOriginal: Bool = false,
++                            recordsHistory: Bool = true, activates: Bool = true, tabID: UUID? = nil) async -> DataDocument? {
++
++        guard !self.isClosed else { return nil }
++        if let currentDocument,
++           fileURL == currentDocument.fileURL,
++           !asPlainText || currentDocument is Document
++        {
++            return currentDocument  // already open
++        }
++        
++        // open alias target if the URL already has permission
++        var fileURL = fileURL
++        if prefersOriginal,
++           let resolvedURL = try? URL(resolvingAliasFileAt: fileURL),
++           (try? resolvedURL.isReadable) == true
++        {
++            if let currentDocument,
++               resolvedURL == currentDocument.fileURL,
++               !asPlainText || currentDocument is Document
++            {
++                return currentDocument  // already open
++            }
++            
++            fileURL = resolvedURL
++        }
++        
++        // Reuse previews as well as text documents owned by this directory. Preview documents
++        // are not always returned by NSDocumentController.document(for:), so check our registry.
++        if let document = self.documents.first(where: { $0.fileURL == fileURL }) {
++            if asPlainText && document is PreviewDocument {
++                // Explicit "Open as Plain Text" replaces a preview with a text editor.
++                self.removeOwnedDocument(document)
++            } else {
++                if activates { self.changeFrontmostDocument(to: document) }
++                if recordsHistory {
++                    self.recordDocumentHistory(document: document, opensAsPlainText: asPlainText)
++                }
++                return document
++            }
++        }
++
++        // A text document already owned by a different window cannot become our child.
++        if let document = NSDocumentController.shared.document(for: fileURL) as? Document {
++            if self.documents.contains(where: { $0 === document }) {
++                if activates { self.changeFrontmostDocument(to: document) }
++                return document
++            } else {
++                return await withCheckedContinuation { continuation in
++                    self.presentErrorAsSheet(DirectoryDocumentError.alreadyOpen(fileURL)) { _ in
++                        document.showWindows()
++                        continuation.resume(returning: nil)
++                    }
++                }
++            }
++        }
++        
++        let contentType = (try? fileURL.resourceValues(forKeys: [.contentTypeKey]).contentType) ?? .data
++        
++        // make document
++        let document: NSDocument
++        do {
++            document = (asPlainText || Self.shouldOpen(url: fileURL, ofType: contentType))
++                ? try NSDocumentController.shared.makeDocument(withContentsOf: fileURL, ofType: contentType.identifier)
++                : try PreviewDocument(contentsOf: fileURL, ofType: contentType.identifier)
++        } catch {
++            self.presentErrorAsSheet(error)
++            return nil
++        }
++        
++        guard let document = document as? DataDocument else { return nil }
++        
++        // The directory may have closed while a sheet was up.
++        guard self.adoptMember(document, tabID: tabID, select: activates) else {
++            document.close()
++            return nil
++        }
++        
++        if recordsHistory {
++            self.recordDocumentHistory(document: document, opensAsPlainText: asPlainText)
++        }
++        
++        return document
++    }
++
++
++    /// Makes an open document a member, with a tab when tabs are on, as opening a file does.
++    ///
++    /// This is for documents that exist already, including ones that have no file in the folder.
++    /// The caller keeps ownership when the directory has closed.
++    ///
++    /// - Parameters:
++    ///   - document: The document to adopt. It is registered with the document controller if it is not yet.
++    ///   - tabID: The ID to give its tab, so that restoration keeps archived identities.
++    ///   - select: If `true`, the document is selected and shown.
++    /// - Returns: `true` if the document is a member, or `false` if the directory has closed.
++    @discardableResult func adoptMember(_ document: DataDocument, tabID: UUID? = nil, select: Bool = true) -> Bool {
++
++        guard !self.isClosed else { return false }
++
++        if !self.documents.contains(where: { $0 === document }) {
++            self.documents.append(document)
++            self.membershipGeneration += 1
++            document.directoryDocument = self
++            if UserDefaults.standard[.usesDirectoryFileTabs] {
++                self.tabState.insert(document, id: tabID)
++            }
++            if !NSDocumentController.shared.documents.contains(where: { $0 === document }) {
++                NSDocumentController.shared.addDocument(document)
++            }
++        }
++
++        if select { self.changeFrontmostDocument(to: document) }
++        self.invalidateRestorableState()
++
++        return true
++    }
++
++
++    /// Reconciles ownership, tab selection, and the content host in one synchronous transition.
++    private func removeOwnedDocument(_ document: DataDocument, closesDocument: Bool = true) {
++
++        guard let index = self.documents.firstIndex(where: { $0 === document }) else { return }
++        let wasSelected = self.activeFileDocument === document
++        self.documents.remove(at: index)
++        self.membershipGeneration += 1
++        self.tabState.remove(document)
++        if wasSelected {
++            self.windowController?.fileDocument = nil
++            self.currentDocument = nil
++            let next = UserDefaults.standard[.usesDirectoryFileTabs]
++                ? self.tabState.entries.first(where: { $0.id == self.tabState.selectedID })?.document
++                : self.documents[safe: min(index, self.documents.count - 1)]
++            if let next { self.changeFrontmostDocument(to: next) }
++            // A tab that is not a file and takes over the selection is shown by the host, which follows the selected tab.
++            if next == nil, let item = self.activeTabItem { self.selectTabItem(item) }
++            self.fileBrowserViewController?.selectCurrentDocument()
++        }
++        (self.windowController?.contentViewController as? WindowContentViewController)?.releaseEditor(for: document)
++        document.windowController = nil
++        document.directoryDocument = nil
++        if closesDocument { document.close() }
++        self.invalidateRestorableState()
++        self.synchronizeEditedState()
++    }
++
++
++    /// Asks every edited member for permission to close without removing any of them.
++    ///
++    /// Approvals are only collected here because a later member can still cancel the whole request.
++    /// Overlapping requests and requests during a pending tab close are refused rather than queued,
++    /// so the user is never asked twice about the same file.
++    ///
++    /// - Returns: `true` if every edited member may close and membership did not change meanwhile.
++    private func canCloseMembers() async -> Bool {
++
++        guard !self.isConfirmingClose, self.pendingCloses.isEmpty, self.pendingItemCloses.isEmpty else { return false }
++
++        self.isConfirmingClose = true
++        defer { self.isConfirmingClose = false }
++
++        let initialMembership = self.membershipGeneration
++        self.notifyTabItemsOfReview()
++        // Nothing is stopped here; tabs that are not files are torn down only in `close()`, after every approval.
++        for kind in self.tabKinds {
++            let items = self.tabItems.filter { $0.tabKind == kind.archiveKind }
++            guard !items.isEmpty else { continue }
++            guard await kind.approveClosingWindow(items, self) else { return false }
++        }
++        var checked: Set<ObjectIdentifier> = []
++        // Query the registry afresh after each sheet: members can change while it is up.
++        while let document = self.documents.first(where: { $0.isDocumentEdited && !checked.contains(ObjectIdentifier($0)) }) {
++            checked.insert(ObjectIdentifier(document))
++            guard await self.approveMemberClose(document) else { return false }
++        }
++
++        // A member that joined or left during a sheet was not part of what the user approved.
++        return initialMembership == self.membershipGeneration
++    }
++
++
++    /// The archive form of a tab, or `nil` if the tab cannot be restored.
++    private func archivedTab(for entry: DirectoryTabState.Entry) -> DirectoryTabArchive.Tab? {
++
++        switch entry.content {
++            case .file(let document):
++                document.tabArchiveRepresentation.map { DirectoryTabArchive.Tab(id: entry.id, kind: $0.kind, fields: $0.fields) }
++            case .item(let item):
++                item.archivedFields().map { DirectoryTabArchive.Tab(id: entry.id, kind: item.tabKind, fields: $0) }
++        }
++    }
++
++
++    /// Recreates the archived tabs that are not files in the folder, before those files reopen.
++    ///
++    /// Each kind recreates its own tabs, as items or as member documents; entries of a kind this app
++    /// does not have are skipped.
++    ///
++    /// - Parameter archive: The decoded archive.
++    /// - Returns: Whether one of those tabs took the archived selection and is showing.
++    private func restoreForeignTabs(from archive: DirectoryTabArchive) -> Bool {
++
++        guard UserDefaults.standard[.usesDirectoryFileTabs] else { return false }
++
++        var selectedItem: (any DirectoryTabItem)?
++        var selectedDocument: DataDocument?
++        for kind in self.tabKinds {
++            let entries = archive.foreignEntries(ofKind: kind.archiveKind)
++            guard !entries.isEmpty else { continue }
++
++            for item in kind.restore(entries, self) where self.tabState.entry(for: item) == nil {
++                item.didJoin(self)
++                let entry = self.tabState.insert(item)
++                if entry.id == archive.selectedID {
++                    selectedItem = item
++                }
++            }
++            for (tabID, document) in kind.restoreDocuments(entries, self) {
++                guard self.adoptMember(document, tabID: tabID, select: false) else { continue }
++                if self.tabState.entry(for: document)?.id == archive.selectedID {
++                    selectedDocument = document
++                }
++            }
++        }
++        self.membershipGeneration += 1
++        self.tabState.arrange(by: archive.order)
++
++        if let selectedItem {
++            self.selectTabItem(selectedItem)
++        } else if let selectedDocument {
++            self.selectDocument(selectedDocument)
++        }
++
++        return selectedItem != nil || selectedDocument != nil
++    }
++
++
++    /// Reopens the member documents of the registered kinds without tabs, as file tabs are off, and shows
++    /// the one that was selected, or else the first.
++    private func restoreForeignMembers(from archive: DirectoryTabArchive) {
++
++        var selectedDocument: DataDocument?
++        var firstDocument: DataDocument?
++        for kind in self.tabKinds {
++            let entries = archive.foreignEntries(ofKind: kind.archiveKind)
++            guard !entries.isEmpty else { continue }
++
++            for (tabID, document) in kind.restoreDocuments(entries, self) {
++                guard self.adoptMember(document, select: false) else { continue }
++                if tabID == archive.selectedID {
++                    selectedDocument = document
++                }
++                firstDocument = firstDocument ?? document
++            }
++        }
++
++        if let document = selectedDocument ?? firstDocument {
++            self.selectDocument(document)
++        }
++    }
++
++
++    /// Resolves a security-scoped bookmark for a file inside the directory.
++    private func resolveBookmark(_ bookmarkData: Data?, in directoryURL: URL) -> URL? {
++
++        var isStale = false
++        guard
++            let bookmarkData,
++            let documentURL = try? URL(resolvingBookmarkData: bookmarkData, options: .withSecurityScope, bookmarkDataIsStale: &isStale),
++            directoryURL.isAncestor(of: documentURL),
++            documentURL.isReachable
++        else { return nil }
++
++        return documentURL
++    }
++
++
+     /// Returns whether the receiver should open a file at the given URL as a text-plain file.
+     ///
+     /// - Parameters:
+@@ -725,11 +1364,17 @@ final class DirectoryDocument: NSDocument {
+     /// - Parameter document: The document to bring frontmost.
+     private func changeFrontmostDocument(to document: DataDocument) {
+         
+-        assert(self.documents.contains(document))
++        assert(self.documents.contains { $0 === document })
+         
++        if UserDefaults.standard[.usesDirectoryFileTabs] {
++            let entry = self.tabState.insert(document)
++            self.tabState.select(entry.id)
++        }
++        if document === self.currentDocument { return }
++        self.selectionGeneration += 1
+         // remove window controller from current document
+         self.windowController?.fileDocument?.windowController = nil
+-        
++
+         document.windowController = self.windowController
+         self.windowController?.fileDocument = document
+         self.currentDocument = document
+@@ -740,6 +1385,18 @@ final class DirectoryDocument: NSDocument {
+     }
+     
+     
++    /// Hands the window from the current file to a tab that is not a file, without closing the file.
++    ///
++    /// No file stays attached to the window meanwhile, so file commands cannot reach a hidden editor.
++    /// Reselecting the file attaches it again.
++    func detachCurrentDocument() {
++        
++        self.windowController?.fileDocument?.windowController = nil
++        self.windowController?.fileDocument = nil
++        self.currentDocument = nil
++    }
++    
++    
+     /// Records the document in the document history.
+     ///
+     /// - Parameters:
+@@ -753,13 +1410,22 @@ final class DirectoryDocument: NSDocument {
+     }
+     
+     
+-    /// Disposes unused documents.
++    /// Updates the close button's edited marker to reflect all member documents.
++    private func synchronizeEditedState() {
++
++        let hasEditedDocuments = self.documents.contains(where: \.isDocumentEdited)
++        self.windowController?.setDocumentEdited(hasEditedDocuments)
++    }
++
++
++    /// Disposes unused documents when the directory-file-tabs feature is disabled.
+     private func disposeUnusedDocuments() {
+         
+-        // -> postpone closing opened document if edited
+-        for document in self.documents where !document.isDocumentEdited && document != self.currentDocument {
+-            document.close()
+-            self.documents.removeFirst(document)
++        if !UserDefaults.standard[.usesDirectoryFileTabs] {
++            // -> postpone closing opened document if edited
++            for document in self.documents where !document.isDocumentEdited && document !== self.currentDocument {
++                self.removeOwnedDocument(document)
++            }
+         }
+         self.invalidateRestorableState()
+     }
+diff --git a/CotEditor/Sources/Document/DirectoryRoot.swift b/CotEditor/Sources/Document/DirectoryRoot.swift
+new file mode 100644
+index 000000000..7ee3dd615
+--- /dev/null
++++ b/CotEditor/Sources/Document/DirectoryRoot.swift
+@@ -0,0 +1,73 @@
++//
++//  DirectoryRoot.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++
++
++/// A folder that a directory window shows although the folder is not on this Mac, such as one on a server.
++///
++/// A directory document with a root has no file URL, since nothing local stands for its folder. Its
++/// window therefore has no file browser, no command that creates or reveals local files, and is not
++/// restored by AppKit, which can only restore documents with a file. The root provides the sidebar
++/// and the name instead, and keeps the window's restorable state itself.
++///
++/// Everything else works as in a local directory window: member documents, the tabs of every kind,
++/// their order and selection, the file tabs preference, and the review before closing.
++@MainActor protocol DirectoryRoot: AnyObject {
++
++    /// The window title.
++    var displayName: String { get }
++
++    /// The window subtitle while no tab gives one, such as the folder's full location.
++    var subtitle: String { get }
++
++    /// Makes the sidebar. The window asks once, when it loads.
++    func makeSidebarViewController(for directory: DirectoryDocument) -> NSViewController
++
++    /// Makes what the sidebar shows at its top, if anything, which the window places right below its
++    /// title bar and lets the sidebar's content scroll under, as the local sidebar's pane switcher.
++    func makeSidebarAccessoryViewController(for directory: DirectoryDocument) -> NSSplitViewItemAccessoryViewController?
++
++    /// Whether New File in the tab strip's “+” menu can create a file in the root, as it can in a local folder.
++    var canCreateFiles: Bool { get }
++
++    /// Creates an empty file and opens it in a new tab, as New File does for a local folder.
++    func createFileInNewTab(in directory: DirectoryDocument) async
++
++    /// Called when the directory's tabs, their order or their selection changed, so that the root can
++    /// archive them. It is not called any more once the directory has started closing.
++    func directoryDidChangeState(_ directory: DirectoryDocument)
++
++    /// Called once the directory has closed, after every approval.
++    func directoryDidClose(_ directory: DirectoryDocument)
++}
++
++
++extension DirectoryRoot {
++
++    func makeSidebarAccessoryViewController(for directory: DirectoryDocument) -> NSSplitViewItemAccessoryViewController? { nil }
++
++    var canCreateFiles: Bool  { false }
++
++    func createFileInNewTab(in directory: DirectoryDocument) async { }
++}
+diff --git a/CotEditor/Sources/Document/DirectoryTabItem.swift b/CotEditor/Sources/Document/DirectoryTabItem.swift
+new file mode 100644
+index 000000000..99b3eb595
+--- /dev/null
++++ b/CotEditor/Sources/Document/DirectoryTabItem.swift
+@@ -0,0 +1,139 @@
++//
++//  DirectoryTabItem.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++
++
++/// A tab in a directory window that shows something other than a file, such as a terminal.
++///
++/// The directory's tab state, content host, close handling and archive treat every such tab through
++/// this protocol alone, so a new kind of tab needs no branches of its own in them. An item is never
++/// a document: it is not in the document registry, never marks the window as edited, and leaves
++/// `activeFileDocument` nil while it is selected, so that no file command reaches a hidden editor.
++@MainActor protocol DirectoryTabItem: AnyObject {
++
++    /// The tab's identity, which the tab keeps unless another tab already has it.
++    var id: UUID { get }
++
++    /// The archive kind of the tab, as registered in `DirectoryTabKind`.
++    var tabKind: String { get }
++
++    /// The title in the tab strip and the window subtitle.
++    ///
++    /// The strip refreshes when an observable property read here changes.
++    var tabTitle: String { get }
++
++    var tabIcon: NSImage? { get }
++
++    /// The tooltip in the tab strip. Like the title, it refreshes with the observable properties it reads.
++    var tabToolTip: String { get }
++
++    /// The accessibility label of the content area while the tab is selected.
++    var tabAccessibilityLabel: String { get }
++
++    /// Makes the controller that shows the tab.
++    ///
++    /// The window asks once per tab and keeps the controller while the tab is open, so switching tabs
++    /// only moves its view in and out of the window.
++    func makeTabViewController(in directory: DirectoryDocument) -> any DirectoryTabViewController
++
++    /// Called once when the tab joins a directory, before it is shown.
++    func didJoin(_ directory: DirectoryDocument)
++
++    /// Asks whether this one tab may close, which may show a sheet in the directory's window.
++    func approveTabClose(in directory: DirectoryDocument) async -> Bool
++
++    /// Called before the directory shows a review of its own, such as a close confirmation.
++    ///
++    /// Anything the tab shows over the window, such as a sheet that the tab's content asked for,
++    /// must go away now, so that the review is the only thing the user answers.
++    func directoryWillShowReview()
++
++    /// Stops whatever the tab runs. Called once, after every approval, when the tab leaves its directory.
++    func tearDown()
++
++    /// The fields to archive for the tab, or `nil` if it cannot be restored.
++    func archivedFields() -> [String: Any]?
++
++    /// The commands of the tab's context menu.
++    func tabContextMenuItems(in directory: DirectoryDocument) -> [DirectoryTabBar.MenuItem]
++}
++
++
++extension DirectoryTabItem {
++
++    var tabAccessibilityLabel: String  { self.tabTitle }
++
++    func didJoin(_ directory: DirectoryDocument) { }
++
++    func approveTabClose(in directory: DirectoryDocument) async -> Bool { true }
++
++    func directoryWillShowReview() { }
++
++    func tabContextMenuItems(in directory: DirectoryDocument) -> [DirectoryTabBar.MenuItem] { [] }
++}
++
++
++/// The controller the content host shows for a `DirectoryTabItem`.
++@MainActor protocol DirectoryTabViewController: NSViewController {
++
++    /// Moves keyboard focus into the tab.
++    func focusTabContent()
++}
++
++
++/// What a directory needs to know about a kind of `DirectoryTabItem` as a whole.
++///
++/// This is not a plugin system: the patch that adds a kind of tab registers it in `registered`.
++@MainActor struct DirectoryTabKind {
++
++    /// The kind of the tab's archive entries.
++    var archiveKind: String
++
++    /// Asks once for all tabs of this kind before a window with them closes, without stopping anything.
++    ///
++    /// Closing stops each tab through `DirectoryTabItem.tearDown()` only once every approval has been given.
++    var approveClosingWindow: @MainActor (_ items: [any DirectoryTabItem], _ directory: DirectoryDocument) async -> Bool = { _, _ in true }
++
++    /// Recreates the archived tabs of this kind, in archived order. The directory inserts and selects them.
++    ///
++    /// The entries are untrusted: invalid ones must be skipped rather than fail the others.
++    var restore: @MainActor (_ entries: [DirectoryTabArchive.ForeignEntry], _ directory: DirectoryDocument) -> [any DirectoryTabItem] = { _, _ in [] }
++
++    /// Reopens archived tabs of this kind that are member documents rather than items, such as files that
++    /// are not in the folder. The directory adopts each document under its tab ID, and selects it if it
++    /// has the archived selection.
++    ///
++    /// The entries are untrusted, as for `restore`.
++    var restoreDocuments: @MainActor (_ entries: [DirectoryTabArchive.ForeignEntry], _ directory: DirectoryDocument) -> [(tabID: UUID, document: DataDocument)] = { _, _ in [] }
++
++    /// The commands in the tab strip's “+” menu that open tabs of this kind, if any.
++    var addMenuItems: (@MainActor (_ directory: DirectoryDocument) -> [DirectoryTabBar.MenuItem])?
++
++
++    /// The kinds of tabs besides files that this app has, in the order of the “+” menu.
++    static var registered: [DirectoryTabKind] {
++
++        []
++    }
++}
+diff --git a/CotEditor/Sources/Document/DirectoryTabState.swift b/CotEditor/Sources/Document/DirectoryTabState.swift
+new file mode 100644
+index 000000000..ab58d20d8
+--- /dev/null
++++ b/CotEditor/Sources/Document/DirectoryTabState.swift
+@@ -0,0 +1,365 @@
++//
++//  DirectoryTabState.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import Foundation
++import Observation
++
++
++/// Ordered tabs owned by a directory window. For files, the document registry remains the source of truth.
++@MainActor @Observable final class DirectoryTabState {
++
++    struct Entry: Identifiable {
++
++        enum Content {
++
++            case file(DataDocument)
++            case item(any DirectoryTabItem)
++        }
++
++        let id: UUID
++        let content: Content
++
++        /// The file document, or `nil` for a tab that shows something other than a file.
++        var document: DataDocument? {
++
++            switch self.content {
++                case .file(let document): document
++                case .item: nil
++            }
++        }
++
++        /// The tab's item, or `nil` for a file tab.
++        var item: (any DirectoryTabItem)? {
++
++            switch self.content {
++                case .file: nil
++                case .item(let item): item
++            }
++        }
++    }
++
++    private(set) var entries: [Entry] = []
++    private(set) var selectedID: UUID?
++
++
++    /// Appends a file unless it already has a tab. Existing IDs are never replaced.
++    ///
++    /// Inserting never selects: the selection must always name the file the window is showing,
++    /// so only the directory, which also switches the content host, calls `select(_:)`.
++    @discardableResult func insert(_ document: DataDocument, id: UUID? = nil) -> Entry {
++
++        if let existing = self.entry(for: document) { return existing }
++
++        let requestedID = id ?? UUID()
++        let entry = Entry(id: self.entries.contains(where: { $0.id == requestedID }) ? UUID() : requestedID,
++                          content: .file(document))
++        self.entries.append(entry)
++
++        return entry
++    }
++
++
++    func select(_ id: UUID) {
++
++        guard self.entries.contains(where: { $0.id == id }) else { return }
++        self.selectedID = id
++    }
++
++
++    @discardableResult func remove(_ document: DataDocument) -> Entry? {
++
++        guard let index = self.entries.firstIndex(where: { $0.document === document }) else { return nil }
++
++        return self.remove(at: index)
++    }
++
++
++    /// Removes the entry at the index; a removed selection passes to the next neighbor, then to the previous one.
++    private func remove(at index: Int) -> Entry {
++
++        let removed = self.entries.remove(at: index)
++
++        if self.selectedID == removed.id {
++            self.selectedID = self.entries.indices.contains(index) ? self.entries[index].id : self.entries.last?.id
++        }
++
++        return removed
++    }
++
++
++    /// Moves a tab to another position. The selection does not change.
++    ///
++    /// - Parameters:
++    ///   - id: The tab to move.
++    ///   - index: Its new index, clamped to the valid range.
++    func move(_ id: UUID, to index: Int) {
++
++        guard let source = self.entries.firstIndex(where: { $0.id == id }) else { return }
++
++        let destination = min(max(index, 0), self.entries.count - 1)
++        guard source != destination else { return }
++
++        self.entries.insert(self.entries.remove(at: source), at: destination)
++    }
++
++
++    func entry(for document: DataDocument) -> Entry? {
++
++        self.entries.first { $0.document === document }
++    }
++
++
++    /// Matches the registry's order and membership while retaining IDs for documents still open.
++    ///
++    /// Tabs that are not files are not in the registry, so they keep their place among the files.
++    func reconcile(with documents: [DataDocument]) {
++
++        let previous = self.entries
++        var reconciled: [Entry] = []
++
++        for document in documents {
++            guard !reconciled.contains(where: { $0.document === document }) else { continue }
++            let entry = previous.first(where: { $0.document === document })
++                ?? Entry(id: UUID(), content: .file(document))
++            reconciled.append(entry)
++        }
++        for (index, entry) in previous.enumerated() where entry.document == nil {
++            reconciled.insert(entry, at: min(index, reconciled.count))
++        }
++
++        let previousSelectedIndex = previous.firstIndex(where: { $0.id == self.selectedID })
++        self.entries = reconciled
++        if !reconciled.contains(where: { $0.id == self.selectedID }) {
++            self.selectedID = previousSelectedIndex.flatMap { index in
++                reconciled.indices.contains(index) ? reconciled[index].id : reconciled.last?.id
++            } ?? reconciled.first?.id
++        }
++    }
++
++
++    /// Appends a tab that is not a file under the item's ID. Like file tabs, it is not selected.
++    @discardableResult func insert(_ item: any DirectoryTabItem) -> Entry {
++
++        if let existing = self.entry(for: item) { return existing }
++
++        let entry = Entry(id: self.entries.contains(where: { $0.id == item.id }) ? UUID() : item.id,
++                          content: .item(item))
++        self.entries.append(entry)
++
++        return entry
++    }
++
++
++    @discardableResult func remove(_ item: any DirectoryTabItem) -> Entry? {
++
++        guard let index = self.entries.firstIndex(where: { $0.item === item }) else { return nil }
++
++        return self.remove(at: index)
++    }
++
++
++    func entry(for item: any DirectoryTabItem) -> Entry? {
++
++        self.entries.first { $0.item === item }
++    }
++
++
++    /// Puts entries whose IDs appear in `order` into that order, keeping the others after them.
++    ///
++    /// Restoration reopens tabs of different kinds at different times, for example files
++    /// asynchronously, so the archived order is applied again as each one arrives.
++    func arrange(by order: [UUID]) {
++
++        let rank = Dictionary(order.enumerated().map { ($1, $0) }, uniquingKeysWith: { first, _ in first })
++        let arranged = self.entries.enumerated()
++            .sorted { (rank[$0.element.id] ?? order.count + $0.offset) < (rank[$1.element.id] ?? order.count + $1.offset) }
++            .map(\.element)
++
++        if arranged.map(\.id) != self.entries.map(\.id) {
++            self.entries = arranged
++        }
++    }
++}
++
++
++/// The versioned restorable-state form of a directory's tabs.
++///
++/// It is kept apart from `DirectoryDocument` so that damaged or legacy archives can be tested
++/// without going through AppKit state restoration.
++///
++/// Every tab is one entry with an ID and a kind. This type reads the `file` kind itself. Entries of
++/// the kinds that later patches add are kept, in order, as `foreignEntries` for those patches to
++/// reopen, so that one list holds the tabs of every kind in the order the user arranged them.
++struct DirectoryTabArchive: Equatable {
++
++    struct Entry: Equatable {
++
++        var id: UUID?
++        var fileURL: URL
++    }
++
++
++    /// An archived tab of a kind that this type does not reopen itself.
++    struct ForeignEntry: Equatable {
++
++        var id: UUID
++        var kind: String
++
++        /// The whole archived entry. Its values are untrusted input for the patch that reads the kind.
++        var fields: NSDictionary
++    }
++
++
++    /// A tab to archive: its ID, its kind, and the fields that kind needs to reopen it.
++    struct Tab {
++
++        var id: UUID
++        var kind: String
++        var fields: [String: Any]
++    }
++
++
++    static let version = 1
++    static let fileKind = "file"
++
++    /// The classes an archive may contain, for decoding under secure coding.
++    static let allowedClasses: [AnyClass] = [NSDictionary.self, NSArray.self, NSString.self, NSData.self, NSNumber.self]
++
++    var entries: [Entry]
++
++    /// The entry to show once it reopens, or `nil` when neither the saved selection nor the current file survived.
++    var selectedIndex: Int?
++
++    /// The archived entries of other kinds, in archived order, each with a valid and unique ID.
++    var foreignEntries: [ForeignEntry]
++
++    /// The ID of every archived tab of every kind, in display order.
++    ///
++    /// Tabs of different kinds reopen at different times, so the order is applied again as each one arrives.
++    var order: [UUID]
++
++    /// The archived selection, whatever the kind of its tab.
++    var selectedID: UUID?
++
++
++    /// Builds the property list stored in the restorable state.
++    ///
++    /// - Parameters:
++    ///   - tabs: The tabs in display order.
++    ///   - selectedID: The ID of the selected tab.
++    /// - Returns: A property list compatible with secure coding.
++    static func encode(_ tabs: [Tab], selectedID: UUID?) -> NSDictionary {
++
++        [
++            "version": Self.version,
++            "entries": tabs.map { tab in
++                // The ID and kind always come from the tab, never from its fields.
++                tab.fields.merging(["id": tab.id.uuidString, "kind": tab.kind]) { _, reserved in reserved }
++            },
++            "selectedID": selectedID?.uuidString ?? "",
++        ]
++    }
++
++
++    /// Builds the property list for file tabs only.
++    ///
++    /// - Parameters:
++    ///   - entries: The tab IDs and security-scoped bookmarks in display order.
++    ///   - selectedID: The ID of the selected tab.
++    /// - Returns: A property list compatible with secure coding.
++    static func encode(_ entries: [(id: UUID, bookmark: Data)], selectedID: UUID?) -> NSDictionary {
++
++        self.encode(entries.map { Tab(id: $0.id, kind: Self.fileKind, fields: ["bookmark": $0.bookmark]) }, selectedID: selectedID)
++    }
++
++
++    /// Reads the archived tabs, falling back to the legacy bookmark list and then to the single current-file bookmark.
++    ///
++    /// A damaged archive degrades to fewer tabs rather than failing: entries without a kind and
++    /// unresolvable bookmarks are skipped, a repeated file keeps only its first tab, and a repeated ID
++    /// is dropped so that the tab receives a fresh one. An entry of another kind needs a valid ID
++    /// of its own, since only its ID can put it back in order.
++    ///
++    /// - Parameters:
++    ///   - archive: The versioned archive, or `nil` if absent.
++    ///   - legacyBookmarks: The bookmark list written before the versioned archive existed.
++    ///   - currentBookmark: The bookmark of the file that was showing.
++    ///   - resolve: Resolves a bookmark to a file URL inside the directory, or returns `nil`.
++    init(archive: [String: Any]?, legacyBookmarks: [Data]?, currentBookmark: Data?, resolve: (Data) -> URL?) {
++
++        var entries: [Entry] = []
++        var foreignEntries: [ForeignEntry] = []
++        var order: [UUID] = []
++        var seenURLs: Set<URL> = []
++        var seenIDs: Set<UUID> = []
++        func claim(_ id: UUID?) -> UUID? {
++            guard let id, seenIDs.insert(id).inserted else { return nil }
++            order.append(id)
++            return id
++        }
++        func append(_ fileURL: URL?, id: UUID?) {
++            guard let fileURL, seenURLs.insert(fileURL.standardizedFileURL).inserted else { return }
++            entries.append(Entry(id: claim(id), fileURL: fileURL))
++        }
++
++        var selectedID: UUID?
++        if archive?["version"] as? Int == Self.version, let archivedEntries = archive?["entries"] as? [[String: Any]] {
++            for entry in archivedEntries {
++                let id = (entry["id"] as? String).flatMap(UUID.init(uuidString:))
++                switch entry["kind"] as? String {
++                    case Self.fileKind:
++                        append((entry["bookmark"] as? Data).flatMap(resolve), id: id)
++                    case let kind? where !kind.isEmpty:
++                        guard let id = claim(id) else { continue }
++                        foreignEntries.append(ForeignEntry(id: id, kind: kind, fields: entry as NSDictionary))
++                    default:
++                        continue
++                }
++            }
++            selectedID = (archive?["selectedID"] as? String).flatMap(UUID.init(uuidString:))
++        } else if let legacyBookmarks {
++            for bookmark in legacyBookmarks {
++                append(resolve(bookmark), id: nil)
++            }
++        }
++
++        let currentURL = currentBookmark.flatMap(resolve)
++        if entries.isEmpty {
++            append(currentURL, id: nil)
++        }
++
++        self.entries = entries
++        self.foreignEntries = foreignEntries
++        self.order = order
++        self.selectedID = selectedID
++        self.selectedIndex = selectedID.flatMap { id in entries.firstIndex { $0.id == id } }
++            ?? currentURL.flatMap { url in entries.firstIndex { $0.fileURL.standardizedFileURL == url.standardizedFileURL } }
++    }
++
++
++    /// The archived entries of one kind, in archived order.
++    func foreignEntries(ofKind kind: String) -> [ForeignEntry] {
++
++        self.foreignEntries.filter { $0.kind == kind }
++    }
++}
+diff --git a/CotEditor/Sources/Document/DocumentController.swift b/CotEditor/Sources/Document/DocumentController.swift
+index 7a29e36ff..07b8e2c79 100644
+--- a/CotEditor/Sources/Document/DocumentController.swift
++++ b/CotEditor/Sources/Document/DocumentController.swift
+@@ -303,7 +303,7 @@ protocol AdditionalDocumentPreparing: NSDocument {
+             case let document as Document:
+                 document
+             case let document as DirectoryDocument:
+-                document.currentDocument as? Document
++                document.activeFileDocument as? Document
+             default:
+                 nil
+         }
+diff --git a/CotEditor/Sources/Scripting Support/DirectoryDocument+ScriptingSupport.swift b/CotEditor/Sources/Scripting Support/DirectoryDocument+ScriptingSupport.swift
+index 85cf00037..851be061f 100644
+--- a/CotEditor/Sources/Scripting Support/DirectoryDocument+ScriptingSupport.swift	
++++ b/CotEditor/Sources/Scripting Support/DirectoryDocument+ScriptingSupport.swift	
+@@ -61,7 +61,7 @@ extension DirectoryDocument {
+     /// Current document of the folder document (optional).
+     @objc var scriptCurrentDocument: Document? {
+         
+-        self.currentDocument as? Document
++        self.activeFileDocument as? Document
+     }
+     
+     
+@@ -214,7 +214,7 @@ extension DirectoryDocument {
+     /// - Returns: The current text document, or `nil` if no text document is selected.
+     private func scriptDocument(for command: NSScriptCommand? = nil) -> Document? {
+         
+-        guard let document = self.currentDocument as? Document else {
++        guard let document = self.activeFileDocument as? Document else {
+             // report an AppleScript error
+             let command = command ?? NSScriptCommand.current()
+             command?.scriptErrorNumber = errOSAGeneralError
+diff --git a/CotEditor/Sources/Settings Window/Panes/WindowSettingsView.swift b/CotEditor/Sources/Settings Window/Panes/WindowSettingsView.swift
+index 8871a4127..f7adba0ad 100644
+--- a/CotEditor/Sources/Settings Window/Panes/WindowSettingsView.swift	
++++ b/CotEditor/Sources/Settings Window/Panes/WindowSettingsView.swift	
+@@ -33,6 +33,7 @@ struct WindowSettingsView: View {
+     @Environment(\.layoutDirection) private var layoutDirection
+     
+     @AppStorage(.windowTabbing) private var windowTabbing
++    @AppStorage(.usesDirectoryFileTabs) private var usesDirectoryFileTabs
+     @AppStorage(.windowWidth) private var windowWidth
+     @AppStorage(.windowHeight) private var windowHeight
+     
+@@ -70,22 +71,28 @@ struct WindowSettingsView: View {
+                      comment: "Omit “documents” if label becomes too long.")
+                     .accessibilityLabeledPair(role: .label, id: "windowTabbing", in: self.accessibility)
+                 
+-                Picker(selection: $windowTabbing) {
+-                    Text(
+-                        AttributedString(localized: "Respect System Setting", table: "WindowSettings") +
+-                        AttributedString(" (\(String(localized: NSWindow.userTabbingPreference.label)))",
+-                                         attributes: .init().foregroundColor(.secondary))
+-                    ).tag(-1)
+-                    
+-                    Divider()
+-                    
+-                    ForEach([NSWindow.UserTabbingPreference.manual, .inFullScreen, .always], id: \.self) {
+-                        Text($0.label).tag($0.rawValue)
++                VStack(alignment: .leading, spacing: 8) {
++                    Picker(selection: $windowTabbing) {
++                        Text(
++                            AttributedString(localized: "Respect System Setting", table: "WindowSettings") +
++                            AttributedString(" (\(String(localized: NSWindow.userTabbingPreference.label)))",
++                                             attributes: .init().foregroundColor(.secondary))
++                        ).tag(-1)
++                        
++                        Divider()
++                        
++                        ForEach([NSWindow.UserTabbingPreference.manual, .inFullScreen, .always], id: \.self) {
++                            Text($0.label).tag($0.rawValue)
++                        }
++                    } label: {
++                        EmptyView()
+                     }
+-                } label: {
+-                    EmptyView()
++                    .accessibilityLabeledPair(role: .content, id: "windowTabbing", in: self.accessibility)
++                    
++                    Toggle(.init("Use file tabs in directory windows", table: "WindowSettings",
++                                 comment: "Distinct from macOS window tabs; this enables tabs for files opened within a directory window."),
++                           isOn: $usesDirectoryFileTabs)
+                 }
+-                .accessibilityLabeledPair(role: .content, id: "windowTabbing", in: self.accessibility)
+             }
+             
+             GridRow {

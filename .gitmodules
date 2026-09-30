@@ -1,0 +1,3 @@
+[submodule "CotEditor"]
+	path = CotEditor
+	url = git@github.com:coteditor/CotEditor.git

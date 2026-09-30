@@ -4,7 +4,7 @@ CotEditorPatch adds tabs to the folder windows of [CotEditor](https://coteditor.
 
 When you open a folder in CotEditor, the window shows one file at a time. CotEditorPatch adds a tab strip to folder windows, so every file you open from the folder stays one click away. A separate build also lets you open shells as tabs in the same window, starting in the folder you are working on, the next one adds webpages, such as your local development server, and a fourth build adds files and folders on SSH servers, edited like local ones.
 
-CotEditorPatch is not a fork. The repository holds upstream CotEditor as a submodule, pinned to commit `5e7d853c50f39e6428041c8e2ab672176c0f4d54`, and a series of patches that are applied to it before building. The patches are numbered 1 to 4. It is an independent project, not affiliated with or endorsed by the CotEditor project. Inside the app, menus and dialogs still say CotEditor.
+CotEditorPatch is not a fork. The repository holds upstream CotEditor as a submodule together with a series of patches that are applied to it before building. The patches are numbered 1 to 4. It is an independent project, not affiliated with or endorsed by the CotEditor project. Inside the app, menus and dialogs still say CotEditor.
 
 ## Features
 
@@ -78,9 +78,7 @@ Each app is built from the patches up to the one you choose, and `scripts/build.
 
 No app updates itself: to update, pull the repository and build again.
 
-`CotEditor-Tabs.app` keeps upstream's bundle identifier, so it shares settings and saved windows with a regular CotEditor you have installed. Quit one before opening the other, so macOS doesn't open files in the wrong one.
-
-`CotEditor-Shell.app`, `CotEditor-Web.app` and `CotEditor-Remote.app` have their own identifiers, so they install beside a regular CotEditor and do not share its settings. Use Settings export and import to carry settings over; the terminal's own settings, website data, saved connections and unsent remote changes are not included.
+`CotEditor-Tabs.app`, `CotEditor-Shell.app`, `CotEditor-Web.app` and `CotEditor-Remote.app` have their own identifiers, so they install beside a regular CotEditor and do not share its settings. Use Settings export and import to carry settings over; the terminal's own settings, website data, saved connections and unsent remote changes are not included.
 
 No Developer ID signed or notarized build exists.
 
@@ -95,7 +93,7 @@ No Developer ID signed or notarized build exists.
 ## Build it yourself
 
 ```sh
-git clone --recurse-submodules <this repository>
+git clone --recurse-submodules github.com/RedKenrok/CotEditorPatch
 cd CotEditorPatch
 scripts/build.sh --through tabs --release --adhoc       # .build/Apps/Release/CotEditor-Tabs-arm64.app
 scripts/build.sh --through shell --release --adhoc   # .build/Apps/Release/CotEditor-Shell-arm64.app

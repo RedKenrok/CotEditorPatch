@@ -1,8 +1,8 @@
 diff --git a/CotEditor/Localizables/Document Window/Document.xcstrings b/CotEditor/Localizables/Document Window/Document.xcstrings
-index 2ccc9a52e..8ed99e6c2 100644
+index 6225cbd3e..43be1d87c 100644
 --- a/CotEditor/Localizables/Document Window/Document.xcstrings	
 +++ b/CotEditor/Localizables/Document Window/Document.xcstrings	
-@@ -2492,109 +2492,1249 @@
+@@ -2630,115 +2630,1255 @@
          }
        }
      },
@@ -838,6 +838,12 @@ index 2ccc9a52e..8ed99e6c2 100644
 +            "value" : "Le document contient des modifications non enregistrées."
 +          }
 +        },
++        "hi" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "दस्तावेज़ में सहेजे न गए बदलाव हैं"
++          }
++        },
 +        "it" : {
 +          "stringUnit" : {
 +            "state" : "translated",
@@ -956,87 +962,77 @@ index 2ccc9a52e..8ed99e6c2 100644
 +            "value" : "Fermer la fenêtre"
            }
          },
-         "it" : {
+-        "hi" : {
++        "it" : {
            "stringUnit" : {
              "state" : "translated",
--            "value" : "Il documento contiene modifiche non salvate"
+-            "value" : "दस्तावेज़ में सहेजे न गए बदलाव हैं"
 +            "value" : "Chiudi finestra"
-           }
-         },
-         "ja" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "書類に保存されていない変更があります"
++          }
++        },
++        "ja" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "ウインドウを閉じる"
-           }
-         },
-         "ko" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "문서에 저장하지 않은 변경 사항이 있습니다."
++          }
++        },
++        "ko" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "윈도우 닫기"
-           }
-         },
-         "nl" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "Document heeft niet-bewaarde wijzigingen."
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "Venster sluiten"
-           }
-         },
-         "pl" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "Dokument ma niezachowane zmiany"
++          }
++        },
++        "pl" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "Zamknij okno"
-           }
-         },
-         "pt" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "Documento contém alterações não salvas"
++          }
++        },
++        "pt" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "Fechar Janela"
-           }
-         },
-         "ru" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "В документе есть несохраненные изменения"
++          }
++        },
++        "ru" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "Закрыть окно"
-           }
-         },
-         "tr" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "Belgede kaydedilmemiş değişiklikler var"
++          }
++        },
++        "tr" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "Pencereyi Kapat"
-           }
-         },
-         "uk" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "Документ містить незбережені зміни"
++          }
++        },
++        "uk" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "Закрити вікно"
-           }
-         },
-         "zh-Hans" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "文稿中存在未保存的更改"
++          }
++        },
++        "zh-Hans" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "关闭窗口"
-           }
-         },
-         "zh-Hant" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "文件內包含尚未存檔的內容變更"
++          }
++        },
++        "zh-Hant" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "關閉視窗"
-           }
-         },
-         "zh-HK" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "文件包括未儲存的變更"
++          }
++        },
++        "zh-HK" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "關閉視窗"
 +          }
 +        }
@@ -1080,77 +1076,89 @@ index 2ccc9a52e..8ed99e6c2 100644
 +          "stringUnit" : {
 +            "state" : "translated",
 +            "value" : "Afficher l’onglet suivant"
-+          }
-+        },
-+        "it" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "it" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Il documento contiene modifiche non salvate"
 +            "value" : "Mostra pannello successivo"
-+          }
-+        },
-+        "ja" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "ja" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "書類に保存されていない変更があります"
 +            "value" : "次のタブを表示"
-+          }
-+        },
-+        "ko" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "ko" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "문서에 저장하지 않은 변경 사항이 있습니다."
 +            "value" : "다음 탭 보기"
-+          }
-+        },
-+        "nl" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "nl" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Document heeft niet-bewaarde wijzigingen."
 +            "value" : "Toon volgende tabblad"
-+          }
-+        },
-+        "pl" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "pl" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Dokument ma niezachowane zmiany"
 +            "value" : "Pokaż następną kartę"
-+          }
-+        },
-+        "pt" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "pt" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Documento contém alterações não salvas"
 +            "value" : "Mostrar separador seguinte"
-+          }
-+        },
-+        "ru" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "ru" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "В документе есть несохраненные изменения"
 +            "value" : "Показать следующую вкладку"
-+          }
-+        },
-+        "tr" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "tr" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Belgede kaydedilmemiş değişiklikler var"
 +            "value" : "Sonraki Sekmeyi Göster"
-+          }
-+        },
-+        "uk" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "uk" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Документ містить незбережені зміни"
 +            "value" : "Показати наступну вкладку"
-+          }
-+        },
-+        "zh-Hans" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "zh-Hans" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "文稿中存在未保存的更改"
 +            "value" : "显示下一个标签页"
-+          }
-+        },
-+        "zh-Hant" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "zh-Hant" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "文件內包含尚未存檔的內容變更"
 +            "value" : "顯示下一個標籤頁"
-+          }
-+        },
-+        "zh-HK" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "zh-HK" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "文件包括未儲存的變更"
 +            "value" : "顯示下一個標籤頁"
 +          }
 +        }
@@ -1270,10 +1278,10 @@ index 2ccc9a52e..8ed99e6c2 100644
          }
        }
 diff --git a/CotEditor/Localizables/Settings/Panes/WindowSettings.xcstrings b/CotEditor/Localizables/Settings/Panes/WindowSettings.xcstrings
-index 31ac18ef7..0ac8a87d0 100644
+index 65ee0392c..be8a1d702 100644
 --- a/CotEditor/Localizables/Settings/Panes/WindowSettings.xcstrings
 +++ b/CotEditor/Localizables/Settings/Panes/WindowSettings.xcstrings
-@@ -3301,6 +3301,113 @@
+@@ -3493,6 +3493,113 @@
          }
        }
      },
@@ -1388,7 +1396,7 @@ index 31ac18ef7..0ac8a87d0 100644
        "localizations" : {
          "cs" : {
 diff --git a/CotEditor/Sources/Application/AppDelegate.swift b/CotEditor/Sources/Application/AppDelegate.swift
-index 2fbfccd3f..ed632d89f 100644
+index e43e248e6..7de3db4ac 100644
 --- a/CotEditor/Sources/Application/AppDelegate.swift
 +++ b/CotEditor/Sources/Application/AppDelegate.swift
 @@ -160,6 +160,8 @@ extension Logger {
@@ -2059,7 +2067,7 @@ index 000000000..106b43c35
 +    }
 +}
 diff --git a/CotEditor/Sources/Document Window/DocumentWindow.swift b/CotEditor/Sources/Document Window/DocumentWindow.swift
-index 2866cecf1..6e0a57431 100644
+index 30bddbef7..5d950cfe0 100644
 --- a/CotEditor/Sources/Document Window/DocumentWindow.swift	
 +++ b/CotEditor/Sources/Document Window/DocumentWindow.swift	
 @@ -103,13 +103,63 @@ final class DocumentWindow: NSWindow {
@@ -2202,7 +2210,7 @@ index 2866cecf1..6e0a57431 100644
      /// Whether the window level is floating.
      private var isFloating: Bool {
          
-@@ -180,6 +296,21 @@ extension DocumentWindow {
+@@ -181,6 +297,21 @@ extension DocumentWindow {
              return true
          }
          
@@ -2225,7 +2233,7 @@ index 2866cecf1..6e0a57431 100644
      }
  }
 diff --git a/CotEditor/Sources/Document Window/DocumentWindowController.swift b/CotEditor/Sources/Document Window/DocumentWindowController.swift
-index 2e33498ba..f75f44a8b 100644
+index 4ef284922..15c480bc9 100644
 --- a/CotEditor/Sources/Document Window/DocumentWindowController.swift	
 +++ b/CotEditor/Sources/Document Window/DocumentWindowController.swift	
 @@ -223,9 +223,12 @@ final class DocumentWindowController: NSWindowController, NSWindowDelegate {
@@ -2244,7 +2252,7 @@ index 2e33498ba..f75f44a8b 100644
      }
      
 diff --git a/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift b/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift
-index fe6e46a27..4b448983d 100644
+index d469bfff7..c78108ae3 100644
 --- a/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift	
 +++ b/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift	
 @@ -336,8 +336,13 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
@@ -2310,7 +2318,7 @@ index df9ba1b11..2ce19f104 100644
              else { return }
              
 diff --git a/CotEditor/Sources/Document Window/WindowContentViewController.swift b/CotEditor/Sources/Document Window/WindowContentViewController.swift
-index 34f4cbf49..ba9d44148 100644
+index 0f8c4ebb0..1ace7427f 100644
 --- a/CotEditor/Sources/Document Window/WindowContentViewController.swift	
 +++ b/CotEditor/Sources/Document Window/WindowContentViewController.swift	
 @@ -48,9 +48,18 @@ final class WindowContentViewController: NSSplitViewController, NSToolbarItemVal
@@ -2585,7 +2593,7 @@ index 34f4cbf49..ba9d44148 100644
 +        // A new file is created in the local folder, or by the root of a window without one, if it can.
 +        let canCreateFiles = (directory.fileURL != nil) || (directory.root?.canCreateFiles == true)
 +        let newFile: [DirectoryTabBar.MenuItem] = !canCreateFiles ? [] : [
-+            .init(title: String(localized: "New File", table: "Document", comment: "menu item label"),
++            .init(title: String(localized: "New File", table: "Document", comment: "noun; menu item"),
 +                  systemImage: "document.badge.plus") { [weak directory] in
 +                Task { await directory?.createFileInNewTab() }
 +            },
@@ -4726,7 +4734,7 @@ index 000000000..ab58d20d8
 +    }
 +}
 diff --git a/CotEditor/Sources/Document/DocumentController.swift b/CotEditor/Sources/Document/DocumentController.swift
-index 7a29e36ff..07b8e2c79 100644
+index 6d9bce4de..01f5e9f50 100644
 --- a/CotEditor/Sources/Document/DocumentController.swift
 +++ b/CotEditor/Sources/Document/DocumentController.swift
 @@ -303,7 +303,7 @@ protocol AdditionalDocumentPreparing: NSDocument {
@@ -4761,7 +4769,7 @@ index 85cf00037..851be061f 100644
              let command = command ?? NSScriptCommand.current()
              command?.scriptErrorNumber = errOSAGeneralError
 diff --git a/CotEditor/Sources/Settings Window/Panes/WindowSettingsView.swift b/CotEditor/Sources/Settings Window/Panes/WindowSettingsView.swift
-index 8871a4127..f7adba0ad 100644
+index 815fff3a3..4e46877fe 100644
 --- a/CotEditor/Sources/Settings Window/Panes/WindowSettingsView.swift	
 +++ b/CotEditor/Sources/Settings Window/Panes/WindowSettingsView.swift	
 @@ -33,6 +33,7 @@ struct WindowSettingsView: View {
@@ -4773,12 +4781,12 @@ index 8871a4127..f7adba0ad 100644
      @AppStorage(.windowHeight) private var windowHeight
      
 @@ -70,22 +71,28 @@ struct WindowSettingsView: View {
-                      comment: "Omit “documents” if label becomes too long.")
+                      comment: "Omit “documents” if the text becomes too long.")
                      .accessibilityLabeledPair(role: .label, id: "windowTabbing", in: self.accessibility)
                  
 -                Picker(selection: $windowTabbing) {
 -                    Text(
--                        AttributedString(localized: "Respect System Setting", table: "WindowSettings") +
+-                        AttributedString(localized: "Respect System Setting", table: "WindowSettings", comment: "verb; menu item") +
 -                        AttributedString(" (\(String(localized: NSWindow.userTabbingPreference.label)))",
 -                                         attributes: .init().foregroundColor(.secondary))
 -                    ).tag(-1)
@@ -4790,7 +4798,7 @@ index 8871a4127..f7adba0ad 100644
 +                VStack(alignment: .leading, spacing: 8) {
 +                    Picker(selection: $windowTabbing) {
 +                        Text(
-+                            AttributedString(localized: "Respect System Setting", table: "WindowSettings") +
++                            AttributedString(localized: "Respect System Setting", table: "WindowSettings", comment: "verb; menu item") +
 +                            AttributedString(" (\(String(localized: NSWindow.userTabbingPreference.label)))",
 +                                             attributes: .init().foregroundColor(.secondary))
 +                        ).tag(-1)

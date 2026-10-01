@@ -555,7 +555,7 @@ index 000000000..4d43c060b
 +}
 \ No newline at end of file
 diff --git a/CotEditor/Sources/Application/AppDelegate.swift b/CotEditor/Sources/Application/AppDelegate.swift
-index 0fc6e70b6..f4d142f30 100644
+index a53b0f60d..79115cb61 100644
 --- a/CotEditor/Sources/Application/AppDelegate.swift
 +++ b/CotEditor/Sources/Application/AppDelegate.swift
 @@ -164,6 +164,7 @@ extension Logger {

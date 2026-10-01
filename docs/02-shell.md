@@ -110,6 +110,7 @@ The new strings are in `CotEditor/Localizables/Terminal.xcstrings`, in English o
 
 Environment: Xcode 27.0 (27A266a), Swift 6.4, macOS 27.0 (Darwin 27.0.0) on arm64, Metal Toolchain 27A266a installed, locale `en_NL`.
 
+- **Focused tests.** `scripts/verify-patches.sh --workspace .work/CotEditor --test` passed 118 tests in 6 suites after patches 1 and 2, the PTY tests included.
 - **Descriptors, reaping and forgotten sessions.** With every patch applied, `scripts/build.sh --checkout .work/CotEditor --test` passed 378 tests in 19 suites, and a tree of patches 1 and 2 with the same changes passed 135 tests in 6 suites. `scripts/check-signing.sh --checkout .work/CotEditor --pty` passed, the PTY and ssh tests included, under the hardened runtime.
 - **Terminals through a root's launcher.** With the seam and its test, `scripts/verify-patches.sh --workspace .work/CotEditor --test` passed 118 tests after patches 1 and 2, and the full test plan with every patch 501.
 - **A folder that is not on this Mac.** With the check for a local folder and its test, `scripts/verify-patches.sh --workspace .work/CotEditor --test` passed 115 tests in 6 suites after patches 1 and 2.

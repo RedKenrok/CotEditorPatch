@@ -137,6 +137,7 @@ Selecting a file programmatically also selects its row in the file browser, and 
 
 Environment: Xcode 27.0 (27A266a), macOS 27.0 (Darwin 27.0.0), locale `en_NL`.
 
+- **Tests and Release build.** With the SFTP fixture running, `scripts/verify-patches.sh --workspace .work/CotEditor --test` passed 64 tests in 3 suites after patch 1, and the full test plan with every patch (`scripts/build.sh --checkout .work/CotEditor --test-all`) passed 505 tests in 54 suites. `scripts/build.sh --arch arm64 --release --adhoc` built `CotEditor-Remote-arm64.app`.
 - **Tab-system hardening.** With the tests for turning tabs off with an item selected, closing then, close reviews and tabs off during restoration, members closed in a row, adoption, bookmarks and strip refreshes, `scripts/build.sh --checkout .work/CotEditor --test` passed 369 tests in 19 suites with every patch applied, and the same change on the patch 1 tree alone passed 72 tests in 3 suites.
 - **New File through a root.** With the hook and its test, `scripts/verify-patches.sh --workspace .work/CotEditor --test` passed 64 tests in 3 suites after patch 1.
 - **Folders that are not on this Mac.** With the root contract and its tests, `scripts/verify-patches.sh --workspace .work/CotEditor --test` applied every prefix to fresh clones; after patch 1, 62 tests in 3 suites passed.

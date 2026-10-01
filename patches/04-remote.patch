@@ -27,7 +27,7 @@ index 7aa31cd21..85efb7e42 100644
  // Code signing may need to override any predefined values.
  // Therefore, it should be included at the end.
 diff --git a/CotEditor.xcodeproj/project.pbxproj b/CotEditor.xcodeproj/project.pbxproj
-index 0cb3566ac..d2ca4e68e 100644
+index 1ffdc2cb7..10dfea7bc 100644
 --- a/CotEditor.xcodeproj/project.pbxproj
 +++ b/CotEditor.xcodeproj/project.pbxproj
 @@ -73,6 +73,7 @@
@@ -3098,7 +3098,7 @@ index 000000000..c237785e4
 +}
 \ No newline at end of file
 diff --git a/CotEditor/Sources/Application/AppDelegate.swift b/CotEditor/Sources/Application/AppDelegate.swift
-index f4d142f30..82b5d326c 100644
+index 79115cb61..68b08a56b 100644
 --- a/CotEditor/Sources/Application/AppDelegate.swift
 +++ b/CotEditor/Sources/Application/AppDelegate.swift
 @@ -165,6 +165,8 @@ extension Logger {
@@ -3120,7 +3120,7 @@ index f4d142f30..82b5d326c 100644
          
          if self.needsRelaunch {
 diff --git a/CotEditor/Sources/Document Window/Inspector/DocumentInspectorView.swift b/CotEditor/Sources/Document Window/Inspector/DocumentInspectorView.swift
-index c422cac5f..0a79eabaa 100644
+index 8a37b465a..b046661ed 100644
 --- a/CotEditor/Sources/Document Window/Inspector/DocumentInspectorView.swift	
 +++ b/CotEditor/Sources/Document Window/Inspector/DocumentInspectorView.swift	
 @@ -142,6 +142,10 @@ struct DocumentInspectorView: View, HostedPaneView {
@@ -3147,7 +3147,7 @@ index 48e0ff9f6..21293cbea 100644
      }
  }
 diff --git a/CotEditor/Sources/Document/Document.swift b/CotEditor/Sources/Document/Document.swift
-index 1be49ec0c..42bcc3df6 100644
+index c04e5eefe..8f3cda5ae 100644
 --- a/CotEditor/Sources/Document/Document.swift
 +++ b/CotEditor/Sources/Document/Document.swift
 @@ -42,7 +42,7 @@ import URLUtils
@@ -3279,7 +3279,7 @@ index 1be49ec0c..42bcc3df6 100644
          var attributes: [String: any Sendable] = [:]
          
 diff --git a/CotEditor/Sources/Document/DocumentController.swift b/CotEditor/Sources/Document/DocumentController.swift
-index d74bf1bcc..a1f46fbce 100644
+index 944d2ae05..8877a4de7 100644
 --- a/CotEditor/Sources/Document/DocumentController.swift
 +++ b/CotEditor/Sources/Document/DocumentController.swift
 @@ -265,8 +265,11 @@ protocol AdditionalDocumentPreparing: NSDocument {
@@ -6881,7 +6881,7 @@ index 000000000..fc554bbe5
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteFileBrowserViewController.swift b/CotEditor/Sources/Remote/RemoteFileBrowserViewController.swift
 new file mode 100644
-index 000000000..8424b423a
+index 000000000..4ef93fe83
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteFileBrowserViewController.swift
 @@ -0,0 +1,1652 @@
@@ -7060,10 +7060,10 @@ index 000000000..8424b423a
 +
 +        let addMenu = NSMenu()
 +        addMenu.items = [
-+            NSMenuItem(title: String(localized: "New File", table: "Document", comment: "menu item label"),
++            NSMenuItem(title: String(localized: "New File", table: "Document", comment: "noun; menu item"),
 +                       systemImage: "document.badge.plus",
 +                       action: #selector(addFile), keyEquivalent: ""),
-+            NSMenuItem(title: String(localized: "New Folder", table: "Document", comment: "menu item label"),
++            NSMenuItem(title: String(localized: "New Folder", table: "Document", comment: "noun; menu item"),
 +                       systemImage: "folder.badge.plus",
 +                       action: #selector(addFolder), keyEquivalent: ""),
 +        ]
@@ -7129,10 +7129,10 @@ index 000000000..8424b423a
 +                       systemImage: "trash",
 +                       action: #selector(deleteClicked), keyEquivalent: ""),
 +            .separator(),
-+            NSMenuItem(title: String(localized: "New File", table: "Document", comment: "menu item label"),
++            NSMenuItem(title: String(localized: "New File", table: "Document", comment: "noun; menu item"),
 +                       systemImage: "document.badge.plus",
 +                       action: #selector(addFile), keyEquivalent: ""),
-+            NSMenuItem(title: String(localized: "New Folder", table: "Document", comment: "menu item label"),
++            NSMenuItem(title: String(localized: "New Folder", table: "Document", comment: "noun; menu item"),
 +                       systemImage: "folder.badge.plus",
 +                       action: #selector(addFolder), keyEquivalent: ""),
 +            .separator(),

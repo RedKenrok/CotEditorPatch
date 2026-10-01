@@ -2645,7 +2645,7 @@ index 000000000..a10d6c4dc
 +}
 diff --git a/Tests/Sources/Models/RemoteDocumentTests.swift b/Tests/Sources/Models/RemoteDocumentTests.swift
 new file mode 100644
-index 000000000..3786cac01
+index 000000000..91d164a56
 --- /dev/null
 +++ b/Tests/Sources/Models/RemoteDocumentTests.swift
 @@ -0,0 +1,430 @@
@@ -2974,7 +2974,7 @@ index 000000000..3786cac01
 +
 +        let gate = FakeGate()
 +        let operation = Task { await RemoteProgressSheet.run(title: "Slow", window: window) { await gate.wait() } }
-+        try await waitUntil(timeout: .seconds(5)) { window.attachedSheet != nil }
++        try await waitUntil { window.attachedSheet != nil }
 +
 +        // A question takes its place, and the sheet comes back after it.
 +        let concealed = RemoteProgressSheet.conceal(on: window)

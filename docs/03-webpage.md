@@ -100,6 +100,7 @@ The new strings are in `CotEditor/Localizables/WebPages.xcstrings`, in English o
 
 Environment: Xcode 27.0 (27A266a), macOS 27.0 (Darwin 27.0.0) on arm64, locale `en_NL`.
 
+- **Focused tests.** `scripts/verify-patches.sh --workspace .work/CotEditor --test` passed 155 tests in 8 suites after patches 1 to 3.
 - **Export and application.** `scripts/export-patches.sh` wrote patches 1 to 3 from the workspace, and its verification applied every prefix to fresh clones: patch 3 is refused on plain upstream and on upstream with patch 1, and applies after patches 1 and 2. [Patch 4](04-remote.md) was then rebased onto this patch; its document has the results.
 - **Focused tests per prefix** (`scripts/verify-patches.sh --workspace .work/CotEditor --test`, fresh clones): 58 tests in 3 suites after patch 1, 110 in 6 after patches 1 and 2, and 147 in 8 after patches 1 to 3, all passed.
 - **Full test plan** (`scripts/build.sh --workspace --through webpage --test-all`): 287 tests in 43 suites passed.

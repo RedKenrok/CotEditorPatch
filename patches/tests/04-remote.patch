@@ -479,10 +479,10 @@ index 000000000..4aea7be82
 +}
 diff --git a/Tests/Sources/Models/DirectoryTabTests+RemoteFolders.swift b/Tests/Sources/Models/DirectoryTabTests+RemoteFolders.swift
 new file mode 100644
-index 000000000..5d41321a2
+index 000000000..c990a369a
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+RemoteFolders.swift
-@@ -0,0 +1,790 @@
+@@ -0,0 +1,797 @@
 +//
 +//  DirectoryTabTests+RemoteFolders.swift
 +//
@@ -557,10 +557,9 @@ index 000000000..5d41321a2
 +        defer { TerminalSession.defaultEngineFactory = originalFactory }
 +
 +        try await self.withRemoteFolder { session, directory, bed in
-+            #expect(directory.validateUserInterfaceItem(NSMenuItem(title: "", action: #selector(DirectoryDocument.newTerminalTab(_:)), keyEquivalent: "")))
-+            #expect(directory.openTerminalTab() == nil, "no terminal starts in some local folder instead")
++            #expect(directory.validateUserInterfaceItem(NSMenuItem(title: "", action: #selector(DirectoryDocument.newRootTerminalTab(_:)), keyEquivalent: "")))
 +
-+            await directory.requestTerminalTab()
++            await directory.requestRootTerminalTab()
 +            let terminal = try #require(directory.activeTerminalSession)
 +            let configuration = try #require(engines.made.first?.configurations.first)
 +            #expect(configuration.executable == "/usr/bin/ssh", "the shell runs on the server, never on this Mac")
@@ -578,9 +577,17 @@ index 000000000..5d41321a2
 +            let tabBar = try #require(directory.windowContentViewController?.makeTabBar(for: directory))
 +            let titles = tabBar.addMenuItems.map(\.title)
 +            #expect(titles.contains("New File"), "the root creates new files on the server")
-+            #expect(titles.contains("Open Remote File…"))
-+            #expect(titles.contains("Open Remote Folder…"))
++            #expect(titles.contains("Remote File…"))
++            #expect(!titles.contains("Remote Folder…"), "remote folders open from the File menu, in windows of their own")
 +            #expect(tabBar.addMenuItems.first { $0.title == "New Shell" }?.isEnabled == true)
++            #expect(tabBar.addMenuItems.first { $0.title == "Remote Shell" }?.isEnabled == true)
++
++            // New Shell starts on this Mac, in the home folder, without connecting.
++            let local = try #require(directory.openTerminalTab())
++            #expect(local.launcher == nil)
++            #expect(local.startingDirectory == FileManager.default.homeDirectoryForCurrentUser)
++            #expect(engines.made.last?.configurations.first?.executable != "/usr/bin/ssh")
++            directory.removeTabItem(local)
 +            #expect(tabBar.addMenuItems.first { $0.title == "New Webpage" }?.isEnabled == true)
 +
 +            // Webpages need nothing of the folder.

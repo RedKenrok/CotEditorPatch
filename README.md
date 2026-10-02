@@ -13,7 +13,7 @@ CotEditorPatch is not a fork. The repository holds upstream CotEditor as a submo
 - Files you open from the folder open in tabs. The tabs keep each file's scroll position, selection and split editors.
 - The **+** button creates a new file next to the one you are looking at.
 - Drag tabs to reorder them, or drag one out of the strip (or choose **Move to New Window** from its context menu) to give the file a window of its own, with its unsaved changes and undo history.
-- ⌘W closes the selected tab, and File > **Close Window** (⇧⌘W) closes the window. Window > **Show Previous Tab** (⌘⇧[) and **Show Next Tab** (⌘⇧]), and ⌘1 to ⌘9, switch tabs.
+- Point at a tab to close it with the × that takes the place of its icon. ⌘W closes the selected tab, and File > **Close Window** (⇧⌘W) closes the window. Window > **Show Previous Tab** (⌘⇧[) and **Show Next Tab** (⌘⇧]), and ⌘1 to ⌘9, switch tabs.
 - Closing a tab or window asks about unsaved changes, as CotEditor always does.
 - Your tabs come back when you relaunch.
 
@@ -21,8 +21,9 @@ CotEditorPatch is not a fork. The repository holds upstream CotEditor as a submo
 
 - File > **New Shell Tab**, **New Shell** in the **+** menu, or **Open Shell Here** in the file browser opens your login shell in the folder.
 - Shells and files share one row of tabs and the same tab commands. Shell tabs can be renamed.
-- ⌥← and ⌥→ move the cursor by a word, and ⌘← and ⌘→ to the start and end of the line, as in Terminal.
+- ⌥← and ⌥→ move the cursor by a word, and ⌘← and ⌘→ to the start and end of the line. ⌥⌫ and ⌘⌫ delete the word or the line before the cursor, and ⌥⌦ and ⌘⌦ the word or the line after it. This works at the shell's prompt and in full-screen programs alike, as iTerm's natural text editing does.
 - A **Shell** settings pane picks the colors: the editor's theme (the default) or any other CotEditor theme, with program colors matched to it.
+- Programs in a shell can show macOS notifications with the OSC 777 escape sequence, such as a coding agent saying it is ready for input; the pi coding agent's `notify` extension uses it automatically. A notification shows only while you aren't looking at that shell, and clicking it brings the tab forward. The **Shell** settings pane can turn them off.
 - Closing a running shell, its window, or the app asks first. A shell that exits closes its tab.
 - After a relaunch, shells come back as placeholders that start a new session when you ask. Output and running programs are not restored.
 
@@ -39,7 +40,7 @@ CotEditorPatch is not a fork. The repository holds upstream CotEditor as a submo
 
 **Remote files** (patch 4, only in the `CotEditor-Remote` build, which also has shell and webpage tabs).
 
-- File > **Open Remote File…**, or **Open Remote File…** in the **+** menu, opens a file on an SSH server: pick a saved connection or a host from your SSH configuration (`~/.ssh/config`, whose user and port are then used), or type a host, optionally with a user and port, and give the file's absolute path. The sheet shows what the host connects to. Recent paths are remembered per connection.
+- File > **Open Remote File…**, or **Remote File…** in the **+** menu, opens a file on an SSH server: pick a saved connection or a host from your SSH configuration (`~/.ssh/config`, whose user and port are then used), or type a host, optionally with a user and port, and give the file's absolute path. The sheet shows what the host connects to. Recent paths are remembered per connection.
 - The file opens in a tab next to your local files (or in a window of its own if file tabs are off). The tab looks like any file's; its tooltip and the inspector show `user@host:/path`.
 - **Save** first checks that the file on the server is still the version you started from, then uploads a copy, checks it, and swaps it in. If the file cannot be replaced safely, for example because it belongs to another user, CotEditor asks once whether it may rewrite it in place.
 - If someone else changed the file, nothing is overwritten: you can review the server's version, save yours under another path (**Save As Remote…**), or replace the version you reviewed. **Save a Local Copy…** and **Revert to Remote Version** are in the File menu.
@@ -53,7 +54,7 @@ CotEditorPatch is not a fork. The repository holds upstream CotEditor as a submo
 
 **Remote folders** (patch 4, in the `CotEditor-Remote` build).
 
-- File > **Open Remote Folder…** (also in the **+** menu) opens a folder on an SSH server in a window of its own: pick a connection, then type the folder's path, leave it empty for the server's starting folder, or choose **Browse…** to find it, starting from where you were last time or from the server's starting folder. File > **Open Recent Remote Folder** reopens one.
+- File > **Open Remote Folder…** opens a folder on an SSH server in a window of its own: pick a connection, then type the folder's path, leave it empty for the server's starting folder, or choose **Browse…** to find it, starting from where you were last time or from the server's starting folder. File > **Open Recent Remote Folder** reopens one.
 - The sidebar shows the folder's tree. Folders are listed as you expand them, and a large one shows its first items while the rest arrive. Click a file to open it in a tab; it saves like any remote file. The arrow keys move through the tree without opening files, and Return opens the selected one.
 - While the window shows, it lists its open folders again every 30 seconds, so that changes by others appear; SFTP cannot watch a folder. **Refresh** in the sidebar does it at once. Neither ever changes a file you are editing. The context menu has **Refresh Folder**, **Copy Remote Location**, **Open Folder in New Window** and **Show Hidden Files**.
 - The filter below the tree works as in a local folder window: it finds names in the whole folder, listing the folders that were not listed yet, up to the window's limits. Links are not followed.
@@ -62,7 +63,7 @@ CotEditorPatch is not a fork. The repository holds upstream CotEditor as a submo
 - Each folder window uses one more SSH connection to the server, for browsing, so with an agent that confirms every use, such as a hardware key, opening a folder can ask once more than opening a file.
 - **New File** and **New Folder** (from the **+** button below the tree, the context menu, or New File in the tab strip's **+** menu), **Rename** and **Delete…** (in the context menu, or the Delete key) work as in a local folder window, and you move an item by dragging it onto a folder. Deleting is permanent, since a server has no Trash, and a folder goes with everything in it. A file you have open follows when it is renamed or moved, and closes when it is deleted; a file with unsaved changes, or being saved, must be saved or closed first.
 - Drag files and folders from the Finder onto a folder to upload them, and drag a file to the Finder to download it. Names that are taken get a number; nothing on the server is replaced. Links are not uploaded, and files up to 16 MiB are.
-- **New Shell** in a remote folder window opens a shell on the server, in the folder, through the same SSH connection settings. A session that fails keeps its tab, so you can read why and start it again. Remote shells are not restored after a relaunch.
+- **Remote Shell** in the **+** menu, or File > **New Remote Shell Tab**, opens a shell on the server, in the folder, through the same SSH connection settings. **New Shell** still opens a shell on this Mac, in your home folder. A session that fails keeps its tab, so you can read why and start it again. Remote shells are not restored after a relaunch.
 - The window does not copy items on the server. Very large folders are listed up to 10,000 entries.
 
 ## The four apps

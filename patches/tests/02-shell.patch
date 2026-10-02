@@ -1,9 +1,9 @@
 diff --git a/Tests/Sources/Models/DirectoryTabTests+Terminal.swift b/Tests/Sources/Models/DirectoryTabTests+Terminal.swift
 new file mode 100644
-index 000000000..5257cbdff
+index 000000000..9e26d5b8b
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+Terminal.swift
-@@ -0,0 +1,761 @@
+@@ -0,0 +1,869 @@
 +//
 +//  DirectoryTabTests+Terminal.swift
 +//  Tests
@@ -37,7 +37,7 @@ index 000000000..5257cbdff
 +/// Terminal tabs in directory windows, with fake engines and scripted prompts.
 +///
 +/// These are part of the serialized `DirectoryTabTests` suite: they change the same global
-+/// preference, and also the global engine factory and prompts.
++/// preference, and also the global engine factory, prompts and notifier.
 +extension DirectoryTabTests {
 +
 +    // MARK: Ordering and Selection
@@ -258,20 +258,27 @@ index 000000000..5257cbdff
 +
 +    // MARK: Folders Elsewhere
 +
-+    @Test(.timeLimit(.minutes(1))) func aWindowWithoutALocalFolderStartsNoTerminal() async throws {
++    @Test(.timeLimit(.minutes(1))) func aWindowWithoutALocalFolderStartsLocalTerminalsInTheHomeFolder() async throws {
++
++        let engines = FakeTerminalEngines()
++        let originalFactory = TerminalSession.defaultEngineFactory
++        TerminalSession.defaultEngineFactory = engines.make
++        defer { TerminalSession.defaultEngineFactory = originalFactory }
 +
 +        try await self.withRootDirectory { directory, _ in
-+            let item = NSMenuItem(title: "", action: #selector(DirectoryDocument.newTerminalTab(_:)), keyEquivalent: "")
-+            #expect(!directory.validateUserInterfaceItem(item))
++            #expect(directory.validateUserInterfaceItem(NSMenuItem(title: "", action: #selector(DirectoryDocument.newTerminalTab(_:)), keyEquivalent: "")))
++            #expect(!directory.validateUserInterfaceItem(NSMenuItem(title: "", action: #selector(DirectoryDocument.newRootTerminalTab(_:)), keyEquivalent: "")),
++                    "the root runs no terminals of its own")
++            #expect(directory.newTerminalMenuItems.map(\.title) == ["New Shell"])
 +
-+            UserDefaults.standard[.usesDirectoryFileTabs] = false
 +            await directory.requestTerminalTab()
-+            #expect(!UserDefaults.standard[.usesDirectoryFileTabs], "it does not even offer to turn tabs on")
-+            UserDefaults.standard[.usesDirectoryFileTabs] = true
-+
-+            #expect(directory.openTerminalTab() == nil)
-+            #expect(directory.tabItems.isEmpty)
-+            #expect(directory.newTerminalMenuItem.isEnabled == false)
++            let session = try #require(directory.activeTerminalSession)
++            let home = FileManager.default.homeDirectoryForCurrentUser
++            #expect(session.startingDirectory == home)
++            #expect(session.launcher == nil)
++            #expect(session.tabToolTip.contains(home.path(percentEncoded: false)), "the tooltip says where the shell started")
++            #expect(engines.made.count == 1)
++            directory.removeTabItem(session)
 +        }
 +    }
 +
@@ -294,11 +301,11 @@ index 000000000..5257cbdff
 +            UserDefaults.standard.set(original, forKey: key)
 +        }
 +
-+        #expect(directory.canOpenTerminals)
 +        #expect(directory.validateUserInterfaceItem(NSMenuItem(title: "", action: #selector(DirectoryDocument.newTerminalTab(_:)), keyEquivalent: "")))
-+        #expect(directory.newTerminalMenuItem.isEnabled)
++        #expect(directory.validateUserInterfaceItem(NSMenuItem(title: "", action: #selector(DirectoryDocument.newRootTerminalTab(_:)), keyEquivalent: "")))
++        #expect(directory.newTerminalMenuItems.map(\.title) == ["New Shell", "Elsewhere Shell"], "both kinds of shell are offered")
 +
-+        await directory.requestTerminalTab()
++        await directory.requestRootTerminalTab()
 +        let session = try #require(directory.activeTerminalSession)
 +        let engine = try #require(engines.made.first)
 +        #expect(engine.configurations.first?.executable == "/usr/bin/true", "the launcher decides what runs")
@@ -321,9 +328,17 @@ index 000000000..5257cbdff
 +
 +        // A root that cannot start a terminal opens no tab, and no local shell.
 +        root.error = CocoaError(.featureUnsupported)
-+        await directory.requestTerminalTab()
++        await directory.requestRootTerminalTab()
 +        #expect(directory.tabItems.isEmpty)
 +        #expect(engines.made.count == 2)
++
++        // New Shell starts on this Mac without asking the root.
++        await directory.requestTerminalTab()
++        let local = try #require(directory.activeTerminalSession)
++        #expect(local.launcher == nil)
++        #expect(local.startingDirectory == FileManager.default.homeDirectoryForCurrentUser)
++        #expect(root.launchCount == 2)
++        directory.removeTabItem(local)
 +    }
 +
 +
@@ -556,6 +571,70 @@ index 000000000..5257cbdff
 +    }
 +
 +
++    // MARK: Notifications
++
++    @Test(.timeLimit(.minutes(1))) func terminalNotificationsShowOnlyWhileTheTerminalIsNotInFront() async throws {
++
++        try await self.withTerminals(makesWindow: true) { directory, urls, engines, _ in
++            let notifier = try #require(TerminalNotifications.current as? RecordingTerminalNotifier)
++            let terminal = try #require(directory.openTerminalTab())
++            let engine = try #require(engines.made.first)
++            let notification = TerminalNotification(title: "Pi: project", body: "Ready for input")
++
++            // With a file in front, the terminal is out of sight whether or not the app is active.
++            #expect(await directory.openDocument(at: urls[0]))
++            engine.notify(notification)
++            #expect(notifier.posts.count == 1)
++            #expect(notifier.posts.last?.notification == notification)
++            #expect(notifier.posts.last?.session === terminal)
++            #expect(notifier.posts.last?.directory === directory)
++
++            directory.selectTerminal(terminal)
++            directory.postTerminalNotification(notification, from: terminal, appIsActive: true)
++            #expect(notifier.posts.count == 1, "the user is looking at the terminal already")
++
++            directory.postTerminalNotification(notification, from: terminal, appIsActive: false)
++            #expect(notifier.posts.count == 2, "the terminal is in front, but in an app the user is not using")
++
++            let key = DefaultKeys.terminalPostsNotifications.rawValue
++            let original = UserDefaults.standard.object(forKey: key)
++            defer { UserDefaults.standard.set(original, forKey: key) }
++            UserDefaults.standard[.terminalPostsNotifications] = false
++            directory.postTerminalNotification(notification, from: terminal, appIsActive: false)
++            #expect(notifier.posts.count == 2, "the user turned notifications from programs off")
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func closedTerminalTabsNoLongerNotify() async throws {
++
++        try await self.withTerminals { directory, _, engines, _ in
++            let notifier = try #require(TerminalNotifications.current as? RecordingTerminalNotifier)
++            let terminal = try #require(directory.openTerminalTab())
++            let engine = try #require(engines.made.first)
++
++            directory.removeTabItem(terminal)
++            engine.notify(TerminalNotification(title: "late", body: ""))
++            #expect(notifier.posts.isEmpty)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func clickingATerminalNotificationBringsItsTabForward() async throws {
++
++        try await self.withTerminals(makesWindow: true, registersDocument: true) { directory, urls, _, _ in
++            let terminal = try #require(directory.openTerminalTab())
++            #expect(await directory.openDocument(at: urls[0]))
++            #expect(directory.activeTerminalSession == nil)
++
++            #expect(TerminalNotifications.reveal(sessionID: terminal.id, activatesApp: false))
++            #expect(directory.activeTerminalSession === terminal)
++
++            #expect(!TerminalNotifications.reveal(sessionID: UUID(), activatesApp: false), "a notification can outlive its tab")
++        }
++    }
++
++
 +    // MARK: Restoration
 +
 +    @Test(.timeLimit(.minutes(1))) func restorationShowsPlaceholdersWithoutStartingShells() async throws {
@@ -649,11 +728,15 @@ index 000000000..5257cbdff
 +        let prompts = ScriptedTerminalPrompts()
 +        let originalFactory = TerminalSession.defaultEngineFactory
 +        let originalPrompts = TerminalPrompts.current
++        let originalNotifier = TerminalNotifications.current
 +        TerminalSession.defaultEngineFactory = engines.make
 +        TerminalPrompts.current = prompts
++        // Tests must never reach Notification Center, which would ask the user for permission.
++        TerminalNotifications.current = RecordingTerminalNotifier()
 +        defer {
 +            TerminalSession.defaultEngineFactory = originalFactory
 +            TerminalPrompts.current = originalPrompts
++            TerminalNotifications.current = originalNotifier
 +        }
 +
 +        try await self.withDirectory(makesWindow: makesWindow) { directory, urls in
@@ -730,6 +813,27 @@ index 000000000..5257cbdff
 +}
 +
 +
++/// Records the notifications terminals post instead of showing them.
++@MainActor final class RecordingTerminalNotifier: TerminalNotifying {
++
++    struct Post {
++
++        var notification: TerminalNotification
++        var session: TerminalSession
++        var directory: DirectoryDocument
++    }
++
++
++    private(set) var posts: [Post] = []
++
++
++    func post(_ notification: TerminalNotification, from session: TerminalSession, in directory: DirectoryDocument) {
++
++        self.posts.append(Post(notification: notification, session: session, directory: directory))
++    }
++}
++
++
 +/// A root whose terminals run elsewhere, through a launcher that runs a fixed program.
 +@MainActor final class FakeTerminalRoot: DirectoryRoot, TerminalLaunchProviding {
 +
@@ -740,6 +844,10 @@ index 000000000..5257cbdff
 +    var displayName: String  { "Elsewhere" }
 +
 +    var subtitle: String  { "elsewhere:/folder" }
++
++    var terminalMenuItemTitle: String  { "Elsewhere Shell" }
++
++    var terminalMenuItemSystemImage: String  { "terminal" }
 +
 +
 +    func makeSidebarViewController(for directory: DirectoryDocument) -> NSViewController {
@@ -926,10 +1034,10 @@ index 000000000..cd5ee4363
 +}
 diff --git a/Tests/Sources/Models/TerminalPTYTests.swift b/Tests/Sources/Models/TerminalPTYTests.swift
 new file mode 100644
-index 000000000..48a77dd6c
+index 000000000..2e571f520
 --- /dev/null
 +++ b/Tests/Sources/Models/TerminalPTYTests.swift
-@@ -0,0 +1,486 @@
+@@ -0,0 +1,543 @@
 +//
 +//  TerminalPTYTests.swift
 +//  Tests
@@ -956,6 +1064,7 @@ index 000000000..48a77dd6c
 +
 +import AppKit
 +import Foundation
++import SwiftTerm
 +import Testing
 +@testable import CotEditor
 +
@@ -1199,11 +1308,16 @@ index 000000000..48a77dd6c
 +    }
 +
 +
-+    @Test(.timeLimit(.minutes(1))) func arrowKeysMoveByWordAndLineAsOnTheMac() async throws {
++    @Test(.timeLimit(.minutes(1))) func editingKeysMoveAndDeleteAsOnTheMac() async throws {
 +        
-+        // `\033[?1h` switches the cursor keys to application mode, as full-screen programs do.
-+        for (setup, bytes) in [("", ["1b", "62", "1b", "66", "01", "05"]),
-+                               (#"printf '\033[?1h'; "#, ["1b", "62", "1b", "66", "1b", "4f", "48", "1b", "4f", "46"])]
++        // ⌥←, ⌥→, ⌘←, ⌘→, ⌥⌫, ⌘⌫, ⌥⌦ and ⌘⌦, in this order.
++        let common = ["1b", "62", "1b", "66"]
++        let deletions = ["17", "15", "1b", "64", "0b"]
++        // `\033[?1h` switches the cursor keys to application mode, as full-screen programs do, and
++        // `\033[>1u` asks for the kitty keyboard protocol, as many newer ones do.
++        for (setup, bytes, usesKittyProtocol) in [("", common + ["01", "05"] + deletions, false),
++                                                  (#"printf '\033[?1h'; "#, common + ["1b", "4f", "48", "1b", "4f", "46"] + deletions, false),
++                                                  (#"printf '\033[>1u'; "#, common + ["01", "05"] + deletions, true)]
 +        {
 +            let engine = SwiftTermEngine()
 +            defer { engine.shutDown() }
@@ -1211,27 +1325,55 @@ index 000000000..48a77dd6c
 +            engine.onExit = { _ in didExit = true }
 +            let window = Self.makeWindow(showing: engine)
 +            defer { window.close() }
++            let hostView = try #require(engine.focusView as? TerminalHostView)
 +            
 +            try engine.start(self.shell("stty raw -echo; \(setup)echo READY; head -c \(bytes.count) | od -An -tx1; stty sane", in: FileManager.default.temporaryDirectory))
 +            try await self.wait { engine.bufferText.contains("READY") }
-+            #expect(window.makeFirstResponder(engine.focusView))
++            #expect(hostView.getTerminal().keyboardEnhancementFlags.isEmpty == !usesKittyProtocol)
++            #expect(window.makeFirstResponder(hostView))
 +            
-+            // Option-arrows arrive as key events, Command-arrows as key equivalents first.
-+            let arrow = { (modifiers: NSEvent.ModifierFlags, key: Int, keyCode: UInt16) throws -> NSEvent in
++            let key = { (modifiers: NSEvent.ModifierFlags, key: Int, keyCode: UInt16) throws -> NSEvent in
 +                let character = String(UnicodeScalar(UInt16(key))!)
-+                return try #require(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: modifiers.union([.numericPad, .function]),
++                let flags = (key == 0x7F) ? modifiers : modifiers.union(key == NSDeleteFunctionKey ? [.function] : [.numericPad, .function])
++                return try #require(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: flags,
 +                                                     timestamp: 0, windowNumber: window.windowNumber, context: nil,
 +                                                     characters: character, charactersIgnoringModifiers: character, isARepeat: false, keyCode: keyCode))
 +            }
-+            engine.focusView.keyDown(with: try arrow(.option, NSLeftArrowFunctionKey, 123))
-+            engine.focusView.keyDown(with: try arrow(.option, NSRightArrowFunctionKey, 124))
-+            #expect(window.performKeyEquivalent(with: try arrow(.command, NSLeftArrowFunctionKey, 123)))
-+            #expect(window.performKeyEquivalent(with: try arrow(.command, NSRightArrowFunctionKey, 124)))
++            // Delivered the way the app's key event monitor receives them, ahead of the menu and SwiftTerm.
++            for (modifiers, character, keyCode) in [(NSEvent.ModifierFlags.option, NSLeftArrowFunctionKey, UInt16(123)),
++                                                    (.option, NSRightArrowFunctionKey, 124),
++                                                    (.command, NSLeftArrowFunctionKey, 123),
++                                                    (.command, NSRightArrowFunctionKey, 124),
++                                                    (.option, 0x7F, 51),
++                                                    (.command, 0x7F, 51),
++                                                    (.option, NSDeleteFunctionKey, 117),
++                                                    (.command, NSDeleteFunctionKey, 117)]
++            {
++                #expect(TerminalHostView.handleKeyDown(try key(modifiers, character, keyCode)) == nil)
++            }
++            #expect(TerminalHostView.handleKeyDown(try key([.shift, .option], NSLeftArrowFunctionKey, 123)) != nil,
++                    "with Shift added, the key stays with SwiftTerm")
 +            
 +            // The system's od separates bytes with two spaces.
 +            let expected = bytes.joined(separator: "  ")
 +            try await self.wait { didExit && engine.bufferText.contains(expected) }
 +        }
++    }
++    
++    
++    @Test(.timeLimit(.minutes(1))) func editingKeysStayWithOtherViews() throws {
++        
++        let engine = SwiftTermEngine()
++        defer { engine.shutDown() }
++        let window = Self.makeWindow(showing: engine)
++        defer { window.close() }
++        #expect(window.makeFirstResponder(nil))
++        
++        let character = String(UnicodeScalar(UInt16(NSLeftArrowFunctionKey))!)
++        let event = try #require(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [.command, .numericPad, .function],
++                                                  timestamp: 0, windowNumber: window.windowNumber, context: nil,
++                                                  characters: character, charactersIgnoringModifiers: character, isARepeat: false, keyCode: 123))
++        #expect(TerminalHostView.handleKeyDown(event) != nil, "a terminal that is not the first responder leaves the key alone")
 +    }
 +    
 +    
@@ -1318,6 +1460,29 @@ index 000000000..48a77dd6c
 +        let text = engine.bufferText
 +        #expect(!text.contains("5   2"), "no clipboard reply reached the program")
 +        #expect(!text.contains("c   2   V   j"), "the clipboard contents never reach the program")
++    }
++    
++    
++    @Test(.timeLimit(.minutes(1))) func notificationSequencesReachTheEngine() async throws {
++
++        let engine = SwiftTermEngine()
++        defer { engine.shutDown() }
++        var didExit = false
++        var notifications: [TerminalNotification] = []
++        engine.onExit = { _ in didExit = true }
++        engine.onNotification = { notifications.append($0) }
++
++        // The first sequence is what the pi coding agent's notify extension sends; the second is not a
++        // notification. The third ends with ST instead of BEL.
++        try engine.start(self.shell("printf '\\033]777;notify;Pi: project;Thread (0123abcd): Ready for input\\007'; "
++                                    + "printf '\\033]777;other;x\\007'; printf '\\033]777;notify;Second;Body\\033\\\\'; echo DONE",
++                                    in: FileManager.default.temporaryDirectory))
++        try await self.wait { didExit && engine.bufferText.contains("DONE") }
++        #expect(notifications == [
++            TerminalNotification(title: "Pi: project", body: "Thread (0123abcd): Ready for input"),
++            TerminalNotification(title: "Second", body: "Body"),
++        ])
++        #expect(!engine.bufferText.contains("notify"), "the sequences are not shown as text")
 +    }
 +    
 +    
@@ -1418,10 +1583,10 @@ index 000000000..48a77dd6c
 +}
 diff --git a/Tests/Sources/Models/TerminalSessionTests.swift b/Tests/Sources/Models/TerminalSessionTests.swift
 new file mode 100644
-index 000000000..aad9aadcf
+index 000000000..0d18c4723
 --- /dev/null
 +++ b/Tests/Sources/Models/TerminalSessionTests.swift
-@@ -0,0 +1,383 @@
+@@ -0,0 +1,438 @@
 +//
 +//  TerminalSessionTests.swift
 +//  Tests
@@ -1625,7 +1790,7 @@ index 000000000..aad9aadcf
 +        #expect(environment.contains("SSH_AUTH_SOCK=/tmp/agent"))
 +        #expect(environment.contains("SHELL=/bin/zsh"))
 +        #expect(environment.contains("TERM=xterm-256color"))
-+        #expect(environment.contains("TERM_PROGRAM=CotEditor"))
++        #expect(environment.contains("TERM_PROGRAM=CotEditorPatch"))
 +        #expect(environment.contains("LANG=de_NL.UTF-8"))
 +        #expect(!environment.contains { $0.hasPrefix("DYLD_") || $0.hasPrefix("XPC_") || $0.hasPrefix("OS_ACTIVITY") })
 +
@@ -1677,6 +1842,53 @@ index 000000000..aad9aadcf
 +    }
 +    
 +    
++    // MARK: Notifications
++
++    @Test func decodesNotificationSequences() throws {
++
++        let decode = { (payload: String) in TerminalNotification(osc777: ArraySlice(Array(payload.utf8))) }
++
++        #expect(decode("notify;Pi: project;Thread (0123abcd): Ready for input")
++                == TerminalNotification(title: "Pi: project", body: "Thread (0123abcd): Ready for input"))
++        #expect(decode("notify;Build;done; 3 warnings") == TerminalNotification(title: "Build", body: "done; 3 warnings"),
++                "the body is everything after the second separator")
++        #expect(decode("notify;Title only") == TerminalNotification(title: "Title only", body: ""))
++        #expect(decode("notify;;Body only") == TerminalNotification(title: "", body: "Body only"))
++        #expect(decode("notify;;") == nil, "a notification without text is ignored")
++        #expect(decode("notify") == nil)
++        #expect(decode("other;Title;Body") == nil, "OSC 777 commands other than notify are ignored")
++        #expect(TerminalNotification(osc777: ArraySlice(Array("notify;Title;".utf8) + [0xFF])) == nil, "text that is not UTF-8 is ignored")
++
++        // Output may hide controls, line breaks and bidirectional overrides in the text.
++        let disguised = try #require(decode("notify;Safe\u{202E}txt.exe;one\ntwo\u{7}\tthree"))
++        #expect(disguised == TerminalNotification(title: "Safetxt.exe", body: "one two three"))
++
++        let long = try #require(decode("notify;\(String(repeating: "t", count: 500));\(String(repeating: "b", count: 1000))"))
++        #expect(long.title.count == TerminalNotification.maximumTitleLength)
++        #expect(long.body.count == TerminalNotification.maximumBodyLength)
++    }
++
++
++    @Test func sessionForwardsNotificationsAtALimitedRate() throws {
++
++        let engines = FakeTerminalEngines()
++        let session = TerminalSession(defaultTitle: "Shell", startingDirectory: FileManager.default.temporaryDirectory, makeEngine: engines.make)
++        var received: [TerminalNotification] = []
++        session.onNotification = { received.append($0) }
++        session.start()
++        let engine = try #require(engines.made.first)
++
++        engine.notify(TerminalNotification(title: "first", body: ""))
++        engine.notify(TerminalNotification(title: "second", body: ""))
++        #expect(received.map(\.title) == ["first"], "a program printing the sequence in a loop gets one notification per interval")
++
++        engine.finish(code: 0)
++        session.start()
++        engine.notify(TerminalNotification(title: "replaced", body: ""))
++        #expect(received.map(\.title) == ["first"], "an engine that was replaced cannot notify any more")
++    }
++
++
 +    // MARK: Archive
 +
 +    @Test func archiveKeepsMixedOrderAndOnlyWhatIsNeeded() throws {
@@ -1773,6 +1985,7 @@ index 000000000..aad9aadcf
 +    var focusView: NSView { self.view }
 +    var onExit: ((TerminalExitStatus) -> Void)?
 +    var onTitleChange: ((String) -> Void)?
++    var onNotification: ((TerminalNotification) -> Void)?
 +
 +    let startError: TerminalLaunchError?
 +    private(set) var configurations: [TerminalLaunchConfiguration] = []
@@ -1803,5 +2016,12 @@ index 000000000..aad9aadcf
 +    func finish(code: Int32) {
 +
 +        self.onExit?(TerminalExitStatus(code: code))
++    }
++
++
++    /// Simulates the program asking for a notification.
++    func notify(_ notification: TerminalNotification) {
++
++        self.onNotification?(notification)
 +    }
 +}

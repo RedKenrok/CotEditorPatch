@@ -1,3 +1,0 @@
-- Remove open remote folder from new menu.
-- Don't always show the close button. Instead when the user hover overs the tab replace the file type indicator with the x button to close it. It is fine that this button will now appear at the start of the tab handle.
-- When connected to a remote folder the connection info section in the sidebar is one pixel too short. This makes it appear as if the line between sidebar and content area is off by one pixel. Add one pixel of padding below the server info.

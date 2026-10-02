@@ -555,11 +555,11 @@ index 000000000..4d43c060b
 +}
 \ No newline at end of file
 diff --git a/CotEditor/Sources/Application/AppDelegate.swift b/CotEditor/Sources/Application/AppDelegate.swift
-index a53b0f60d..79115cb61 100644
+index 360af83be..2e8f64979 100644
 --- a/CotEditor/Sources/Application/AppDelegate.swift
 +++ b/CotEditor/Sources/Application/AppDelegate.swift
-@@ -164,6 +164,7 @@ extension Logger {
-         DocumentWindow.addTabNavigationMenuItems(to: NSApp.mainMenu!)
+@@ -165,6 +165,7 @@ extension Logger {
+         TerminalNotifications.install()
          TerminalSettings.registerDefaults()
          TerminalMenu.install(in: NSApp.mainMenu!)
 +        WebPageMenu.install(in: NSApp.mainMenu!)
@@ -1875,10 +1875,10 @@ index 000000000..fe000a613
 +}
 diff --git a/CotEditor/Sources/WebPages/WebPageViewController.swift b/CotEditor/Sources/WebPages/WebPageViewController.swift
 new file mode 100644
-index 000000000..d1a1229d4
+index 000000000..014de8f07
 --- /dev/null
 +++ b/CotEditor/Sources/WebPages/WebPageViewController.swift
-@@ -0,0 +1,847 @@
+@@ -0,0 +1,848 @@
 +//
 +//  WebPageViewController.swift
 +//
@@ -2503,7 +2503,8 @@ index 000000000..d1a1229d4
 +        let bar = NSStackView(views: [self.backButton, self.forwardButton, self.reloadButton, self.addressField])
 +        bar.orientation = .horizontal
 +        bar.spacing = 4
-+        bar.edgeInsets = NSEdgeInsets(top: 4, left: 8, bottom: 4, right: 8)
++        // The extra space below keeps the address field from touching the page, which starts right under the bar.
++        bar.edgeInsets = NSEdgeInsets(top: 4, left: 8, bottom: 8, right: 8)
 +        bar.setAccessibilityElement(true)
 +        bar.setAccessibilityRole(.toolbar)
 +        bar.setAccessibilityLabel(String(localized: "WebPageView.navigationBar.accessibilityLabel", defaultValue: "Navigation", table: "WebPages"))

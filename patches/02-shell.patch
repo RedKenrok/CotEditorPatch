@@ -198,10 +198,10 @@ index 8c157ce98..e57439b29 100644
  </plist>
 diff --git a/CotEditor/Localizables/Terminal.xcstrings b/CotEditor/Localizables/Terminal.xcstrings
 new file mode 100644
-index 000000000..fad3a4b82
+index 000000000..b26543f4c
 --- /dev/null
 +++ b/CotEditor/Localizables/Terminal.xcstrings
-@@ -0,0 +1,578 @@
+@@ -0,0 +1,625 @@
 +{
 +  "sourceLanguage" : "en",
 +  "strings" : {
@@ -330,6 +330,18 @@ index 000000000..fad3a4b82
 +          "stringUnit" : {
 +            "state" : "new",
 +            "value" : "Rename Shell Tab…"
++          }
++        }
++      }
++    },
++    "TerminalNotification.source" : {
++      "comment" : "subtitle of a notification from a program in a terminal tab (first %@ is the tab name, second %@ the window’s folder name)",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "%1$@ in %2$@"
 +          }
 +        }
 +      }
@@ -578,6 +590,41 @@ index 000000000..fad3a4b82
 +        }
 +      }
 +    },
++    "TerminalSettings.notifications.description" : {
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Programs such as coding agents can ask for a notification when they finish, with the OSC 777 escape sequence. It appears only while you aren’t looking at that shell tab, and clicking it brings the tab forward."
++          }
++        }
++      }
++    },
++    "TerminalSettings.notifications.label" : {
++      "comment" : "label of the terminal notification setting in the settings",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Notifications:"
++          }
++        }
++      }
++    },
++    "TerminalSettings.notifications.toggle" : {
++      "comment" : "toggle letting programs in a terminal show notifications",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Show notifications from programs"
++          }
++        }
++      }
++    },
 +    "TerminalSettings.theme.description" : {
 +      "extractionState" : "extracted_with_value",
 +      "localizations" : {
@@ -782,19 +829,20 @@ index 000000000..fad3a4b82
 +}
 \ No newline at end of file
 diff --git a/CotEditor/Sources/Application/AppDelegate.swift b/CotEditor/Sources/Application/AppDelegate.swift
-index 7de3db4ac..a53b0f60d 100644
+index 7de3db4ac..360af83be 100644
 --- a/CotEditor/Sources/Application/AppDelegate.swift
 +++ b/CotEditor/Sources/Application/AppDelegate.swift
-@@ -162,6 +162,8 @@ extension Logger {
+@@ -162,6 +162,9 @@ extension Logger {
          self.prepareMainMenu()
          DocumentWindow.addCloseWindowMenuItem(to: NSApp.mainMenu!)
          DocumentWindow.addTabNavigationMenuItems(to: NSApp.mainMenu!)
++        TerminalNotifications.install()
 +        TerminalSettings.registerDefaults()
 +        TerminalMenu.install(in: NSApp.mainMenu!)
          
          #if SPARKLE
          UpdaterManager.shared.setup()
-@@ -193,8 +195,22 @@ extension Logger {
+@@ -193,8 +196,22 @@ extension Logger {
      }
      
      
@@ -1027,10 +1075,10 @@ index e1b75fb32..cd0ca03fc 100644
              case .format: FormatSettingsView()
 diff --git a/CotEditor/Sources/Terminal/SwiftTermEngine.swift b/CotEditor/Sources/Terminal/SwiftTermEngine.swift
 new file mode 100644
-index 000000000..e23f490f7
+index 000000000..143e6c407
 --- /dev/null
 +++ b/CotEditor/Sources/Terminal/SwiftTermEngine.swift
-@@ -0,0 +1,621 @@
+@@ -0,0 +1,675 @@
 +//
 +//  SwiftTermEngine.swift
 +//
@@ -1073,6 +1121,7 @@ index 000000000..e23f490f7
 +
 +    var onExit: ((TerminalExitStatus) -> Void)?
 +    var onTitleChange: ((String) -> Void)?
++    var onNotification: ((TerminalNotification) -> Void)?
 +
 +    var view: NSView { self.container }
 +
@@ -1108,11 +1157,22 @@ index 000000000..e23f490f7
 +        // so it must not be taken over as Meta.
 +        hostView.optionAsMetaKey = false
 +        hostView.applyThemeColors()
++        TerminalHostView.installEditingShortcutMonitor()
 +
 +        hostView.terminalDelegate = self.terminalPolicy
 +        hostView.processDelegate = self.processEvents
 +        self.processEvents.engine = self
 +        self.terminalPolicy.onTitleChange = { [weak self] title in self?.onTitleChange?(title) }
++
++        // SwiftTerm decodes OSC 777 notifications itself, but passes them to a delegate method that its
++        // view implements as doing nothing and does not forward, so the engine takes the sequence over.
++        // SwiftTerm feeds output to the parser on the main queue.
++        hostView.getTerminal().registerOscHandler(code: 777) { [weak self] payload in
++            MainActor.assumeIsolated {
++                guard let notification = TerminalNotification(osc777: payload) else { return }
++                self?.onNotification?(notification)
++            }
++        }
 +        
 +        // Everything that decides the terminal's theme; appearance changes arrive through the view itself.
 +        self.colorObservers = [
@@ -1154,6 +1214,7 @@ index 000000000..e23f490f7
 +
 +        self.onExit = nil
 +        self.onTitleChange = nil
++        self.onNotification = nil
 +        self.processEvents.engine = nil
 +
 +        if self.shellPID > 0, !self.hasExited {
@@ -1194,6 +1255,7 @@ index 000000000..e23f490f7
 +        self.isShutDown = true
 +        self.onExit = nil
 +        self.onTitleChange = nil
++        self.onNotification = nil
 +        self.processEvents.engine = nil
 +
 +        reaper?.hangUp()
@@ -1389,60 +1451,100 @@ index 000000000..e23f490f7
 +            return true
 +        }
 +
-+        // ⌘← and ⌘→ arrive here first, and a menu item could otherwise claim them.
-+        if self.window?.firstResponder === self, let sequence = self.lineEditingSequence(for: event) {
-+            self.send(sequence)
-+            return true
-+        }
-+
 +        return super.performKeyEquivalent(with: event)
 +    }
 +
 +
-+    override func interpretKeyEvents(_ eventArray: [NSEvent]) {
++    /// Starts handing the Mac's text editing shortcuts to whichever terminal view is the first responder.
++    ///
++    /// A key event monitor is the only place that sees these keys before both the main menu and SwiftTerm:
++    /// SwiftTerm's `keyDown(with:)` cannot be overridden, and while a program uses the kitty keyboard
++    /// protocol, it encodes the keys itself without passing them through `interpretKeyEvents(_:)`.
++    /// One monitor serves every terminal, so no view has to remove its own when it goes away.
++    static func installEditingShortcutMonitor() {
 +
-+        // SwiftTerm's `keyDown(with:)` cannot be overridden, but it passes the arrow keys with Option
-+        // or Command on to here, where AppKit would turn them into text-editing commands.
-+        if eventArray.count == 1, let sequence = self.lineEditingSequence(for: eventArray[0]) {
-+            self.send(sequence)
-+            return
++        guard Self.editingShortcutMonitor == nil else { return }
++
++        Self.editingShortcutMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
++            Self.handleKeyDown(event)
 +        }
++    }
 +
-+        super.interpretKeyEvents(eventArray)
++    private static var editingShortcutMonitor: Any?
++
++
++    /// Sends a text editing shortcut to the terminal view that is the first responder of the event's window.
++    ///
++    /// - Parameter event: A key down event.
++    /// - Returns: `nil` if a terminal handled the event, otherwise the event for AppKit to deliver.
++    static func handleKeyDown(_ event: NSEvent) -> NSEvent? {
++
++        guard
++            let view = event.window?.firstResponder as? TerminalHostView,
++            view.handleEditingShortcut(event)
++        else { return event }
++
++        return nil
 +    }
 +
 +
-+    /// The bytes for the Mac's word and line movement keys, or `nil` to leave the event to SwiftTerm.
++    /// Sends the bytes of a Mac text editing shortcut to the program.
 +    ///
-+    /// With Option not acting as Meta, SwiftTerm turns ⌥← and ⌥→ into Cocoa's word movement
-+    /// commands, which it ignores, and ⌘← and ⌘→ into line movement commands, which it sends as
-+    /// word movement. Instead, these keys send what shells expect, as Terminal and iTerm do:
-+    /// ⌥← and ⌥→ the Emacs word movement (ESC b and ESC f), ⌘← and ⌘→ the start and end of the line (⌃A and ⌃E).
++    /// - Parameter event: A key down event for this view.
++    /// - Returns: Whether the event was a text editing shortcut and has been handled.
++    private func handleEditingShortcut(_ event: NSEvent) -> Bool {
++
++        // An input method that is composing text gets the keys to move within its own text.
++        guard !self.hasMarkedText(), let sequence = self.editingSequence(for: event) else { return false }
++
++        self.send(sequence)
++        return true
++    }
++
++
++    /// The bytes for the Mac's word and line editing keys, or `nil` to leave the event to SwiftTerm.
++    ///
++    /// These keys send what shells and line editors expect, as Terminal and iTerm's natural text editing do:
++    ///
++    /// - ⌥← and ⌥→: Emacs word movement (ESC b, ESC f).
++    /// - ⌘← and ⌘→: the start and end of the line (⌃A, ⌃E).
++    /// - ⌥⌫ and ⌘⌫: delete the word or the line before the cursor (⌃W, ⌃U).
++    /// - ⌥⌦ and ⌘⌦: delete the word or the line after the cursor (ESC d, ⌃K).
++    ///
++    /// SwiftTerm would otherwise send none of these: with Option not acting as Meta, it ignores Cocoa's word
++    /// commands, sends ⌘← and ⌘→ as word movement, and under the kitty keyboard protocol sends ⌥← as a plain ←
++    /// and ⌘← as Super-←, which programs do not bind. The same bytes therefore go to every program, whatever
++    /// keyboard protocol it asked for; programs that use that protocol still read these legacy bytes, since
++    /// most terminals send nothing else.
 +    ///
 +    /// A full-screen program that switches the cursor keys to application mode, such as vim, gets
 +    /// Home and End for ⌘← and ⌘→ instead, since ⌃A means something else there (vim increments a number).
-+    /// A program that asked for the kitty keyboard protocol receives SwiftTerm's own encoding,
-+    /// which it has to understand anyway.
-+    private func lineEditingSequence(for event: NSEvent) -> [UInt8]? {
++    /// With Shift or Control added, the keys keep SwiftTerm's behavior.
++    private func editingSequence(for event: NSEvent) -> [UInt8]? {
 +
-+        let terminal = self.getTerminal()
 +        guard
 +            event.type == .keyDown,
-+            terminal.keyboardEnhancementFlags.isEmpty,
-+            let key = event.charactersIgnoringModifiers?.unicodeScalars.first.map({ Int($0.value) }),
-+            [NSLeftArrowFunctionKey, NSRightArrowFunctionKey].contains(key)
++            let key = event.charactersIgnoringModifiers?.unicodeScalars.first.map({ Int($0.value) })
 +        else { return nil }
 +
-+        let isLeft = (key == NSLeftArrowFunctionKey)
++        let isCommand: Bool
 +        switch event.modifierFlags.intersection([.shift, .control, .option, .command]) {
-+            case .option:
-+                return isLeft ? EscapeSequences.emacsBack : EscapeSequences.emacsForward
-+            case .command where terminal.applicationCursor:
-+                return isLeft ? EscapeSequences.moveHomeApp : EscapeSequences.moveEndApp
-+            case .command:
-+                return isLeft ? [0x01] : [0x05]
-+            default:
-+                return nil
++            case .option: isCommand = false
++            case .command: isCommand = true
++            default: return nil
++        }
++
++        let applicationCursor = self.getTerminal().applicationCursor
++        switch (key, isCommand) {
++            case (NSLeftArrowFunctionKey, false): return EscapeSequences.emacsBack
++            case (NSRightArrowFunctionKey, false): return EscapeSequences.emacsForward
++            case (NSLeftArrowFunctionKey, true): return applicationCursor ? EscapeSequences.moveHomeApp : [0x01]
++            case (NSRightArrowFunctionKey, true): return applicationCursor ? EscapeSequences.moveEndApp : [0x05]
++            case (0x7F, false): return [0x17]
++            case (0x7F, true): return [0x15]
++            case (NSDeleteFunctionKey, false): return [0x1B, 0x64]
++            case (NSDeleteFunctionKey, true): return [0x0B]
++            default: return nil
 +        }
 +    }
 +
@@ -1654,10 +1756,10 @@ index 000000000..e23f490f7
 +}
 diff --git a/CotEditor/Sources/Terminal/Terminal+DirectoryDocument.swift b/CotEditor/Sources/Terminal/Terminal+DirectoryDocument.swift
 new file mode 100644
-index 000000000..2c7b3293e
+index 000000000..e26b4cf2b
 --- /dev/null
 +++ b/CotEditor/Sources/Terminal/Terminal+DirectoryDocument.swift
-@@ -0,0 +1,297 @@
+@@ -0,0 +1,321 @@
 +//
 +//  Terminal+DirectoryDocument.swift
 +//
@@ -1709,33 +1811,37 @@ index 000000000..2c7b3293e
 +
 +    // MARK: Opening
 +
-+    /// Opens a terminal tab, first offering to turn file tabs on if they are off.
++    /// Opens a terminal tab on this Mac, first offering to turn file tabs on if they are off.
 +    ///
-+    /// - Parameter directory: The folder to start in, or `nil` for the directory itself.
++    /// - Parameter directory: The folder to start in, or `nil` for the directory itself
++    ///   (see `localTerminalDirectory`).
 +    func requestTerminalTab(in directory: URL? = nil) async {
 +
-+        guard !self.isClosed, directory != nil || self.canOpenTerminals else { return }
-+
-+        if !UserDefaults.standard[.usesDirectoryFileTabs] {
-+            guard await TerminalPrompts.current.confirmEnablingTabs(window: self.windowForSheet) else { return }
-+            guard !self.isClosed else { return }
-+            // Reuses the file-tab transition: the preference observer reconciles every directory window.
-+            UserDefaults.standard[.usesDirectoryFileTabs] = true
-+        }
-+
-+        // A root whose terminals run elsewhere prepares where; nothing starts in a local folder instead.
-+        if directory == nil, !self.hasLocalFolderForTerminals, let provider = self.root as? any TerminalLaunchProviding {
-+            do {
-+                let launcher = try await provider.makeTerminalLauncher(for: self)
-+                guard !self.isClosed else { return }
-+                self.openTerminalTab(launcher: launcher)
-+            } catch {
-+                self.presentErrorAsSheet(error)
-+            }
-+            return
-+        }
++        guard await self.prepareTabsForTerminal() else { return }
 +
 +        self.openTerminalTab(in: directory)
++    }
++
++
++    /// Opens a terminal tab where the window's root runs its terminals, such as on a server,
++    /// first offering to turn file tabs on if they are off.
++    ///
++    /// If the root cannot start one, the error is shown and no tab opens: a shell on this Mac in its
++    /// place could be mistaken for the one the user asked for.
++    func requestRootTerminalTab() async {
++
++        guard
++            let provider = self.root as? any TerminalLaunchProviding,
++            await self.prepareTabsForTerminal()
++        else { return }
++
++        do {
++            let launcher = try await provider.makeTerminalLauncher(for: self)
++            guard !self.isClosed else { return }
++            self.openTerminalTab(launcher: launcher)
++        } catch {
++            self.presentErrorAsSheet(error)
++        }
 +    }
 +
 +
@@ -1756,19 +1862,16 @@ index 000000000..2c7b3293e
 +    }
 +
 +
-+    /// Opens, selects and starts a terminal tab.
++    /// Opens, selects and starts a terminal tab on this Mac.
 +    ///
-+    /// - Parameter directory: The folder to start in, or `nil` for the directory itself.
++    /// - Parameter directory: The folder to start in, or `nil` for the directory itself
++    ///   (see `localTerminalDirectory`).
 +    /// - Returns: The new session, or `nil` if the window cannot have terminal tabs now.
 +    @discardableResult func openTerminalTab(in directory: URL? = nil) -> TerminalSession? {
 +
-+        guard
-+            !self.isClosed,
-+            UserDefaults.standard[.usesDirectoryFileTabs],
-+            let startingDirectory = directory ?? self.fileURL
-+        else { return nil }
++        guard !self.isClosed, UserDefaults.standard[.usesDirectoryFileTabs] else { return nil }
 +
-+        let session = TerminalSession(defaultTitle: self.nextTerminalTitle(), startingDirectory: startingDirectory)
++        let session = TerminalSession(defaultTitle: self.nextTerminalTitle(), startingDirectory: directory ?? self.localTerminalDirectory)
 +        guard self.openTabItem(session) else { return nil }
 +        session.start()
 +        self.windowContentViewController?.focusActiveTab()
@@ -1823,6 +1926,24 @@ index 000000000..2c7b3293e
 +
 +
 +    // MARK: Private Methods
++
++    /// Makes sure the window shows tabs, offering to turn file tabs on if they are off.
++    ///
++    /// - Returns: `true` if a terminal tab can open now.
++    private func prepareTabsForTerminal() async -> Bool {
++
++        guard !self.isClosed else { return false }
++
++        if !UserDefaults.standard[.usesDirectoryFileTabs] {
++            guard await TerminalPrompts.current.confirmEnablingTabs(window: self.windowForSheet) else { return false }
++            guard !self.isClosed else { return false }
++            // Reuses the file-tab transition: the preference observer reconciles every directory window.
++            UserDefaults.standard[.usesDirectoryFileTabs] = true
++        }
++
++        return true
++    }
++
 +
 +    /// The first of “Terminal”, “Terminal 2”, “Terminal 3”… not used by another tab in the window.
 +    ///
@@ -1893,6 +2014,11 @@ index 000000000..2c7b3293e
 +                directory.removeTabItem(self)
 +            }
 +        }
++        self.onNotification = { [weak directory, weak self] notification in
++            guard let directory, let self, directory.tabState.entry(for: self) != nil else { return }
++
++            directory.postTerminalNotification(notification, from: self)
++        }
 +    }
 +
 +
@@ -1944,7 +2070,7 @@ index 000000000..2c7b3293e
 +                                                shellPath: entry.shellPath))
 +            }
 +        },
-+        addMenuItems: { [$0.newTerminalMenuItem] })
++        addMenuItems: { $0.newTerminalMenuItems })
 +}
 +
 +
@@ -1957,10 +2083,10 @@ index 000000000..2c7b3293e
 +}
 diff --git a/CotEditor/Sources/Terminal/TerminalColors.swift b/CotEditor/Sources/Terminal/TerminalColors.swift
 new file mode 100644
-index 000000000..6c0cf276a
+index 000000000..154fa1ee8
 --- /dev/null
 +++ b/CotEditor/Sources/Terminal/TerminalColors.swift
-@@ -0,0 +1,217 @@
+@@ -0,0 +1,218 @@
 +//
 +//  TerminalColors.swift
 +//
@@ -2008,6 +2134,7 @@ index 000000000..6c0cf276a
 +        UserDefaults.standard.register(defaults: [
 +            DefaultKeys.terminalTheme.rawValue: "",
 +            DefaultKeys.terminalUsesThemeColors.rawValue: true,
++            DefaultKeys.terminalPostsNotifications.rawValue: true,
 +        ])
 +    }
 +}
@@ -2180,10 +2307,10 @@ index 000000000..6c0cf276a
 +}
 diff --git a/CotEditor/Sources/Terminal/TerminalCommands.swift b/CotEditor/Sources/Terminal/TerminalCommands.swift
 new file mode 100644
-index 000000000..bea2b830a
+index 000000000..a50ec799f
 --- /dev/null
 +++ b/CotEditor/Sources/Terminal/TerminalCommands.swift
-@@ -0,0 +1,150 @@
+@@ -0,0 +1,163 @@
 +//
 +//  TerminalCommands.swift
 +//
@@ -2254,6 +2381,15 @@ index 000000000..bea2b830a
 +    }
 +
 +
++    /// Opens a terminal where the window's root runs them; only a root that does offers a menu item for it.
++    @IBAction func newRootTerminalTab(_ sender: Any?) {
++
++        Task {
++            await self.requestRootTerminalTab()
++        }
++    }
++
++
 +    @IBAction func renameTerminalTab(_ sender: Any?) {
 +
 +        guard let session = self.activeTerminalSession else { return }
@@ -2269,7 +2405,9 @@ index 000000000..bea2b830a
 +
 +        switch item.action {
 +            case #selector(newTerminalTab(_:)):
-+                return !self.isClosed && self.canOpenTerminals
++                return !self.isClosed
++            case #selector(newRootTerminalTab(_:)):
++                return !self.isClosed && self.root is any TerminalLaunchProviding
 +            case #selector(renameTerminalTab(_:)):
 +                return self.activeTerminalSession != nil
 +            default:
@@ -2307,39 +2445,41 @@ index 000000000..bea2b830a
 +
 +extension DirectoryDocument {
 +    
-+    /// The entry of the tab strip's “+” menu that opens a terminal tab.
-+    var newTerminalMenuItem: DirectoryTabBar.MenuItem {
-+        
-+        .init(title: String(localized: "TerminalMenu.newTerminal", defaultValue: "New Shell", table: "Terminal",
-+                            comment: "menu item in the tab strip’s add menu"),
-+              systemImage: "apple.terminal", isEnabled: self.canOpenTerminals) { [weak self] in
-+            Task { await self?.requestTerminalTab() }
++    /// The entries of the tab strip's “+” menu that open terminal tabs: one on this Mac, and one where
++    /// the window's root runs its terminals, if it does.
++    var newTerminalMenuItems: [DirectoryTabBar.MenuItem] {
++
++        var items: [DirectoryTabBar.MenuItem] = [
++            .init(title: String(localized: "TerminalMenu.newTerminal", defaultValue: "New Shell", table: "Terminal",
++                                comment: "menu item in the tab strip’s add menu"),
++                  systemImage: "apple.terminal") { [weak self] in
++                Task { await self?.requestTerminalTab() }
++            },
++        ]
++        if let provider = self.root as? any TerminalLaunchProviding {
++            items.append(.init(title: provider.terminalMenuItemTitle, systemImage: provider.terminalMenuItemSystemImage) { [weak self] in
++                Task { await self?.requestRootTerminalTab() }
++            })
 +        }
++
++        return items
 +    }
 +
 +
-+    /// Whether the window has a folder on this Mac for terminals to start in.
-+    ///
-+    /// A window whose folder is elsewhere, such as on a server, has none, and a shell in some other
-+    /// local folder would look as though it ran in the window's folder.
-+    var hasLocalFolderForTerminals: Bool {
++    /// The folder a terminal on this Mac starts in: the window's folder, or the home folder for a window
++    /// whose folder is elsewhere, such as on a server. The tab's tooltip names it, so the shell is not
++    /// mistaken for one in the window's folder.
++    var localTerminalDirectory: URL {
 +
-+        self.fileURL != nil
-+    }
-+
-+
-+    /// Whether the window can open terminals: in its folder on this Mac, or where its root runs them.
-+    var canOpenTerminals: Bool {
-+
-+        self.hasLocalFolderForTerminals || self.root is any TerminalLaunchProviding
++        self.fileURL ?? FileManager.default.homeDirectoryForCurrentUser
 +    }
 +}
 diff --git a/CotEditor/Sources/Terminal/TerminalLaunchConfiguration.swift b/CotEditor/Sources/Terminal/TerminalLaunchConfiguration.swift
 new file mode 100644
-index 000000000..1d26f32dc
+index 000000000..a2cb7803c
 --- /dev/null
 +++ b/CotEditor/Sources/Terminal/TerminalLaunchConfiguration.swift
-@@ -0,0 +1,200 @@
+@@ -0,0 +1,203 @@
 +//
 +//  TerminalLaunchConfiguration.swift
 +//
@@ -2510,7 +2650,10 @@ index 000000000..1d26f32dc
 +        environment["SHELL"] = shell
 +        environment["TERM"] = "xterm-256color"
 +        environment["COLORTERM"] = "truecolor"
-+        environment["TERM_PROGRAM"] = "CotEditor"
++        // Programs use the name to decide which escape sequences to rely on, such as OSC 777 notifications.
++        // Those are this project's additions, which plain CotEditor does not have, so the name is the project's;
++        // the version is the CotEditor release the build is based on.
++        environment["TERM_PROGRAM"] = "CotEditorPatch"
 +        environment["TERM_PROGRAM_VERSION"] = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
 +
 +        // Login shells extend PATH through path_helper, but they need a working default to start from.
@@ -2538,6 +2681,261 @@ index 000000000..1d26f32dc
 +        }
 +
 +        return "en_US.UTF-8"
++    }
++}
+diff --git a/CotEditor/Sources/Terminal/TerminalNotifications.swift b/CotEditor/Sources/Terminal/TerminalNotifications.swift
+new file mode 100644
+index 000000000..8053ea3ed
+--- /dev/null
++++ b/CotEditor/Sources/Terminal/TerminalNotifications.swift
+@@ -0,0 +1,249 @@
++//
++//  TerminalNotifications.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import Defaults
++import UserNotifications
++
++
++extension DefaultKeys {
++
++    /// Whether programs in terminals may show notifications.
++    static let terminalPostsNotifications = DefaultKey<Bool>("terminalPostsNotifications")
++}
++
++
++/// A notification that a program in a terminal asked for, such as a coding agent that finished its work.
++///
++/// Programs ask with the escape sequence `ESC ] 777 ; notify ; title ; body BEL` (OSC 777), which
++/// several terminals understand. The text comes from untrusted output, so it is cleaned and bounded.
++struct TerminalNotification: Equatable, Sendable {
++
++    static let maximumTitleLength = 120
++    static let maximumBodyLength = 400
++
++    var title: String
++    var body: String
++
++
++    init(title: String, body: String) {
++
++        self.title = Self.cleaned(title, limit: Self.maximumTitleLength)
++        self.body = Self.cleaned(body, limit: Self.maximumBodyLength)
++    }
++
++
++    /// Decodes the payload of an OSC 777 sequence, the part after `777;`.
++    ///
++    /// The body is everything after the second separator, so it may contain semicolons itself.
++    ///
++    /// - Parameter payload: The bytes between `777;` and the sequence's terminator.
++    /// - Returns: The notification, or `nil` if the payload is not a notification in UTF-8 or has no text.
++    init?(osc777 payload: ArraySlice<UInt8>) {
++
++        guard let text = String(bytes: payload, encoding: .utf8) else { return nil }
++
++        let fields = text.split(separator: ";", maxSplits: 2, omittingEmptySubsequences: false)
++
++        guard fields.count >= 2, fields[0] == "notify" else { return nil }
++
++        self.init(title: String(fields[1]), body: fields.count > 2 ? String(fields[2]) : "")
++
++        guard !self.title.isEmpty || !self.body.isEmpty else { return nil }
++    }
++
++
++    /// Makes text safe to show in a notification: one line, without controls or invisible formatting.
++    ///
++    /// Format characters include bidirectional overrides, which could make the text read differently
++    /// from what it is.
++    private static func cleaned(_ text: String, limit: Int) -> String {
++
++        let scalars = text.unicodeScalars.compactMap { scalar -> Unicode.Scalar? in
++            switch scalar.properties.generalCategory {
++                case .format: nil
++                case .control, .lineSeparator, .paragraphSeparator: " "
++                default: scalar
++            }
++        }
++        let words = String(String.UnicodeScalarView(scalars)).split(whereSeparator: \.isWhitespace)
++
++        return String(words.joined(separator: " ").prefix(limit))
++    }
++}
++
++
++/// Shows the notifications that programs in terminals ask for.
++///
++/// Every notification goes through this protocol so that tests can record them without involving
++/// Notification Center.
++@MainActor protocol TerminalNotifying {
++
++    /// Shows a notification for a terminal tab.
++    func post(_ notification: TerminalNotification, from session: TerminalSession, in directory: DirectoryDocument)
++}
++
++
++@MainActor enum TerminalNotifications {
++
++    /// The notifier in use; tests replace it.
++    static var current: any TerminalNotifying = TerminalUserNotifications.shared
++
++    /// The key in a notification's user info that names the terminal session it came from.
++    nonisolated static let sessionIDKey = "terminalSessionID"
++
++
++    /// Makes clicks on terminal notifications bring their tabs forward.
++    ///
++    /// Notification Center reports a click on a notification of an earlier launch as the app starts,
++    /// so this must run before launching finishes.
++    static func install() {
++
++        UNUserNotificationCenter.current().delegate = TerminalUserNotifications.shared
++    }
++
++
++    /// Selects the terminal tab with the given ID in its window and brings the window forward.
++    ///
++    /// - Parameters:
++    ///   - sessionID: The ID of the session the notification came from.
++    ///   - activatesApp: Whether to make the app the active one; only tests pass `false`.
++    /// - Returns: `false` if no open window has that terminal any more.
++    @discardableResult static func reveal(sessionID: UUID, activatesApp: Bool = true) -> Bool {
++
++        let directories = NSDocumentController.shared.documents.compactMap { $0 as? DirectoryDocument }
++
++        guard
++            let directory = directories.first(where: { $0.terminalSessions.contains { $0.id == sessionID } }),
++            let session = directory.terminalSessions.first(where: { $0.id == sessionID })
++        else { return false }
++
++        directory.selectTerminal(session)
++        directory.showWindows()
++        if activatesApp {
++            NSApp.activate()
++        }
++        directory.windowContentViewController?.focusActiveTab()
++
++        return true
++    }
++}
++
++
++extension DirectoryDocument {
++
++    /// Shows a notification that a program in one of the window's terminals asked for, unless the user
++    /// is looking at that terminal already or turned notifications from programs off.
++    ///
++    /// - Parameters:
++    ///   - notification: What the program asked to show.
++    ///   - session: The terminal the program runs in.
++    ///   - appIsActive: Whether the app is the active one; only tests pass this.
++    func postTerminalNotification(_ notification: TerminalNotification, from session: TerminalSession, appIsActive: Bool = NSApp.isActive) {
++
++        guard
++            UserDefaults.standard[.terminalPostsNotifications],
++            !self.isShowingTerminal(session, appIsActive: appIsActive)
++        else { return }
++
++        TerminalNotifications.current.post(notification, from: session, in: self)
++    }
++
++
++    /// Whether the user sees the terminal in front: its tab is selected in the window they work in,
++    /// while the app is active.
++    private func isShowingTerminal(_ session: TerminalSession, appIsActive: Bool) -> Bool {
++
++        guard
++            appIsActive,
++            self.activeTerminalSession === session,
++            let window = self.windowForSheet,
++            window.isVisible, !window.isMiniaturized
++        else { return false }
++
++        if window.isKeyWindow || window.isMainWindow { return true }
++
++        // The test host is never active, so it has no main window; the frontmost window stands in for it.
++        guard NSApp.mainWindow == nil else { return false }
++
++        return NSApp.orderedWindows.first { $0.isVisible && $0.canBecomeMain } === window
++    }
++}
++
++
++/// Shows terminal notifications in Notification Center and brings their tab forward when clicked.
++///
++/// Each terminal tab has at most one notification there: a newer one replaces the older, so a program
++/// that notifies after every task leaves one entry per tab rather than a growing list.
++@MainActor final class TerminalUserNotifications: NSObject, TerminalNotifying, UNUserNotificationCenterDelegate {
++
++    static let shared = TerminalUserNotifications()
++
++
++    func post(_ notification: TerminalNotification, from session: TerminalSession, in directory: DirectoryDocument) {
++
++        // The tab and folder name the source: the text alone comes from the program and could claim anything.
++        let folder: String = directory.displayName
++        let source = String(localized: "TerminalNotification.source", defaultValue: "\(session.title) in \(folder)", table: "Terminal",
++                            comment: "subtitle of a notification from a program in a terminal tab (first %@ is the tab name, second %@ the window’s folder name)")
++        let title = notification.title.isEmpty ? session.title : notification.title
++        let subtitle = notification.title.isEmpty ? folder : source
++        let body = notification.body
++        let identifier = session.id.uuidString
++
++        Task {
++            let center = UNUserNotificationCenter.current()
++
++            // Asks the user only the first time; afterwards this returns their answer at once.
++            guard (try? await center.requestAuthorization(options: [.alert, .sound])) == true else { return }
++
++            let content = UNMutableNotificationContent()
++            content.title = title
++            content.subtitle = subtitle
++            content.body = body
++            content.sound = .default
++            content.threadIdentifier = identifier
++            content.userInfo = [TerminalNotifications.sessionIDKey: identifier]
++
++            try? await center.add(UNNotificationRequest(identifier: identifier, content: content, trigger: nil))
++        }
++    }
++
++
++    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
++
++        // Posted only while the user does not see the terminal, so it shows even with the app in front.
++        [.banner, .list, .sound]
++    }
++
++
++    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
++
++        guard
++            response.actionIdentifier == UNNotificationDefaultActionIdentifier,
++            let id = (response.notification.request.content.userInfo[TerminalNotifications.sessionIDKey] as? String).flatMap(UUID.init(uuidString:))
++        else { return }
++
++        await TerminalNotifications.reveal(sessionID: id)
 +    }
 +}
 diff --git a/CotEditor/Sources/Terminal/TerminalProcessReaper.swift b/CotEditor/Sources/Terminal/TerminalProcessReaper.swift
@@ -2826,10 +3224,10 @@ index 000000000..519c464d3
 +}
 diff --git a/CotEditor/Sources/Terminal/TerminalSession.swift b/CotEditor/Sources/Terminal/TerminalSession.swift
 new file mode 100644
-index 000000000..d3619473e
+index 000000000..b0a0ed05d
 --- /dev/null
 +++ b/CotEditor/Sources/Terminal/TerminalSession.swift
-@@ -0,0 +1,430 @@
+@@ -0,0 +1,467 @@
 +//
 +//  TerminalSession.swift
 +//
@@ -2874,6 +3272,9 @@ index 000000000..d3619473e
 +
 +    /// Called when the program in the terminal sets the window title.
 +    var onTitleChange: ((String) -> Void)? { get set }
++
++    /// Called when the program in the terminal asks for a notification.
++    var onNotification: ((TerminalNotification) -> Void)? { get set }
 +
 +    /// Launches the process.
 +    func start(_ configuration: TerminalLaunchConfiguration) throws(TerminalLaunchError)
@@ -2992,8 +3393,17 @@ index 000000000..d3619473e
 +}
 +
 +
-+/// A folder window's root whose terminals run elsewhere, such as on the server its folder is on.
++/// A folder window's root that can also run terminals elsewhere, such as on the server its folder is on.
++///
++/// Such a window offers both kinds: New Shell still starts a shell on this Mac, and the root's own
++/// command (`DirectoryDocument.newRootTerminalTab(_:)`) starts one where the root says.
 +@MainActor protocol TerminalLaunchProviding {
++
++    /// The label of the tab strip's “+” menu item that opens one of the root's terminals.
++    var terminalMenuItemTitle: String { get }
++
++    /// The symbol of that menu item.
++    var terminalMenuItemSystemImage: String { get }
 +
 +    /// Prepares the launcher of a new terminal of the window.
 +    ///
@@ -3054,6 +3464,15 @@ index 000000000..d3619473e
 +
 +    /// Called once the process has exited on its own, for the owner to close the tab.
 +    @ObservationIgnored var onExit: (() -> Void)?
++
++    /// Called when the program asks for a notification, at most once per `notificationInterval`.
++    @ObservationIgnored var onNotification: ((TerminalNotification) -> Void)?
++
++    /// The shortest time between two notifications of one session. Output is untrusted, and a program
++    /// that prints the sequence in a loop must not flood Notification Center.
++    static let notificationInterval: Duration = .seconds(1)
++
++    @ObservationIgnored private var lastNotification: ContinuousClock.Instant?
 +    
 +    @ObservationIgnored private var holdsSuddenTerminationBlock = false
 +    @ObservationIgnored private let makeEngine: @MainActor () -> any TerminalEngine
@@ -3133,6 +3552,10 @@ index 000000000..d3619473e
 +            guard let self, let engine, self.engine === engine else { return }
 +            self.shellTitle = Self.sanitizedTitle(title)
 +        }
++        engine.onNotification = { [weak self, weak engine] notification in
++            guard let self, let engine, self.engine === engine else { return }
++            self.programDidRequestNotification(notification)
++        }
 +        self.engine = engine
 +        self.engineGeneration += 1
 +
@@ -3194,6 +3617,7 @@ index 000000000..d3619473e
 +
 +        engine.onExit = nil
 +        engine.onTitleChange = nil
++        engine.onNotification = nil
 +        self.engine = nil
 +        self.engineGeneration += 1
 +
@@ -3213,6 +3637,16 @@ index 000000000..d3619473e
 +    }
 +
 +
++    private func programDidRequestNotification(_ notification: TerminalNotification) {
++
++        let now = ContinuousClock.now
++        if let lastNotification, now - lastNotification < Self.notificationInterval { return }
++
++        self.lastNotification = now
++        self.onNotification?(notification)
++    }
++
++
 +    private func releaseEngine() {
 +
 +        self.setBlocksSuddenTermination(false)
@@ -3221,6 +3655,7 @@ index 000000000..d3619473e
 +
 +        engine.onExit = nil
 +        engine.onTitleChange = nil
++        engine.onNotification = nil
 +        engine.shutDown()
 +        self.engine = nil
 +        self.engineGeneration += 1
@@ -3262,10 +3697,10 @@ index 000000000..d3619473e
 +}
 diff --git a/CotEditor/Sources/Terminal/TerminalSettingsView.swift b/CotEditor/Sources/Terminal/TerminalSettingsView.swift
 new file mode 100644
-index 000000000..0962d7825
+index 000000000..25bc2c45d
 --- /dev/null
 +++ b/CotEditor/Sources/Terminal/TerminalSettingsView.swift
-@@ -0,0 +1,143 @@
+@@ -0,0 +1,167 @@
 +//
 +//  TerminalSettingsView.swift
 +//
@@ -3303,6 +3738,7 @@ index 000000000..0962d7825
 +    @AppStorage(.terminalTheme) private var theme
 +    @AppStorage(.terminalUsesThemeColors) private var usesThemeColors
 +    @AppStorage(.pinsThemeAppearance) private var pinsThemeAppearance
++    @AppStorage(.terminalPostsNotifications) private var postsNotifications
 +
 +
 +    var body: some View {
@@ -3358,6 +3794,29 @@ index 000000000..0962d7825
 +                Color.clear.frame(width: 1, height: 1)
 +
 +                TerminalColorsPreview(colors: self.previewColors)
++            }
++
++            Divider()
++
++            GridRow {
++                Text(String(localized: "TerminalSettings.notifications.label", defaultValue: "Notifications:", table: "Terminal",
++                            comment: "label of the terminal notification setting in the settings"))
++                    .accessibilityLabeledPair(role: .label, id: "notifications", in: self.accessibility)
++                    .gridColumnAlignment(.trailing)
++
++                VStack(alignment: .leading, spacing: 6) {
++                    Toggle(String(localized: "TerminalSettings.notifications.toggle", defaultValue: "Show notifications from programs", table: "Terminal",
++                                  comment: "toggle letting programs in a terminal show notifications"),
++                           isOn: $postsNotifications)
++                        .accessibilityLabeledPair(role: .content, id: "notifications", in: self.accessibility)
++
++                    Text(String(localized: "TerminalSettings.notifications.description",
++                                defaultValue: "Programs such as coding agents can ask for a notification when they finish, with the OSC 777 escape sequence. It appears only while you aren’t looking at that shell tab, and clicking it brings the tab forward.",
++                                table: "Terminal"))
++                        .foregroundStyle(.secondary)
++                        .controlSize(.small)
++                        .fixedSize(horizontal: false, vertical: true)
++                }
 +            }
 +        }
 +        .scenePadding()

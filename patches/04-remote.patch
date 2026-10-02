@@ -56,10 +56,10 @@ index 1ffdc2cb7..10dfea7bc 100644
  				Resources/Licenses,
 diff --git a/CotEditor/Localizables/Remote.xcstrings b/CotEditor/Localizables/Remote.xcstrings
 new file mode 100644
-index 000000000..c237785e4
+index 000000000..350dcd2d0
 --- /dev/null
 +++ b/CotEditor/Localizables/Remote.xcstrings
-@@ -0,0 +1,3036 @@
+@@ -0,0 +1,3048 @@
 +{
 +  "sourceLanguage" : "en",
 +  "strings" : {
@@ -1539,6 +1539,18 @@ index 000000000..c237785e4
 +        }
 +      }
 +    },
++    "RemoteMenu.newRemoteShellTab" : {
++      "comment" : "File menu item opening a shell on the server of a remote folder window",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "New Remote Shell Tab"
++          }
++        }
++      }
++    },
 +    "RemoteMenu.openRecentRemoteFolder" : {
 +      "comment" : "File menu item with the recently opened remote folders",
 +      "extractionState" : "extracted_with_value",
@@ -1563,32 +1575,8 @@ index 000000000..c237785e4
 +        }
 +      }
 +    },
-+    "RemoteMenu.openRemoteFileInTab" : {
-+      "comment" : "menu item in the tab strip’s add menu",
-+      "extractionState" : "extracted_with_value",
-+      "localizations" : {
-+        "en" : {
-+          "stringUnit" : {
-+            "state" : "new",
-+            "value" : "Open Remote File…"
-+          }
-+        }
-+      }
-+    },
 +    "RemoteMenu.openRemoteFolder" : {
 +      "comment" : "File menu item opening a folder on an SSH server in a window",
-+      "extractionState" : "extracted_with_value",
-+      "localizations" : {
-+        "en" : {
-+          "stringUnit" : {
-+            "state" : "new",
-+            "value" : "Open Remote Folder…"
-+          }
-+        }
-+      }
-+    },
-+    "RemoteMenu.openRemoteFolderInTab" : {
-+      "comment" : "menu item in the tab strip’s add menu; the folder opens in a new window",
 +      "extractionState" : "extracted_with_value",
 +      "localizations" : {
 +        "en" : {
@@ -1607,6 +1595,18 @@ index 000000000..c237785e4
 +          "stringUnit" : {
 +            "state" : "new",
 +            "value" : "Reconnect"
++          }
++        }
++      }
++    },
++    "RemoteMenu.remoteFileInTab" : {
++      "comment" : "menu item in the tab strip’s add menu that opens a file on an SSH server",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Remote File…"
 +          }
 +        }
 +      }
@@ -3070,6 +3070,18 @@ index 000000000..c237785e4
 +        }
 +      }
 +    },
++    "RemoteTerminal.menuItem" : {
++      "comment" : "menu item in the tab strip’s add menu that opens a shell on the server of a remote folder window",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "Remote Shell"
++          }
++        }
++      }
++    },
 +    "RemoteTransferError.notRegularFile.description" : {
 +      "extractionState" : "extracted_with_value",
 +      "localizations" : {
@@ -3098,10 +3110,10 @@ index 000000000..c237785e4
 +}
 \ No newline at end of file
 diff --git a/CotEditor/Sources/Application/AppDelegate.swift b/CotEditor/Sources/Application/AppDelegate.swift
-index 79115cb61..68b08a56b 100644
+index 2e8f64979..7b9adabc5 100644
 --- a/CotEditor/Sources/Application/AppDelegate.swift
 +++ b/CotEditor/Sources/Application/AppDelegate.swift
-@@ -165,6 +165,8 @@ extension Logger {
+@@ -166,6 +166,8 @@ extension Logger {
          TerminalSettings.registerDefaults()
          TerminalMenu.install(in: NSApp.mainMenu!)
          WebPageMenu.install(in: NSApp.mainMenu!)
@@ -3110,7 +3122,7 @@ index 79115cb61..68b08a56b 100644
          
          #if SPARKLE
          UpdaterManager.shared.setup()
-@@ -210,6 +212,8 @@ extension Logger {
+@@ -211,6 +213,8 @@ extension Logger {
      
      func applicationWillTerminate(_ notification: Notification) {
          
@@ -3591,10 +3603,10 @@ index 000000000..b9b4b6d92
 +
 diff --git a/CotEditor/Sources/Remote/RemoteCommands.swift b/CotEditor/Sources/Remote/RemoteCommands.swift
 new file mode 100644
-index 000000000..7ace1fa2a
+index 000000000..a7be6ee8d
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteCommands.swift
-@@ -0,0 +1,196 @@
+@@ -0,0 +1,193 @@
 +//
 +//  RemoteCommands.swift
 +//
@@ -3652,6 +3664,14 @@ index 000000000..7ace1fa2a
 +            fileMenu.insertItem(recentItem, at: index + 3)
 +        }
 +
++        if let index = fileMenu.items.firstIndex(where: { $0.action == #selector(DirectoryDocument.newTerminalTab(_:)) }) {
++            let item = NSMenuItem(title: String(localized: "RemoteMenu.newRemoteShellTab", defaultValue: "New Remote Shell Tab", table: "Remote",
++                                                comment: "File menu item opening a shell on the server of a remote folder window"),
++                                  action: #selector(DirectoryDocument.newRootTerminalTab(_:)), keyEquivalent: "")
++            item.image = NSImage(systemSymbolName: "terminal", accessibilityDescription: nil)
++            fileMenu.insertItem(item, at: index + 1)
++        }
++
 +        if let index = fileMenu.items.firstIndex(where: { $0.action == #selector(NSDocument.saveAs(_:)) }) {
 +            let localCopy = NSMenuItem(title: String(localized: "RemoteMenu.saveLocalCopy", defaultValue: "Save a Local Copy…", table: "Remote",
 +                                                     comment: "File menu item saving a remote document’s text to a file on this Mac"),
@@ -3697,19 +3717,8 @@ index 000000000..7ace1fa2a
 +    /// The entry of the tab strip's “+” menu that opens a remote file.
 +    var openRemoteFileMenuItem: DirectoryTabBar.MenuItem {
 +
-+        .init(title: String(localized: "RemoteMenu.openRemoteFileInTab", defaultValue: "Open Remote File…", table: "Remote", comment: "menu item in the tab strip’s add menu"), systemImage: "network") { [weak self] in
++        .init(title: String(localized: "RemoteMenu.remoteFileInTab", defaultValue: "Remote File…", table: "Remote", comment: "menu item in the tab strip’s add menu that opens a file on an SSH server"), systemImage: "network") { [weak self] in
 +            RemoteOpenPanel.show(for: self)
-+        }
-+    }
-+
-+
-+    /// The entry of the tab strip's “+” menu that opens a remote folder, in a window of its own.
-+    var openRemoteFolderMenuItem: DirectoryTabBar.MenuItem {
-+
-+        .init(title: String(localized: "RemoteMenu.openRemoteFolderInTab", defaultValue: "Open Remote Folder…", table: "Remote",
-+                            comment: "menu item in the tab strip’s add menu; the folder opens in a new window"),
-+              systemImage: "folder.badge.gearshape") {
-+            RemoteFolderOpenPanel.show()
 +        }
 +    }
 +
@@ -6881,10 +6890,10 @@ index 000000000..fc554bbe5
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteFileBrowserViewController.swift b/CotEditor/Sources/Remote/RemoteFileBrowserViewController.swift
 new file mode 100644
-index 000000000..4ef93fe83
+index 000000000..34749952f
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteFileBrowserViewController.swift
-@@ -0,0 +1,1652 @@
+@@ -0,0 +1,1654 @@
 +//
 +//  RemoteFileBrowserViewController.swift
 +//
@@ -8447,7 +8456,9 @@ index 000000000..4ef93fe83
 +        }
 +        .padding(.horizontal, 10)
 +        .padding(.top, 2)
-+        .padding(.bottom, 6)
++        // One point more than the list's own inset, so the header's lower edge meets the window's
++        // divider exactly; with 6 the sidebar's edge looks one pixel off from the content's.
++        .padding(.bottom, 7)
 +    }
 +
 +
@@ -18343,7 +18354,7 @@ index 000000000..14bd79954
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteTabArchive.swift b/CotEditor/Sources/Remote/RemoteTabArchive.swift
 new file mode 100644
-index 000000000..7f0b2f7b7
+index 000000000..3a04844c8
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteTabArchive.swift
 @@ -0,0 +1,118 @@
@@ -18463,14 +18474,14 @@ index 000000000..7f0b2f7b7
 +                return document.map { (tabID: entry.tabID, document: $0) }
 +            }
 +        },
-+        addMenuItems: { [$0.openRemoteFileMenuItem, $0.openRemoteFolderMenuItem] })
++        addMenuItems: { [$0.openRemoteFileMenuItem] })
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteTerminal.swift b/CotEditor/Sources/Remote/RemoteTerminal.swift
 new file mode 100644
-index 000000000..1666bd1e8
+index 000000000..ab01ca061
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteTerminal.swift
-@@ -0,0 +1,107 @@
+@@ -0,0 +1,117 @@
 +//
 +//  RemoteTerminal.swift
 +//
@@ -18539,6 +18550,16 @@ index 000000000..1666bd1e8
 +// MARK: - Folder Window
 +
 +extension RemoteFolderSession: TerminalLaunchProviding {
++
++    var terminalMenuItemTitle: String {
++
++        String(localized: "RemoteTerminal.menuItem", defaultValue: "Remote Shell", table: "Remote",
++               comment: "menu item in the tab strip’s add menu that opens a shell on the server of a remote folder window")
++    }
++
++
++    var terminalMenuItemSystemImage: String  { "terminal" }
++
 +
 +    /// Prepares a terminal on the window's server, in its folder.
 +    ///

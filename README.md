@@ -12,14 +12,14 @@ CotEditorPatch is not a fork. The repository holds upstream CotEditor as a submo
 
 - Files you open from the folder open in tabs. The tabs keep each file's scroll position, selection and split editors.
 - The **+** button creates a new file next to the one you are looking at.
-- Drag tabs to reorder them, or drag one out of the strip (or choose **Move to New Window** from its context menu) to give the file a window of its own, with its unsaved changes and undo history.
-- Point at a tab to close it with the × that takes the place of its icon. ⌘W closes the selected tab, and File > **Close Window** (⇧⌘W) closes the window. Window > **Show Previous Tab** (⌘⇧[) and **Show Next Tab** (⌘⇧]), and ⌘1 to ⌘9, switch tabs.
+- Drag tabs to reorder them, or drag one out of the strip (or choose **Move to new window** from its context menu) to give the file a window of its own, with its unsaved changes and undo history.
+- Point at a tab to close it with the × that takes the place of its icon. ⌘W closes the selected tab, and File > **Close window** (⇧⌘W) closes the window. Window > **Show previous tab** (⌘⇧[) and **Show next tab** (⌘⇧]), and ⌘1 to ⌘9, switch tabs.
 - Closing a tab or window asks about unsaved changes, as CotEditor always does.
 - Your tabs come back when you relaunch.
 
 **Shell tabs** (patch 2, only in the `CotEditor-Shell` build).
 
-- File > **New Shell Tab**, **New Shell** in the **+** menu, or **Open Shell Here** in the file browser opens your login shell in the folder.
+- File > **New shell tab**, **New shell** in the **+** menu, or **Open shell here** in the file browser opens your login shell in the folder.
 - Shells and files share one row of tabs and the same tab commands. Shell tabs can be renamed.
 - ⌥← and ⌥→ move the cursor by a word, and ⌘← and ⌘→ to the start and end of the line. ⌥⌫ and ⌘⌫ delete the word or the line before the cursor, and ⌥⌦ and ⌘⌦ the word or the line after it. This works at the shell's prompt and in full-screen programs alike, as iTerm's natural text editing does.
 - A **Shell** settings pane picks the colors: the editor's theme (the default) or any other CotEditor theme, with program colors matched to it.
@@ -29,41 +29,41 @@ CotEditorPatch is not a fork. The repository holds upstream CotEditor as a submo
 
 **Webpage tabs** (patch 3, only in the `CotEditor-Web` build, which also has shell tabs).
 
-- **New Webpage** in the **+** menu, or File > **New Webpage Tab**, opens an empty tab with its address field ready. Nothing loads until you enter an address and press Return.
+- **New webpage** in the **+** menu, or File > **New webpage tab**, opens an empty tab with its address field ready. Nothing loads until you enter an address and press Return.
 - HTTPS addresses work everywhere. HTTP works for local development servers: `localhost`, local and private IP addresses, names without a dot such as `devbox`, and names ending in `.local`. Type `http://` for those, as in `http://localhost:3000`; an address without a scheme gets HTTPS. The field takes addresses only; it does not search.
 - Back, Forward, Reload (Stop while loading) and the address are in a bar above the page. The tab shows the page's title, and its tooltip the address. Switching tabs keeps the page and its history.
-- A page that fails to load leaves the previous page as it was, and says which address failed. **Try Again** is offered only when the request can be sent again safely: a form that failed to send is never sent again by itself, and reloading or going back to a page made by a form asks first.
+- A page that fails to load leaves the previous page as it was, and says which address failed. **Try again** is offered only when the request can be sent again safely: a form that failed to send is never sent again by itself, and reloading or going back to a page made by a form asks first.
 - Website alerts and questions appear as sheets that name the website that asked. Only the tab you are looking at can show them.
-- **Clear Website Data…** in a webpage tab's context menu removes the cookies and data of every website, after asking.
-- Closing a webpage tab, its window or the app never asks. After a relaunch, webpage tabs come back with their title and address, and load when you click **Load Webpage**.
+- **Clear website data…** in a webpage tab's context menu removes the cookies and data of every website, after asking.
+- Closing a webpage tab, its window or the app never asks. After a relaunch, webpage tabs come back with their title and address, and load when you click **Load webpage**.
 - Websites cannot ask before their tab closes. A link that opens a new window opens in the same tab, so sign-ins that need a popup window to talk back to the page do not work. Development domains such as `.test` need HTTPS. There are no downloads, bookmarks or browser settings.
 
 **Remote files** (patch 4, only in the `CotEditor-Remote` build, which also has shell and webpage tabs).
 
-- File > **Open Remote File…**, or **Remote File…** in the **+** menu, opens a file on an SSH server: pick a saved connection or a host from your SSH configuration (`~/.ssh/config`, whose user and port are then used), or type a host, optionally with a user and port, and give the file's absolute path. The sheet shows what the host connects to. Recent paths are remembered per connection.
+- File > **Open remote file…**, or **Remote file…** in the **+** menu, opens a file on an SSH server: pick a saved connection or a host from your SSH configuration (`~/.ssh/config`, whose user and port are then used), or type a host, optionally with a user and port, and give the file's absolute path. The sheet shows what the host connects to. Recent paths are remembered per connection.
 - The file opens in a tab next to your local files (or in a window of its own if file tabs are off). The tab looks like any file's; its tooltip and the inspector show `user@host:/path`.
 - **Save** first checks that the file on the server is still the version you started from, then uploads a copy, checks it, and swaps it in. If the file cannot be replaced safely, for example because it belongs to another user, CotEditor asks once whether it may rewrite it in place.
-- If someone else changed the file, nothing is overwritten: you can review the server's version, save yours under another path (**Save As Remote…**), or replace the version you reviewed. **Save a Local Copy…** and **Revert to Remote Version** are in the File menu.
-- Unsent changes are kept on your Mac until the server has them: through failures, closing with **Keep Recovery Copy**, quitting and crashes. Remote tabs come back after a relaunch without connecting.
+- If someone else changed the file, nothing is overwritten: you can review the server's version, save yours under another path (**Save as remote…**), or replace the version you reviewed. **Save a local copy…** and **Revert to remote version** are in the File menu.
+- Unsent changes are kept on your Mac until the server has them: through failures, closing with **Keep recovery copy**, quitting and crashes. Remote tabs come back after a relaunch without connecting.
 - CotEditor uses your Mac's OpenSSH (`/usr/bin/ssh`) with your SSH configuration, keys and agent, and the server's SFTP service. Nothing is installed on the server.
 - If the server asks for a password, a one-time code or your key's passphrase, CotEditor asks you in a dialog. Answers are never stored, so each new connection asks again.
-- A server whose key is not in your `known_hosts` yet shows its key's fingerprint; if it matches the one the server's administrator gave you, **Trust and Connect** adds it to `known_hosts`, as `ssh` would. A key that changed is refused, as `ssh` refuses it.
+- A server whose key is not in your `known_hosts` yet shows its key's fingerprint; if it matches the one the server's administrator gave you, **Trust and connect** adds it to `known_hosts`, as `ssh` would. A key that changed is refused, as `ssh` refuses it.
 - Hosts reached through `ProxyJump` work, with each jump host checked as strictly as the server itself. A jump host that is itself reached through another must be named in the same `ProxyJump`. A `ProxyCommand` runs as your configuration says.
-- A save or open that takes more than a moment shows its progress, with **Cancel** and **Allow 10 More Minutes**. Cancel works until the file on the server starts to change; after that, the save finishes. A lost connection while opening a file is tried again twice; a save is never repeated by itself.
+- A save or open that takes more than a moment shows its progress, with **Cancel** and **Allow 10 more minutes**. Cancel works until the file on the server starts to change; after that, the save finishes. A lost connection while opening a file is tried again twice; a save is never repeated by itself.
 - Files are limited to 16 MiB. SFTP cannot rule out a change by someone else in the moment between the last check and the save.
 
 **Remote folders** (patch 4, in the `CotEditor-Remote` build).
 
-- File > **Open Remote Folder…** opens a folder on an SSH server in a window of its own: pick a connection, then type the folder's path, leave it empty for the server's starting folder, or choose **Browse…** to find it, starting from where you were last time or from the server's starting folder. File > **Open Recent Remote Folder** reopens one.
+- File > **Open remote folder…** opens a folder on an SSH server in a window of its own: pick a connection, then type the folder's path, leave it empty for the server's starting folder, or choose **Browse…** to find it, starting from where you were last time or from the server's starting folder. File > **Open recent remote folder** reopens one.
 - The sidebar shows the folder's tree. Folders are listed as you expand them, and a large one shows its first items while the rest arrive. Click a file to open it in a tab; it saves like any remote file. The arrow keys move through the tree without opening files, and Return opens the selected one.
-- While the window shows, it lists its open folders again every 30 seconds, so that changes by others appear; SFTP cannot watch a folder. **Refresh** in the sidebar does it at once. Neither ever changes a file you are editing. The context menu has **Refresh Folder**, **Copy Remote Location**, **Open Folder in New Window** and **Show Hidden Files**.
+- While the window shows, it lists its open folders again every 30 seconds, so that changes by others appear; SFTP cannot watch a folder. **Refresh** in the sidebar does it at once. Neither ever changes a file you are editing. The context menu has **Refresh folder**, **Copy remote location**, **Open folder in new window** and **Show hidden files**.
 - The filter below the tree works as in a local folder window: it finds names in the whole folder, listing the folders that were not listed yet, up to the window's limits. Links are not followed.
 - If the connection drops, the tree stays, marked offline, and your open files stay editable; **Reconnect** lists it again. If the folder's path now leads somewhere else, for example because a link was changed, the window keeps showing the original folder and offers to open the new place in a new window.
 - Folder windows come back after a relaunch, offline, with their tabs (or, with file tabs off, the file that was showing) and the part of the tree you had loaded, until you reconnect.
 - Each folder window uses one more SSH connection to the server, for browsing, so with an agent that confirms every use, such as a hardware key, opening a folder can ask once more than opening a file.
-- **New File** and **New Folder** (from the **+** button below the tree, the context menu, or New File in the tab strip's **+** menu), **Rename** and **Delete…** (in the context menu, or the Delete key) work as in a local folder window, and you move an item by dragging it onto a folder. Deleting is permanent, since a server has no Trash, and a folder goes with everything in it. A file you have open follows when it is renamed or moved, and closes when it is deleted; a file with unsaved changes, or being saved, must be saved or closed first.
+- **New file** and **New folder** (from the **+** button below the tree, the context menu, or New file in the tab strip's **+** menu), **Rename** and **Delete…** (in the context menu, or the Delete key) work as in a local folder window, and you move an item by dragging it onto a folder. Deleting is permanent, since a server has no Trash, and a folder goes with everything in it. A file you have open follows when it is renamed or moved, and closes when it is deleted; a file with unsaved changes, or being saved, must be saved or closed first.
 - Drag files and folders from the Finder onto a folder to upload them, and drag a file to the Finder to download it. Names that are taken get a number; nothing on the server is replaced. Links are not uploaded, and files up to 16 MiB are.
-- **Remote Shell** in the **+** menu, or File > **New Remote Shell Tab**, opens a shell on the server, in the folder, through the same SSH connection settings. **New Shell** still opens a shell on this Mac, in your home folder. A session that fails keeps its tab, so you can read why and start it again. Remote shells are not restored after a relaunch.
+- **Remote shell** in the **+** menu, or File > **New remote shell tab**, opens a shell on the server, in the folder, through the same SSH connection settings. **New shell** still opens a shell on this Mac, in your home folder. A session that fails keeps its tab, so you can read why and start it again. Remote shells are not restored after a relaunch.
 - The window does not copy items on the server. Very large folders are listed up to 10,000 entries.
 
 ## The four apps

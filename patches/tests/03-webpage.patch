@@ -1,9 +1,9 @@
 diff --git a/Tests/Sources/Models/DirectoryTabTests+WebPage.swift b/Tests/Sources/Models/DirectoryTabTests+WebPage.swift
 new file mode 100644
-index 000000000..935cf7295
+index 000000000..0ebcaad6f
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+WebPage.swift
-@@ -0,0 +1,634 @@
+@@ -0,0 +1,656 @@
 +//
 +//  DirectoryTabTests+WebPage.swift
 +//  Tests
@@ -40,6 +40,28 @@ index 000000000..935cf7295
 +/// These are part of the serialized `DirectoryTabTests` suite: they change the same global preference,
 +/// and also the global webpage prompts. No test contacts a website other than the local server.
 +extension DirectoryTabTests {
++
++    @Test(.timeLimit(.minutes(1))) func webPageTabBorderFollowsTheContentEdge() async throws {
++
++        try await self.withWebPages { directory, urls, _, _ in
++            #expect(await directory.openDocument(at: urls[0]))
++            let file = try #require(directory.activeFileDocument)
++            try self.checkBarContentSeparator(in: directory)
++            let page = try #require(directory.openWebPageTab())
++            try self.checkBarContentSeparator(in: directory)
++            let controller = try #require(page.controller)
++            let bar = try #require(controller.addressField.superview as? NSStackView)
++            #expect(bar.edgeInsets.top == 12)
++            let fieldFrame = controller.addressField.convert(controller.addressField.bounds, to: nil)
++            let contentFrame = controller.view.convert(controller.view.safeAreaRect, to: nil)
++            #expect(contentFrame.maxY - fieldFrame.maxY >= 4, "the address field stays clear of the header border")
++            directory.selectDocument(file)
++            try self.checkBarContentSeparator(in: directory)
++            directory.selectTab(id: page.id)
++            try self.checkBarContentSeparator(in: directory)
++        }
++    }
++
 +
 +    // MARK: Tabs
 +

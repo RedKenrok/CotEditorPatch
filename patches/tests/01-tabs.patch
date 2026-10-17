@@ -198,10 +198,10 @@ index 000000000..3ee0ae05f
 +}
 diff --git a/Tests/Sources/Models/DirectoryTabTests+Items.swift b/Tests/Sources/Models/DirectoryTabTests+Items.swift
 new file mode 100644
-index 000000000..0a1352290
+index 000000000..3e6c73371
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+Items.swift
-@@ -0,0 +1,468 @@
+@@ -0,0 +1,548 @@
 +//
 +//  DirectoryTabTests+Items.swift
 +//  Tests
@@ -343,6 +343,86 @@ index 000000000..0a1352290
 +            #expect(successor.controllers.count == 1)
 +            #expect(successor.controllers.first !== controller)
 +        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func tabBorderFollowsTheContentEdge() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            try self.checkBarContentSeparator(in: directory)
++            #expect(await directory.openDocument(at: urls[0]))
++            try self.checkBarContentSeparator(in: directory)
++            #expect(directory.openTabItem(FakeTabItem()))
++            try self.checkBarContentSeparator(in: directory)
++
++            let content = try #require(directory.windowContentViewController)
++            let pane = try #require(content.splitViewItems.first { $0.behavior == .default })
++            let accessory = try #require(pane.topAlignedAccessoryViewControllers.first)
++            let window = try #require(content.view.window)
++            window.setContentSize(NSSize(width: 960, height: 640))
++            try self.checkBarContentSeparator(in: directory)
++            UserDefaults.standard[.usesDirectoryFileTabs] = false
++            #expect(accessory.isHidden)
++            #expect(pane.titlebarSeparatorStyle == .automatic)
++            UserDefaults.standard[.usesDirectoryFileTabs] = true
++            try self.checkBarContentSeparator(in: directory)
++        }
++    }
++
++
++    /// Checks the native scroll-pocket border, including its rendered pixel row and thickness.
++    func checkBarContentSeparator(in directory: DirectoryDocument) throws {
++
++        let content = try #require(directory.windowContentViewController)
++        let window = try #require(content.view.window)
++        window.appearance = NSAppearance(named: .aqua)
++        let pane = try #require(content.splitViewItems.first { $0.behavior == .default })
++        let host = try #require(pane.viewController as? ContentViewController)
++        let frameView = try #require(window.contentView?.superview)
++        let accessory = try #require(pane.topAlignedAccessoryViewControllers.first)
++        #expect(!accessory.isHidden)
++        #expect(pane.titlebarSeparatorStyle == .automatic)
++        #expect(content.view.subviews.allSatisfy { !($0 is NSBox) }, "no added border over the native scroll pocket")
++
++        let scrollView: NSScrollView
++        if let editor = content.documentViewController {
++            #expect(host.view.subviews.allSatisfy { !($0 is NSScrollView) }, "an editor keeps its own scroll view without a second container")
++            let textView = try #require(editor.textViews.first)
++            textView.backgroundColor = .white
++            scrollView = try #require(textView.enclosingScrollView)
++        } else {
++            scrollView = try #require(host.view.subviews.first as? NSScrollView)
++            #expect(scrollView.documentView === host.hostedViewController.view)
++            #expect(scrollView.horizontalScrollElasticity == .none)
++            #expect(scrollView.verticalScrollElasticity == .none)
++        }
++        scrollView.backgroundColor = .white
++        window.layoutIfNeeded()
++        content.view.layoutSubtreeIfNeeded()
++        window.displayIfNeeded()
++
++        let safeFrame = scrollView.convert(scrollView.safeAreaRect, to: frameView)
++        let barFrame = accessory.view.convert(accessory.view.bounds, to: frameView)
++        #expect(safeFrame.maxY < barFrame.minY, "the native edge includes the accessory's bottom padding")
++        if host.document == nil {
++            let child = host.hostedViewController.view
++            let childFrame = child.convert(child.bounds, to: frameView)
++            #expect(abs(childFrame.minY - safeFrame.minY) < 0.5)
++            #expect(abs(childFrame.maxY - safeFrame.maxY) < 0.5)
++            #expect(abs(childFrame.width - safeFrame.width) < 0.5)
++        }
++
++        // A white background makes a duplicate or displaced hairline observable, independent of the editor theme.
++        let rect = NSRect(x: safeFrame.midX - 2, y: safeFrame.maxY - 2, width: 4, height: 4)
++        let image = try #require(frameView.bitmapImageRepForCachingDisplay(in: rect))
++        frameView.cacheDisplay(in: rect, to: image)
++        let brightness = try (0..<image.pixelsHigh).map { y in
++            let color = try #require(image.colorAt(x: image.pixelsWide / 2, y: y)?.usingColorSpace(.deviceRGB))
++            return max(color.redComponent, color.greenComponent, color.blueComponent)
++        }
++        let background = min(try #require(brightness.first), try #require(brightness.last))
++        let darkRows = brightness.indices.filter { brightness[$0] < background - 0.02 }
++        #expect(darkRows == [image.pixelsHigh / 2], "exactly one native border pixel, on the content side of the edge")
 +    }
 +
 +

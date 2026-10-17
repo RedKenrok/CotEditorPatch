@@ -1875,7 +1875,7 @@ index 000000000..fe000a613
 +}
 diff --git a/CotEditor/Sources/WebPages/WebPageViewController.swift b/CotEditor/Sources/WebPages/WebPageViewController.swift
 new file mode 100644
-index 000000000..014de8f07
+index 000000000..a0e03a48c
 --- /dev/null
 +++ b/CotEditor/Sources/WebPages/WebPageViewController.swift
 @@ -0,0 +1,848 @@
@@ -2503,8 +2503,8 @@ index 000000000..014de8f07
 +        let bar = NSStackView(views: [self.backButton, self.forwardButton, self.reloadButton, self.addressField])
 +        bar.orientation = .horizontal
 +        bar.spacing = 4
-+        // The extra space below keeps the address field from touching the page, which starts right under the bar.
-+        bar.edgeInsets = NSEdgeInsets(top: 4, left: 8, bottom: 8, right: 8)
++        // Keep the address field's bezel clear of both the header edge and the page.
++        bar.edgeInsets = NSEdgeInsets(top: 12, left: 8, bottom: 8, right: 8)
 +        bar.setAccessibilityElement(true)
 +        bar.setAccessibilityRole(.toolbar)
 +        bar.setAccessibilityLabel(String(localized: "WebPageView.navigationBar.accessibilityLabel", defaultValue: "Navigation", table: "WebPages"))

@@ -1,9 +1,9 @@
 diff --git a/Tests/Sources/Models/DirectoryTabTests+Terminal.swift b/Tests/Sources/Models/DirectoryTabTests+Terminal.swift
 new file mode 100644
-index 000000000..9e26d5b8b
+index 000000000..d87289002
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+Terminal.swift
-@@ -0,0 +1,869 @@
+@@ -0,0 +1,885 @@
 +//
 +//  DirectoryTabTests+Terminal.swift
 +//  Tests
@@ -39,6 +39,22 @@ index 000000000..9e26d5b8b
 +/// These are part of the serialized `DirectoryTabTests` suite: they change the same global
 +/// preference, and also the global engine factory, prompts and notifier.
 +extension DirectoryTabTests {
++
++    @Test(.timeLimit(.minutes(1))) func terminalTabBorderFollowsTheContentEdge() async throws {
++
++        try await self.withTerminals(makesWindow: true) { directory, urls, _, _ in
++            #expect(await directory.openDocument(at: urls[0]))
++            let file = try #require(directory.activeFileDocument)
++            try self.checkBarContentSeparator(in: directory)
++            let terminal = try #require(directory.openTerminalTab())
++            try self.checkBarContentSeparator(in: directory)
++            directory.selectDocument(file)
++            try self.checkBarContentSeparator(in: directory)
++            directory.selectTerminal(terminal)
++            try self.checkBarContentSeparator(in: directory)
++        }
++    }
++
 +
 +    // MARK: Ordering and Selection
 +

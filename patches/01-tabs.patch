@@ -1445,10 +1445,10 @@ index 6ed8c35ca..a547cc4a6 100644
              .showInvisibles: false,
              .showInvisibleNewLine: true,
 diff --git a/CotEditor/Sources/Document Window/Content View/ContentViewController.swift b/CotEditor/Sources/Document Window/Content View/ContentViewController.swift
-index 2260d3a5f..df1d4cb93 100644
+index 2260d3a5f..37a7b22b9 100644
 --- a/CotEditor/Sources/Document Window/Content View/ContentViewController.swift	
 +++ b/CotEditor/Sources/Document Window/Content View/ContentViewController.swift	
-@@ -33,6 +33,35 @@ final class ContentViewController: NSViewController {
+@@ -33,6 +33,36 @@ final class ContentViewController: NSViewController {
      var document: DataDocument?  { didSet { self.updateDocument(from: oldValue) } }
      
      private(set) var hostedViewController: NSViewController
@@ -1463,6 +1463,7 @@ index 2260d3a5f..df1d4cb93 100644
 +    /// Whether the hosted controller belongs to a tab that is not a file. Such controllers are owned by the caller.
 +    private(set) var hostsTabContent = false
 +    private var isShowingTabContent = false
++    private var tabContentScrollView: NSScrollView?
 +
 +    func releaseEditor(for document: DataDocument) {
 +
@@ -1484,7 +1485,16 @@ index 2260d3a5f..df1d4cb93 100644
      
      
      // MARK: Lifecycle
-@@ -71,16 +100,161 @@ final class ContentViewController: NSViewController {
+@@ -58,7 +88,7 @@ final class ContentViewController: NSViewController {
+     override func loadView() {
+         
+         let view = NSView()
+-        view.embedSubview(self.hostedViewController.view)
++        self.embedHostedView(in: view)
+         
+         self.view = view
+     }
+@@ -71,16 +101,190 @@ final class ContentViewController: NSViewController {
      /// - Parameter oldDocument: The previous document.
      private func updateDocument(from oldDocument: DataDocument?) {
          
@@ -1514,7 +1524,9 @@ index 2260d3a5f..df1d4cb93 100644
 +        }
 +        
 +        self.addChild(self.hostedViewController)
-+        self.viewIfLoaded?.embedSubview(self.hostedViewController.view)
++        if let view = self.viewIfLoaded {
++            self.embedHostedView(in: view)
++        }
 +        
 +        // Retained text views preserve split arrangement, caret and all selected ranges.
 +        // Restore independent x/y clip positions *after* attachment, without moving the caret.
@@ -1559,7 +1571,10 @@ index 2260d3a5f..df1d4cb93 100644
 +            }
 +        }
 +        
++        self.tabContentScrollView?.documentView = nil
          self.hostedViewController.viewIfLoaded?.removeFromSuperview()
++        self.tabContentScrollView?.removeFromSuperview()
++        self.tabContentScrollView = nil
          self.hostedViewController.removeFromParent()
 +    }
 +    
@@ -1577,12 +1592,7 @@ index 2260d3a5f..df1d4cb93 100644
 -        self.viewIfLoaded?.embedSubview(self.hostedViewController.view)
 +        guard self.hostedViewController !== viewController else { return }
 +        
-+        if !self.hostsTabContent {
-+            self.detachHostedController(retainingFor: self.document)
-+        } else {
-+            self.hostedViewController.viewIfLoaded?.removeFromSuperview()
-+            self.hostedViewController.removeFromParent()
-+        }
++        self.detachHostedController(retainingFor: self.document)
 +        
 +        self.isShowingTabContent = true
 +        self.document = nil
@@ -1592,10 +1602,39 @@ index 2260d3a5f..df1d4cb93 100644
 +        
 +        self.hostedViewController = viewController
 +        self.addChild(viewController)
-+        self.viewIfLoaded?.embedSubview(viewController.view)
++        if let view = self.viewIfLoaded {
++            self.embedHostedView(in: view)
++        }
 +    }
-+    
-+    
++
++
++    /// Embeds document controllers unchanged, and gives other content the same native scroll-edge chrome.
++    ///
++    /// - Parameter view: The content host.
++    private func embedHostedView(in view: NSView) {
++
++        let content = self.hostedViewController.view
++        guard self.document == nil else {
++            view.embedSubview(content)
++            return
++        }
++
++        // AppKit draws the header's hairline in a scroll pocket, not in the tab accessory.
++        // The document fits the visible safe area so this container never scrolls its child's content.
++        let scrollView = NSScrollView()
++        scrollView.horizontalScrollElasticity = .none
++        scrollView.verticalScrollElasticity = .none
++        view.embedSubview(scrollView)
++        content.translatesAutoresizingMaskIntoConstraints = false
++        scrollView.documentView = content
++        NSLayoutConstraint.activate([
++            content.widthAnchor.constraint(equalTo: scrollView.safeAreaLayoutGuide.widthAnchor),
++            content.heightAnchor.constraint(equalTo: scrollView.safeAreaLayoutGuide.heightAnchor),
++        ])
++        self.tabContentScrollView = scrollView
++    }
++
++
 +    /// Returns each split's clip position measured from its inset-adjusted top-left corner.
 +    ///
 +    /// Raw origins are not stored because the topmost legal origin is negative by the content insets

@@ -198,10 +198,10 @@ index 000000000..3ee0ae05f
 +}
 diff --git a/Tests/Sources/Models/DirectoryTabTests+Items.swift b/Tests/Sources/Models/DirectoryTabTests+Items.swift
 new file mode 100644
-index 000000000..945d14059
+index 000000000..fe2d20136
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+Items.swift
-@@ -0,0 +1,596 @@
+@@ -0,0 +1,633 @@
 +//
 +//  DirectoryTabTests+Items.swift
 +//  Tests
@@ -390,6 +390,43 @@ index 000000000..945d14059
 +            }
 +            #expect(directory.tabState.entries.isEmpty)
 +            #expect(outline.selectedRow == -1)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func tabsWithoutASidebarFileClearTheSelection() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            #expect(await directory.openDocument(at: urls[0]))
++            let file = try #require(directory.activeFileDocument)
++            let browser = try #require(directory.fileBrowserViewController)
++            func outline(in view: NSView) -> NSOutlineView? {
++                (view as? NSOutlineView) ?? view.subviews.lazy.compactMap { outline(in: $0) }.first
++            }
++            let outlineView = try #require(outline(in: browser.view))
++            let node = try #require(directory.fileNode?.node(at: urls[0]))
++            try await self.wait { outlineView.row(forItem: node) >= 0 }
++            browser.selectCurrentDocument()
++            let row = outlineView.row(forItem: node)
++            #expect(outlineView.selectedRow == row)
++            #expect(row >= 0)
++
++            let item = FakeTabItem()
++            #expect(directory.openTabItem(item))
++            #expect(outlineView.selectedRowIndexes.isEmpty)
++            browser.selectCurrentDocument()
++            #expect(outlineView.selectedRowIndexes.isEmpty, "refreshing selection must not highlight a hidden file")
++
++            // One click on the file that was showing must reopen it, without visiting another row.
++            outlineView.selectRowIndexes([row], byExtendingSelection: false)
++            try await self.wait { directory.activeFileDocument === file }
++            #expect(outlineView.selectedRow == row)
++
++            let untitled = Document()
++            #expect(directory.adoptMember(untitled))
++            #expect(outlineView.selectedRowIndexes.isEmpty, "a document without a sidebar file clears the row too")
++            directory.selectDocument(file)
++            #expect(outlineView.selectedRow == row)
 +        }
 +    }
 +
@@ -800,7 +837,7 @@ index 000000000..945d14059
 +}
 diff --git a/Tests/Sources/Models/DirectoryTabTests+Root.swift b/Tests/Sources/Models/DirectoryTabTests+Root.swift
 new file mode 100644
-index 000000000..7cd351708
+index 000000000..4ed2a41a9
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+Root.swift
 @@ -0,0 +1,202 @@
@@ -852,7 +889,7 @@ index 000000000..7cd351708
 +            #expect(directory.fileBrowserViewController == nil)
 +
 +            let tabBar = try #require(directory.windowContentViewController?.makeTabBar(for: directory))
-+            #expect(!tabBar.addMenuItems.map(\.title).contains("New File"), "there is no local folder for a new file")
++            #expect(!tabBar.addMenuItems.map(\.title).contains("New file"), "there is no local folder for a new file")
 +        }
 +    }
 +
@@ -863,7 +900,7 @@ index 000000000..7cd351708
 +            root.canCreateFiles = true
 +
 +            let tabBar = try #require(directory.windowContentViewController?.makeTabBar(for: directory))
-+            #expect(tabBar.addMenuItems.map(\.title).contains("New File"))
++            #expect(tabBar.addMenuItems.map(\.title).contains("New file"))
 +
 +            await directory.createFileInNewTab()
 +            #expect(root.createdFileCount == 1, "the root creates the file, since there is no local folder")

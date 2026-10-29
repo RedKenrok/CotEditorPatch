@@ -56,10 +56,10 @@ index 1ffdc2cb7..10dfea7bc 100644
  				Resources/Licenses,
 diff --git a/CotEditor/Localizables/Remote.xcstrings b/CotEditor/Localizables/Remote.xcstrings
 new file mode 100644
-index 000000000..350dcd2d0
+index 000000000..76bb5ffcb
 --- /dev/null
 +++ b/CotEditor/Localizables/Remote.xcstrings
-@@ -0,0 +1,3048 @@
+@@ -0,0 +1,3072 @@
 +{
 +  "sourceLanguage" : "en",
 +  "strings" : {
@@ -319,7 +319,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Open Changed Location in New Window"
++            "value" : "Open changed location in new window"
 +          }
 +        }
 +      }
@@ -388,7 +388,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Remote Files"
++            "value" : "Remote files"
 +          }
 +        }
 +      }
@@ -478,7 +478,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Stop Opening"
++            "value" : "Stop opening"
 +          }
 +        }
 +      }
@@ -490,7 +490,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Copy Remote Location"
++            "value" : "Copy remote location"
 +          }
 +        }
 +      }
@@ -503,6 +503,30 @@ index 000000000..350dcd2d0
 +          "stringUnit" : {
 +            "state" : "new",
 +            "value" : "Delete…"
++          }
++        }
++      }
++    },
++    "RemoteFolder.menu.newFile" : {
++      "comment" : "noun; menu item",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "New file"
++          }
++        }
++      }
++    },
++    "RemoteFolder.menu.newFolder" : {
++      "comment" : "noun; menu item",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "New folder"
 +          }
 +        }
 +      }
@@ -526,7 +550,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Open Folder in New Window"
++            "value" : "Open folder in new window"
 +          }
 +        }
 +      }
@@ -538,7 +562,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Refresh Folder"
++            "value" : "Refresh folder"
 +          }
 +        }
 +      }
@@ -562,7 +586,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Show Hidden Files"
++            "value" : "Show hidden files"
 +          }
 +        }
 +      }
@@ -597,7 +621,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Open Another Remote Folder…"
++            "value" : "Open another remote folder…"
 +          }
 +        }
 +      }
@@ -947,7 +971,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Recent Folders"
++            "value" : "Recent folders"
 +          }
 +        }
 +      }
@@ -958,7 +982,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Open Remote Folder"
++            "value" : "Open remote folder"
 +          }
 +        }
 +      }
@@ -969,7 +993,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Open Remote Folder"
++            "value" : "Open remote folder"
 +          }
 +        }
 +      }
@@ -1046,7 +1070,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Open Folder"
++            "value" : "Open folder"
 +          }
 +        }
 +      }
@@ -1090,7 +1114,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Show Hidden Files"
++            "value" : "Show hidden files"
 +          }
 +        }
 +      }
@@ -1101,7 +1125,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Show Starting Folder"
++            "value" : "Show starting folder"
 +          }
 +        }
 +      }
@@ -1123,7 +1147,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Enclosing Folder"
++            "value" : "Enclosing folder"
 +          }
 +        }
 +      }
@@ -1201,7 +1225,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Size on Server"
++            "value" : "Size on server"
 +          }
 +        }
 +      }
@@ -1225,7 +1249,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Left on Server"
++            "value" : "Left on server"
 +          }
 +        }
 +      }
@@ -1338,7 +1362,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Remote File"
++            "value" : "Remote file"
 +          }
 +        }
 +      }
@@ -1534,7 +1558,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Clear Menu"
++            "value" : "Clear menu"
 +          }
 +        }
 +      }
@@ -1546,7 +1570,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "New Remote Shell Tab"
++            "value" : "New remote shell tab"
 +          }
 +        }
 +      }
@@ -1558,7 +1582,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Open Recent Remote Folder"
++            "value" : "Open recent remote folder"
 +          }
 +        }
 +      }
@@ -1570,7 +1594,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Open Remote File…"
++            "value" : "Open remote file…"
 +          }
 +        }
 +      }
@@ -1582,7 +1606,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Open Remote Folder…"
++            "value" : "Open remote folder…"
 +          }
 +        }
 +      }
@@ -1606,7 +1630,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Remote File…"
++            "value" : "Remote file…"
 +          }
 +        }
 +      }
@@ -1618,7 +1642,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Revert to Remote Version"
++            "value" : "Revert to remote version"
 +          }
 +        }
 +      }
@@ -1630,7 +1654,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Save a Local Copy…"
++            "value" : "Save a local copy…"
 +          }
 +        }
 +      }
@@ -1663,7 +1687,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Enter a Host"
++            "value" : "Enter a host"
 +          }
 +        }
 +      }
@@ -1674,7 +1698,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Saved Connections"
++            "value" : "Saved connections"
 +          }
 +        }
 +      }
@@ -1685,7 +1709,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "SSH Configuration"
++            "value" : "SSH configuration"
 +          }
 +        }
 +      }
@@ -1784,7 +1808,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Recent Paths"
++            "value" : "Recent paths"
 +          }
 +        }
 +      }
@@ -1806,7 +1830,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Open Remote File"
++            "value" : "Open remote file"
 +          }
 +        }
 +      }
@@ -1828,7 +1852,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Open Remote File"
++            "value" : "Open remote file"
 +          }
 +        }
 +      }
@@ -1920,7 +1944,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Allow 10 More Minutes"
++            "value" : "Allow 10 more minutes"
 +          }
 +        }
 +      }
@@ -2128,7 +2152,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Discard Changes"
++            "value" : "Discard changes"
 +          }
 +        }
 +      }
@@ -2151,7 +2175,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Keep Recovery Copy"
++            "value" : "Keep recovery copy"
 +          }
 +        }
 +      }
@@ -2231,7 +2255,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Keep Editing"
++            "value" : "Keep editing"
 +          }
 +        }
 +      }
@@ -2265,7 +2289,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Open Remote Version"
++            "value" : "Open remote version"
 +          }
 +        }
 +      }
@@ -2289,7 +2313,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Restore Original"
++            "value" : "Restore original"
 +          }
 +        }
 +      }
@@ -2312,7 +2336,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Save As Remote…"
++            "value" : "Save as remote…"
 +          }
 +        }
 +      }
@@ -2369,7 +2393,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Keep Editing"
++            "value" : "Keep editing"
 +          }
 +        }
 +      }
@@ -2381,7 +2405,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Save a Local Copy…"
++            "value" : "Save a local copy…"
 +          }
 +        }
 +      }
@@ -2416,7 +2440,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Look Up"
++            "value" : "Look up"
 +          }
 +        }
 +      }
@@ -2474,7 +2498,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Trust and Connect"
++            "value" : "Trust and connect"
 +          }
 +        }
 +      }
@@ -2486,7 +2510,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Rewrite in Place"
++            "value" : "Rewrite in place"
 +          }
 +        }
 +      }
@@ -2556,7 +2580,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Edit Target"
++            "value" : "Edit target"
 +          }
 +        }
 +      }
@@ -2683,7 +2707,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Save As Remote"
++            "value" : "Save as remote"
 +          }
 +        }
 +      }
@@ -2786,7 +2810,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Decide Later"
++            "value" : "Decide later"
 +          }
 +        }
 +      }
@@ -2819,7 +2843,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Recovered Remote Files"
++            "value" : "Recovered remote files"
 +          }
 +        }
 +      }
@@ -3077,7 +3101,7 @@ index 000000000..350dcd2d0
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Remote Shell"
++            "value" : "Remote shell"
 +          }
 +        }
 +      }
@@ -3603,7 +3627,7 @@ index 000000000..b9b4b6d92
 +
 diff --git a/CotEditor/Sources/Remote/RemoteCommands.swift b/CotEditor/Sources/Remote/RemoteCommands.swift
 new file mode 100644
-index 000000000..a7be6ee8d
+index 000000000..5f29efbe7
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteCommands.swift
 @@ -0,0 +1,193 @@
@@ -3648,14 +3672,14 @@ index 000000000..a7be6ee8d
 +        else { return assertionFailure() }
 +
 +        if let index = fileMenu.items.firstIndex(where: { $0.action == #selector(NSDocumentController.openDocument(_:)) }) {
-+            let item = NSMenuItem(title: String(localized: "RemoteMenu.openRemoteFile", defaultValue: "Open Remote File…", table: "Remote",
++            let item = NSMenuItem(title: String(localized: "RemoteMenu.openRemoteFile", defaultValue: "Open remote file…", table: "Remote",
 +                                                comment: "File menu item opening a file on an SSH server"),
 +                                  action: #selector(DocumentController.openRemoteFile(_:)), keyEquivalent: "")
 +            item.image = NSImage(systemSymbolName: "network", accessibilityDescription: nil)
-+            let folderItem = NSMenuItem(title: String(localized: "RemoteMenu.openRemoteFolder", defaultValue: "Open Remote Folder…", table: "Remote",
++            let folderItem = NSMenuItem(title: String(localized: "RemoteMenu.openRemoteFolder", defaultValue: "Open remote folder…", table: "Remote",
 +                                                      comment: "File menu item opening a folder on an SSH server in a window"),
 +                                        action: #selector(DocumentController.openRemoteFolder(_:)), keyEquivalent: "")
-+            let recentItem = NSMenuItem(title: String(localized: "RemoteMenu.openRecentRemoteFolder", defaultValue: "Open Recent Remote Folder", table: "Remote",
++            let recentItem = NSMenuItem(title: String(localized: "RemoteMenu.openRecentRemoteFolder", defaultValue: "Open recent remote folder", table: "Remote",
 +                                                      comment: "File menu item with the recently opened remote folders"),
 +                                        action: nil, keyEquivalent: "")
 +            recentItem.submenu = RemoteRecentFolderMenu.makeMenu(title: recentItem.title)
@@ -3665,7 +3689,7 @@ index 000000000..a7be6ee8d
 +        }
 +
 +        if let index = fileMenu.items.firstIndex(where: { $0.action == #selector(DirectoryDocument.newTerminalTab(_:)) }) {
-+            let item = NSMenuItem(title: String(localized: "RemoteMenu.newRemoteShellTab", defaultValue: "New Remote Shell Tab", table: "Remote",
++            let item = NSMenuItem(title: String(localized: "RemoteMenu.newRemoteShellTab", defaultValue: "New remote shell tab", table: "Remote",
 +                                                comment: "File menu item opening a shell on the server of a remote folder window"),
 +                                  action: #selector(DirectoryDocument.newRootTerminalTab(_:)), keyEquivalent: "")
 +            item.image = NSImage(systemSymbolName: "terminal", accessibilityDescription: nil)
@@ -3673,10 +3697,10 @@ index 000000000..a7be6ee8d
 +        }
 +
 +        if let index = fileMenu.items.firstIndex(where: { $0.action == #selector(NSDocument.saveAs(_:)) }) {
-+            let localCopy = NSMenuItem(title: String(localized: "RemoteMenu.saveLocalCopy", defaultValue: "Save a Local Copy…", table: "Remote",
++            let localCopy = NSMenuItem(title: String(localized: "RemoteMenu.saveLocalCopy", defaultValue: "Save a local copy…", table: "Remote",
 +                                                     comment: "File menu item saving a remote document’s text to a file on this Mac"),
 +                                       action: #selector(RemoteDocument.saveLocalCopy(_:)), keyEquivalent: "")
-+            let revert = NSMenuItem(title: String(localized: "RemoteMenu.revertToRemoteVersion", defaultValue: "Revert to Remote Version", table: "Remote",
++            let revert = NSMenuItem(title: String(localized: "RemoteMenu.revertToRemoteVersion", defaultValue: "Revert to remote version", table: "Remote",
 +                                                  comment: "menu item label"),
 +                                    action: #selector(RemoteDocument.revertToRemoteVersion(_:)), keyEquivalent: "")
 +            fileMenu.insertItem(localCopy, at: index + 1)
@@ -3717,7 +3741,7 @@ index 000000000..a7be6ee8d
 +    /// The entry of the tab strip's “+” menu that opens a remote file.
 +    var openRemoteFileMenuItem: DirectoryTabBar.MenuItem {
 +
-+        .init(title: String(localized: "RemoteMenu.remoteFileInTab", defaultValue: "Remote File…", table: "Remote", comment: "menu item in the tab strip’s add menu that opens a file on an SSH server"), systemImage: "network") { [weak self] in
++        .init(title: String(localized: "RemoteMenu.remoteFileInTab", defaultValue: "Remote file…", table: "Remote", comment: "menu item in the tab strip’s add menu that opens a file on an SSH server"), systemImage: "network") { [weak self] in
 +            RemoteOpenPanel.show(for: self)
 +        }
 +    }
@@ -3762,7 +3786,7 @@ index 000000000..a7be6ee8d
 +        if !folders.isEmpty {
 +            menu.addItem(.separator())
 +        }
-+        let clear = NSMenuItem(title: String(localized: "RemoteMenu.clearRecentFolders", defaultValue: "Clear Menu", table: "Remote", comment: "menu item label"),
++        let clear = NSMenuItem(title: String(localized: "RemoteMenu.clearRecentFolders", defaultValue: "Clear menu", table: "Remote", comment: "menu item label"),
 +                               action: folders.isEmpty ? nil : #selector(clearRecentFolders), keyEquivalent: "")
 +        clear.target = self
 +        menu.addItem(clear)
@@ -3802,7 +3826,7 @@ index 000000000..a7be6ee8d
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteConnectionForm.swift b/CotEditor/Sources/Remote/RemoteConnectionForm.swift
 new file mode 100644
-index 000000000..d72faa5b8
+index 000000000..1e52efa43
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteConnectionForm.swift
 @@ -0,0 +1,248 @@
@@ -3996,17 +4020,17 @@ index 000000000..d72faa5b8
 +    var body: some View {
 +
 +        Picker(String(localized: "RemoteOpen.connection", defaultValue: "Connection:", table: "Remote"), selection: $fields.choice) {
-+            Text(String(localized: "RemoteOpen.connection.none", defaultValue: "Enter a Host", table: "Remote"))
++            Text(String(localized: "RemoteOpen.connection.none", defaultValue: "Enter a host", table: "Remote"))
 +                .tag(RemoteConnectionFields.Choice.typed)
 +            if !self.fields.profiles.isEmpty {
-+                Section(String(localized: "RemoteOpen.connection.saved", defaultValue: "Saved Connections", table: "Remote")) {
++                Section(String(localized: "RemoteOpen.connection.saved", defaultValue: "Saved connections", table: "Remote")) {
 +                    ForEach(self.fields.profiles) { profile in
 +                        Text(profile.name).tag(RemoteConnectionFields.Choice.profile(profile.id))
 +                    }
 +                }
 +            }
 +            if !self.fields.aliases.isEmpty {
-+                Section(String(localized: "RemoteOpen.connection.sshConfiguration", defaultValue: "SSH Configuration", table: "Remote")) {
++                Section(String(localized: "RemoteOpen.connection.sshConfiguration", defaultValue: "SSH configuration", table: "Remote")) {
 +                    ForEach(self.fields.aliases, id: \.self) { alias in
 +                        Text(alias).tag(RemoteConnectionFields.Choice.alias(alias))
 +                    }
@@ -6128,7 +6152,7 @@ index 000000000..96701ca87
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteDocument.swift b/CotEditor/Sources/Remote/RemoteDocument.swift
 new file mode 100644
-index 000000000..fc554bbe5
+index 000000000..814882212
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteDocument.swift
 @@ -0,0 +1,756 @@
@@ -6439,7 +6463,7 @@ index 000000000..fc554bbe5
 +                if let item = item as? NSMenuItem {
 +                    item.title = (self.role == .placeholder)
 +                        ? String(localized: "RemoteMenu.reconnect", defaultValue: "Reconnect", table: "Remote", comment: "menu item label")
-+                        : String(localized: "RemoteMenu.revertToRemoteVersion", defaultValue: "Revert to Remote Version", table: "Remote",
++                        : String(localized: "RemoteMenu.revertToRemoteVersion", defaultValue: "Revert to remote version", table: "Remote",
 +                                 comment: "menu item label")
 +                }
 +                return self.role != .remoteVersion && !self.saveCoordinator.isBusy
@@ -6890,10 +6914,10 @@ index 000000000..fc554bbe5
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteFileBrowserViewController.swift b/CotEditor/Sources/Remote/RemoteFileBrowserViewController.swift
 new file mode 100644
-index 000000000..a69d3e450
+index 000000000..c99ab4d99
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteFileBrowserViewController.swift
-@@ -0,0 +1,1655 @@
+@@ -0,0 +1,1661 @@
 +//
 +//  RemoteFileBrowserViewController.swift
 +//
@@ -7020,7 +7044,7 @@ index 000000000..a69d3e450
 +        let outlineView = RemoteOutlineView()
 +        outlineView.headerView = nil
 +        outlineView.addTableColumn(NSTableColumn())
-+        outlineView.setAccessibilityLabel(String(localized: "RemoteFolder.files.accessibilityLabel", defaultValue: "Remote Files", table: "Remote",
++        outlineView.setAccessibilityLabel(String(localized: "RemoteFolder.files.accessibilityLabel", defaultValue: "Remote files", table: "Remote",
 +                                                 comment: "accessibility label of the remote folder sidebar's list"))
 +        outlineView.target = self
 +        outlineView.action = #selector(outlineViewClicked)
@@ -7069,10 +7093,10 @@ index 000000000..a69d3e450
 +
 +        let addMenu = NSMenu()
 +        addMenu.items = [
-+            NSMenuItem(title: String(localized: "New File", table: "Document", comment: "noun; menu item"),
++            NSMenuItem(title: String(localized: "RemoteFolder.menu.newFile", defaultValue: "New file", table: "Remote", comment: "noun; menu item"),
 +                       systemImage: "document.badge.plus",
 +                       action: #selector(addFile), keyEquivalent: ""),
-+            NSMenuItem(title: String(localized: "New Folder", table: "Document", comment: "noun; menu item"),
++            NSMenuItem(title: String(localized: "RemoteFolder.menu.newFolder", defaultValue: "New folder", table: "Remote", comment: "noun; menu item"),
 +                       systemImage: "folder.badge.plus",
 +                       action: #selector(addFolder), keyEquivalent: ""),
 +        ]
@@ -7125,9 +7149,9 @@ index 000000000..a69d3e450
 +        menu.items = [
 +            NSMenuItem(title: String(localized: "RemoteFolder.menu.open", defaultValue: "Open", table: "Remote", comment: "context menu item"),
 +                       action: #selector(openClicked), keyEquivalent: ""),
-+            NSMenuItem(title: String(localized: "RemoteFolder.menu.cancelOpening", defaultValue: "Stop Opening", table: "Remote", comment: "context menu item"),
++            NSMenuItem(title: String(localized: "RemoteFolder.menu.cancelOpening", defaultValue: "Stop opening", table: "Remote", comment: "context menu item"),
 +                       action: #selector(cancelOpeningClicked), keyEquivalent: ""),
-+            NSMenuItem(title: String(localized: "RemoteFolder.menu.openFolderInNewWindow", defaultValue: "Open Folder in New Window", table: "Remote",
++            NSMenuItem(title: String(localized: "RemoteFolder.menu.openFolderInNewWindow", defaultValue: "Open folder in new window", table: "Remote",
 +                                     comment: "context menu item"),
 +                       action: #selector(openFolderInNewWindow), keyEquivalent: ""),
 +            .separator(),
@@ -7138,19 +7162,19 @@ index 000000000..a69d3e450
 +                       systemImage: "trash",
 +                       action: #selector(deleteClicked), keyEquivalent: ""),
 +            .separator(),
-+            NSMenuItem(title: String(localized: "New File", table: "Document", comment: "noun; menu item"),
++            NSMenuItem(title: String(localized: "RemoteFolder.menu.newFile", defaultValue: "New file", table: "Remote", comment: "noun; menu item"),
 +                       systemImage: "document.badge.plus",
 +                       action: #selector(addFile), keyEquivalent: ""),
-+            NSMenuItem(title: String(localized: "New Folder", table: "Document", comment: "noun; menu item"),
++            NSMenuItem(title: String(localized: "RemoteFolder.menu.newFolder", defaultValue: "New folder", table: "Remote", comment: "noun; menu item"),
 +                       systemImage: "folder.badge.plus",
 +                       action: #selector(addFolder), keyEquivalent: ""),
 +            .separator(),
-+            NSMenuItem(title: String(localized: "RemoteFolder.menu.refreshFolder", defaultValue: "Refresh Folder", table: "Remote", comment: "context menu item"),
++            NSMenuItem(title: String(localized: "RemoteFolder.menu.refreshFolder", defaultValue: "Refresh folder", table: "Remote", comment: "context menu item"),
 +                       action: #selector(refreshFolder), keyEquivalent: ""),
-+            NSMenuItem(title: String(localized: "RemoteFolder.menu.copyLocation", defaultValue: "Copy Remote Location", table: "Remote", comment: "context menu item"),
++            NSMenuItem(title: String(localized: "RemoteFolder.menu.copyLocation", defaultValue: "Copy remote location", table: "Remote", comment: "context menu item"),
 +                       action: #selector(copyRemoteLocation), keyEquivalent: ""),
 +            .separator(),
-+            NSMenuItem(title: String(localized: "RemoteFolder.menu.showHiddenFiles", defaultValue: "Show Hidden Files", table: "Remote", comment: "context menu item"),
++            NSMenuItem(title: String(localized: "RemoteFolder.menu.showHiddenFiles", defaultValue: "Show hidden files", table: "Remote", comment: "context menu item"),
 +                       action: #selector(toggleHiddenFiles), keyEquivalent: ""),
 +        ]
 +        for item in menu.items {
@@ -8111,10 +8135,16 @@ index 000000000..a69d3e450
 +            document.identity.endpoint == self.session.identity.endpoint,
 +            let components = RemotePath.relativePath(of: document.identity.requestedPath, in: self.session.identity.path),
 +            let node = self.session.tree.node(atRelativePath: components)
-+        else { return self.outlineView.deselectAll(nil) }
++        else {
++            self.outlineView.deselectAll(nil)
++            return
++        }
 +
 +        let row = self.outlineView.row(forItem: node)
-+        guard row >= 0 else { return self.outlineView.deselectAll(nil) }
++        guard row >= 0 else {
++            self.outlineView.deselectAll(nil)
++            return
++        }
 +        guard row != self.outlineView.selectedRow else { return }
 +
 +        self.outlineView.selectRowIndexes([row], byExtendingSelection: false)
@@ -8518,7 +8548,7 @@ index 000000000..a69d3e450
 +                        .font(.caption)
 +                        .foregroundStyle(.secondary)
 +                        .fixedSize(horizontal: false, vertical: true)
-+                    Button(String(localized: "RemoteFolder.openAnother", defaultValue: "Open Another Remote Folder…", table: "Remote", comment: "button label")) {
++                    Button(String(localized: "RemoteFolder.openAnother", defaultValue: "Open another remote folder…", table: "Remote", comment: "button label")) {
 +                        RemoteFolderOpenPanel.show(profileID: self.session.identity.profileID, endpoint: self.session.identity.endpoint)
 +                    }
 +                    .controlSize(.small)
@@ -8539,7 +8569,7 @@ index 000000000..a69d3e450
 +                        Button(String(localized: "RemoteFolder.changedLocation.cancel", defaultValue: "Cancel", table: "Remote", comment: "button label")) {
 +                            self.session.dismissChangedLocation()
 +                        }
-+                        Button(String(localized: "RemoteFolder.changedLocation.open", defaultValue: "Open Changed Location in New Window", table: "Remote",
++                        Button(String(localized: "RemoteFolder.changedLocation.open", defaultValue: "Open changed location in new window", table: "Remote",
 +                                      comment: "button label")) {
 +                            self.session.openChangedLocation()
 +                        }
@@ -10362,7 +10392,7 @@ index 000000000..fab6d92f1
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteFolderOpenView.swift b/CotEditor/Sources/Remote/RemoteFolderOpenView.swift
 new file mode 100644
-index 000000000..d2abf5327
+index 000000000..848ee660e
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteFolderOpenView.swift
 @@ -0,0 +1,791 @@
@@ -10418,7 +10448,7 @@ index 000000000..d2abf5327
 +        controller.sizingOptions = .preferredContentSize
 +
 +        let window = NSWindow(contentViewController: controller)
-+        window.title = String(localized: "RemoteFolderOpen.windowTitle", defaultValue: "Open Remote Folder", table: "Remote")
++        window.title = String(localized: "RemoteFolderOpen.windowTitle", defaultValue: "Open remote folder", table: "Remote")
 +        window.styleMask = [.titled, .closable]
 +        window.isReleasedWhenClosed = false
 +        model.dismiss = { [weak window] in
@@ -10893,7 +10923,7 @@ index 000000000..d2abf5327
 +    private var form: some View {
 +
 +        VStack(alignment: .leading, spacing: 12) {
-+            Text(.init("RemoteFolderOpen.title", defaultValue: "Open Remote Folder", table: "Remote"))
++            Text(.init("RemoteFolderOpen.title", defaultValue: "Open remote folder", table: "Remote"))
 +                .font(.headline)
 +
 +            if let hint = self.model.connectionHint {
@@ -10918,7 +10948,7 @@ index 000000000..d2abf5327
 +                        }
 +                        .menuStyle(.borderlessButton)
 +                        .fixedSize()
-+                        .help(Text(.init("RemoteFolderOpen.recent", defaultValue: "Recent Folders", table: "Remote")))
++                        .help(Text(.init("RemoteFolderOpen.recent", defaultValue: "Recent folders", table: "Remote")))
 +                    }
 +                }
 +            }
@@ -10982,7 +11012,7 @@ index 000000000..d2abf5327
 +                }
 +                .labelStyle(.iconOnly)
 +                .disabled(!self.model.canGoUp)
-+                .help(Text(.init("RemoteFolderPicker.up.help", defaultValue: "Enclosing Folder", table: "Remote")))
++                .help(Text(.init("RemoteFolderPicker.up.help", defaultValue: "Enclosing folder", table: "Remote")))
 +
 +                TextField(.init("RemoteFolderPicker.path", defaultValue: "Path", table: "Remote"), text: $model.pathField)
 +                    .labelsHidden()
@@ -11028,7 +11058,7 @@ index 000000000..d2abf5327
 +                        .textSelection(.enabled)
 +                        .fixedSize(horizontal: false, vertical: true)
 +                    if self.model.offersStartingFolder {
-+                        Button(.init("RemoteFolderPicker.startingFolder", defaultValue: "Show Starting Folder", table: "Remote")) {
++                        Button(.init("RemoteFolderPicker.startingFolder", defaultValue: "Show starting folder", table: "Remote")) {
 +                            self.model.showStartingFolder()
 +                        }
 +                    }
@@ -11036,7 +11066,7 @@ index 000000000..d2abf5327
 +            }
 +
 +            HStack {
-+                Toggle(.init("RemoteFolderPicker.showHidden", defaultValue: "Show Hidden Files", table: "Remote"), isOn: $model.showsHiddenFiles)
++                Toggle(.init("RemoteFolderPicker.showHidden", defaultValue: "Show hidden files", table: "Remote"), isOn: $model.showsHiddenFiles)
 +                if self.isOpening {
 +                    ProgressView().controlSize(.small)
 +                }
@@ -11045,7 +11075,7 @@ index 000000000..d2abf5327
 +                    self.cancel()
 +                }
 +                .keyboardShortcut(.cancelAction)
-+                Button(.init("RemoteFolderPicker.open", defaultValue: "Open Folder", table: "Remote")) {
++                Button(.init("RemoteFolderPicker.open", defaultValue: "Open folder", table: "Remote")) {
 +                    self.model.openCurrentFolder()
 +                }
 +                .disabled(self.model.currentPath == nil || self.model.isLoading || self.isOpening)
@@ -12543,7 +12573,7 @@ index 000000000..b46fbbd75
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteInspectorView.swift b/CotEditor/Sources/Remote/RemoteInspectorView.swift
 new file mode 100644
-index 000000000..e773258a1
+index 000000000..aa3a5f2f8
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteInspectorView.swift
 @@ -0,0 +1,134 @@
@@ -12585,7 +12615,7 @@ index 000000000..e773258a1
 +
 +    var body: some View {
 +
-+        DisclosureGroup(.init("RemoteInspector.title", defaultValue: "Remote File", table: "Remote", comment: "section title in inspector"), isExpanded: $isExpanded) {
++        DisclosureGroup(.init("RemoteInspector.title", defaultValue: "Remote file", table: "Remote", comment: "section title in inspector"), isExpanded: $isExpanded) {
 +            Form {
 +                LabeledContent(.init("RemoteInspector.server", defaultValue: "Server", table: "Remote", comment: "label in document inspector")) {
 +                    Text(self.model.connection)
@@ -12601,10 +12631,10 @@ index 000000000..e773258a1
 +                    Text(self.model.status)
 +                }
 +                if let size = self.model.confirmedSize {
-+                    LabeledContent(.init("RemoteInspector.confirmedSize", defaultValue: "Size on Server", table: "Remote", comment: "label in document inspector"), value: size)
++                    LabeledContent(.init("RemoteInspector.confirmedSize", defaultValue: "Size on server", table: "Remote", comment: "label in document inspector"), value: size)
 +                }
 +                if !self.model.retainedTemporaryPaths.isEmpty {
-+                    LabeledContent(.init("RemoteInspector.retained", defaultValue: "Left on Server", table: "Remote", comment: "label for temporary files a save could not remove")) {
++                    LabeledContent(.init("RemoteInspector.retained", defaultValue: "Left on server", table: "Remote", comment: "label for temporary files a save could not remove")) {
 +                        VStack(alignment: .trailing) {
 +                            ForEach(self.model.retainedTemporaryPaths, id: \.self) { path in
 +                                Text(path).textSelection(.enabled)
@@ -13040,7 +13070,7 @@ index 000000000..b5647687c
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteOpenView.swift b/CotEditor/Sources/Remote/RemoteOpenView.swift
 new file mode 100644
-index 000000000..51fff9693
+index 000000000..748bedd0c
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteOpenView.swift
 @@ -0,0 +1,207 @@
@@ -13092,7 +13122,7 @@ index 000000000..51fff9693
 +            presenter.presentAsSheet(controller)
 +        } else {
 +            let window = NSWindow(contentViewController: controller)
-+            window.title = String(localized: "RemoteOpen.windowTitle", defaultValue: "Open Remote File", table: "Remote")
++            window.title = String(localized: "RemoteOpen.windowTitle", defaultValue: "Open remote file", table: "Remote")
 +            window.styleMask = [.titled, .closable]
 +            window.isReleasedWhenClosed = false
 +            window.center()
@@ -13195,7 +13225,7 @@ index 000000000..51fff9693
 +    var body: some View {
 +
 +        VStack(alignment: .leading, spacing: 12) {
-+            Text(.init("RemoteOpen.title", defaultValue: "Open Remote File", table: "Remote"))
++            Text(.init("RemoteOpen.title", defaultValue: "Open remote file", table: "Remote"))
 +                .font(.headline)
 +
 +            Form {
@@ -13213,7 +13243,7 @@ index 000000000..51fff9693
 +                        }
 +                        .menuStyle(.borderlessButton)
 +                        .fixedSize()
-+                        .help(Text(.init("RemoteOpen.recent", defaultValue: "Recent Paths", table: "Remote")))
++                        .help(Text(.init("RemoteOpen.recent", defaultValue: "Recent paths", table: "Remote")))
 +                    }
 +                }
 +            }
@@ -13425,7 +13455,7 @@ index 000000000..8f1cd7fcb
 +struct RemoteOperationCanceled: Error, Equatable { }
 diff --git a/CotEditor/Sources/Remote/RemoteProgressSheet.swift b/CotEditor/Sources/Remote/RemoteProgressSheet.swift
 new file mode 100644
-index 000000000..6255331d0
+index 000000000..41d95c7a2
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteProgressSheet.swift
 @@ -0,0 +1,231 @@
@@ -13607,7 +13637,7 @@ index 000000000..6255331d0
 +                }
 +
 +                HStack {
-+                    Button(String(localized: "RemoteProgress.moreTime", defaultValue: "Allow 10 More Minutes", table: "Remote",
++                    Button(String(localized: "RemoteProgress.moreTime", defaultValue: "Allow 10 more minutes", table: "Remote",
 +                                  comment: "button label extending the time limit of a remote save or open")) {
 +                        self.control.allowMoreTime(RemoteProgressSheet.additionalTime)
 +                    }
@@ -13662,7 +13692,7 @@ index 000000000..6255331d0
 +}
 diff --git a/CotEditor/Sources/Remote/RemotePrompts.swift b/CotEditor/Sources/Remote/RemotePrompts.swift
 new file mode 100644
-index 000000000..ecf5ca1bb
+index 000000000..bf046ef4c
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemotePrompts.swift
 @@ -0,0 +1,446 @@
@@ -13834,8 +13864,8 @@ index 000000000..ecf5ca1bb
 +                     defaultValue: "The changes are not on the server yet. You can keep them on this Mac and send them later.",
 +                     table: "Remote")
 +        alert.addButton(withTitle: String(localized: "RemotePrompt.close.save", defaultValue: "Save", table: "Remote", comment: "button label"))
-+        alert.addButton(withTitle: String(localized: "RemotePrompt.close.keep", defaultValue: "Keep Recovery Copy", table: "Remote", comment: "button label"))
-+        alert.addButton(withTitle: String(localized: "RemotePrompt.close.discard", defaultValue: "Discard Changes", table: "Remote", comment: "button label"))
++        alert.addButton(withTitle: String(localized: "RemotePrompt.close.keep", defaultValue: "Keep recovery copy", table: "Remote", comment: "button label"))
++        alert.addButton(withTitle: String(localized: "RemotePrompt.close.discard", defaultValue: "Discard changes", table: "Remote", comment: "button label"))
 +        alert.addButton(withTitle: String(localized: "RemotePrompt.cancel", defaultValue: "Cancel", table: "Remote", comment: "button label"))
 +        alert.buttons[2].hasDestructiveAction = true
 +
@@ -13858,7 +13888,7 @@ index 000000000..ecf5ca1bb
 +        alert.informativeText = String(localized: "RemotePrompt.inPlace.information",
 +                                       defaultValue: "The file cannot be replaced safely, for example because it belongs to another user or its folder is not writable. Rewriting it keeps its owner and permissions, but while it is written, others can briefly see a partly written file, and an interruption can leave it mixed. CotEditor keeps both versions on this Mac so that it can be repaired. You are asked once for this document.",
 +                                       table: "Remote")
-+        alert.addButton(withTitle: String(localized: "RemotePrompt.inPlace.button", defaultValue: "Rewrite in Place", table: "Remote", comment: "button label"))
++        alert.addButton(withTitle: String(localized: "RemotePrompt.inPlace.button", defaultValue: "Rewrite in place", table: "Remote", comment: "button label"))
 +        alert.addButton(withTitle: String(localized: "RemotePrompt.cancel", defaultValue: "Cancel", table: "Remote", comment: "button label"))
 +
 +        return await Self.run(alert, window: window) == .alertFirstButtonReturn
@@ -13911,12 +13941,12 @@ index 000000000..ecf5ca1bb
 +            .compactMap { $0 }
 +            .joined(separator: "\n\n")
 +        var choices: [RemoteFailureChoice] = [.dismiss]
-+        alert.buttons.first?.title = String(localized: "RemotePrompt.failure.keepEditing", defaultValue: "Keep Editing", table: "Remote", comment: "button label")
++        alert.buttons.first?.title = String(localized: "RemotePrompt.failure.keepEditing", defaultValue: "Keep editing", table: "Remote", comment: "button label")
 +        if canRetry {
 +            alert.addButton(withTitle: String(localized: "RemotePrompt.failure.retry", defaultValue: "Retry", table: "Remote", comment: "button label"))
 +            choices.append(.retry)
 +        }
-+        alert.addButton(withTitle: String(localized: "RemotePrompt.failure.localCopy", defaultValue: "Save a Local Copy…", table: "Remote", comment: "button label"))
++        alert.addButton(withTitle: String(localized: "RemotePrompt.failure.localCopy", defaultValue: "Save a local copy…", table: "Remote", comment: "button label"))
 +        choices.append(.saveLocalCopy)
 +
 +        let index = (await Self.run(alert, window: window)).rawValue - NSApplication.ModalResponse.alertFirstButtonReturn.rawValue
@@ -13962,7 +13992,7 @@ index 000000000..ecf5ca1bb
 +        alert.informativeText = String(localized: "RemotePrompt.link.information",
 +                                       defaultValue: "It points to “\(target)”. Saving writes to that file and leaves the link as it is.",
 +                                       table: "Remote", comment: "%@ is a remote path")
-+        alert.addButton(withTitle: String(localized: "RemotePrompt.link.button", defaultValue: "Edit Target", table: "Remote", comment: "button label"))
++        alert.addButton(withTitle: String(localized: "RemotePrompt.link.button", defaultValue: "Edit target", table: "Remote", comment: "button label"))
 +        alert.addButton(withTitle: String(localized: "RemotePrompt.cancel", defaultValue: "Cancel", table: "Remote", comment: "button label"))
 +
 +        return await Self.run(alert, window: window) == .alertFirstButtonReturn
@@ -13975,7 +14005,7 @@ index 000000000..ecf5ca1bb
 +        field.frame.size.width = 360
 +
 +        let alert = NSAlert()
-+        alert.messageText = String(localized: "RemotePrompt.saveAs.message", defaultValue: "Save As Remote", table: "Remote")
++        alert.messageText = String(localized: "RemotePrompt.saveAs.message", defaultValue: "Save as remote", table: "Remote")
 +        alert.informativeText = String(localized: "RemotePrompt.saveAs.information",
 +                                       defaultValue: "Enter a new absolute path on \(connectionName). An existing file is never overwritten.",
 +                                       table: "Remote", comment: "%@ is user@host")
@@ -14013,7 +14043,7 @@ index 000000000..ecf5ca1bb
 +        alert.informativeText = String(localized: "RemotePrompt.folderDestination.information",
 +                                       defaultValue: "The folder \(folder) was opened from \(old.user)@\(old.hostName):\(String(old.port)), but your SSH configuration now connects to \(new.user)@\(new.hostName):\(String(new.port)). If you continue, CotEditor looks up the folder there and offers to open it in a new window. This window keeps showing the original folder.",
 +                                       table: "Remote")
-+        alert.addButton(withTitle: String(localized: "RemotePrompt.folderDestination.button", defaultValue: "Look Up", table: "Remote", comment: "button label"))
++        alert.addButton(withTitle: String(localized: "RemotePrompt.folderDestination.button", defaultValue: "Look up", table: "Remote", comment: "button label"))
 +        alert.addButton(withTitle: String(localized: "RemotePrompt.cancel", defaultValue: "Cancel", table: "Remote", comment: "button label"))
 +
 +        return await Self.run(alert, window: window) == .alertFirstButtonReturn
@@ -14029,7 +14059,7 @@ index 000000000..ecf5ca1bb
 +        alert.informativeText = String(localized: "RemotePrompt.hostKey.information",
 +                                       defaultValue: "Its \(key.keyType) key has the fingerprint\n\(key.fingerprint)\n\nTrust it only if it matches the fingerprint the server’s administrator gave you. Trusting it adds it to \(key.knownHostsFile.path(percentEncoded: false)), as ssh would.",
 +                                       table: "Remote", comment: "first %@ is a key type such as ED25519, second its fingerprint, third a file path")
-+        alert.addButton(withTitle: String(localized: "RemotePrompt.hostKey.trust", defaultValue: "Trust and Connect", table: "Remote", comment: "button label"))
++        alert.addButton(withTitle: String(localized: "RemotePrompt.hostKey.trust", defaultValue: "Trust and connect", table: "Remote", comment: "button label"))
 +        alert.addButton(withTitle: String(localized: "RemotePrompt.cancel", defaultValue: "Cancel", table: "Remote", comment: "button label"))
 +        // Trusting a key must be a choice, not what Return does.
 +        alert.buttons.first?.keyEquivalent = ""
@@ -14085,15 +14115,15 @@ index 000000000..ecf5ca1bb
 +
 +        switch choice {
 +            case .keepEditing:
-+                String(localized: "RemotePrompt.conflict.keepEditing", defaultValue: "Keep Editing", table: "Remote", comment: "button label")
++                String(localized: "RemotePrompt.conflict.keepEditing", defaultValue: "Keep editing", table: "Remote", comment: "button label")
 +            case .openRemoteVersion:
-+                String(localized: "RemotePrompt.conflict.open", defaultValue: "Open Remote Version", table: "Remote", comment: "button label")
++                String(localized: "RemotePrompt.conflict.open", defaultValue: "Open remote version", table: "Remote", comment: "button label")
 +            case .saveAsRemote:
-+                String(localized: "RemotePrompt.conflict.saveAs", defaultValue: "Save As Remote…", table: "Remote", comment: "button label")
++                String(localized: "RemotePrompt.conflict.saveAs", defaultValue: "Save as remote…", table: "Remote", comment: "button label")
 +            case .replace:
 +                String(localized: "RemotePrompt.conflict.replace", defaultValue: "Replace", table: "Remote", comment: "button label")
 +            case .restoreOriginal:
-+                String(localized: "RemotePrompt.conflict.restore", defaultValue: "Restore Original", table: "Remote", comment: "button label")
++                String(localized: "RemotePrompt.conflict.restore", defaultValue: "Restore original", table: "Remote", comment: "button label")
 +        }
 +    }
 +
@@ -14114,7 +14144,7 @@ index 000000000..ecf5ca1bb
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteRecoveryPanel.swift b/CotEditor/Sources/Remote/RemoteRecoveryPanel.swift
 new file mode 100644
-index 000000000..96aae4c5a
+index 000000000..55aec5fa7
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteRecoveryPanel.swift
 @@ -0,0 +1,282 @@
@@ -14282,7 +14312,7 @@ index 000000000..96aae4c5a
 +
 +        let window = self.window ?? NSWindow(contentViewController: controller)
 +        window.contentViewController = controller
-+        window.title = String(localized: "RemoteRecovery.windowTitle", defaultValue: "Recovered Remote Files", table: "Remote")
++        window.title = String(localized: "RemoteRecovery.windowTitle", defaultValue: "Recovered remote files", table: "Remote")
 +        window.styleMask = [.titled, .closable]
 +        window.isReleasedWhenClosed = false
 +        model.close = { [weak window] in window?.close() }
@@ -14390,7 +14420,7 @@ index 000000000..96aae4c5a
 +
 +            HStack {
 +                Spacer()
-+                Button(.init("RemoteRecovery.later", defaultValue: "Decide Later", table: "Remote")) {
++                Button(.init("RemoteRecovery.later", defaultValue: "Decide later", table: "Remote")) {
 +                    self.model.close()
 +                }
 +                .keyboardShortcut(.cancelAction)
@@ -18479,7 +18509,7 @@ index 000000000..3a04844c8
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteTerminal.swift b/CotEditor/Sources/Remote/RemoteTerminal.swift
 new file mode 100644
-index 000000000..ab01ca061
+index 000000000..14fc75c17
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteTerminal.swift
 @@ -0,0 +1,117 @@
@@ -18554,7 +18584,7 @@ index 000000000..ab01ca061
 +
 +    var terminalMenuItemTitle: String {
 +
-+        String(localized: "RemoteTerminal.menuItem", defaultValue: "Remote Shell", table: "Remote",
++        String(localized: "RemoteTerminal.menuItem", defaultValue: "Remote shell", table: "Remote",
 +               comment: "menu item in the tab strip’s add menu that opens a shell on the server of a remote folder window")
 +    }
 +

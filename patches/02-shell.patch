@@ -198,7 +198,7 @@ index 8c157ce98..e57439b29 100644
  </plist>
 diff --git a/CotEditor/Localizables/Terminal.xcstrings b/CotEditor/Localizables/Terminal.xcstrings
 new file mode 100644
-index 000000000..b26543f4c
+index 000000000..7b7311b25
 --- /dev/null
 +++ b/CotEditor/Localizables/Terminal.xcstrings
 @@ -0,0 +1,625 @@
@@ -281,7 +281,7 @@ index 000000000..b26543f4c
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "New Shell"
++            "value" : "New shell"
 +          }
 +        }
 +      }
@@ -293,7 +293,7 @@ index 000000000..b26543f4c
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "New Shell Tab"
++            "value" : "New shell tab"
 +          }
 +        }
 +      }
@@ -305,7 +305,7 @@ index 000000000..b26543f4c
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Open Shell Here"
++            "value" : "Open shell here"
 +          }
 +        }
 +      }
@@ -329,7 +329,7 @@ index 000000000..b26543f4c
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Rename Shell Tab…"
++            "value" : "Rename shell tab…"
 +          }
 +        }
 +      }
@@ -365,7 +365,7 @@ index 000000000..b26543f4c
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Close Shell"
++            "value" : "Close shell"
 +          }
 +        }
 +      }
@@ -389,7 +389,7 @@ index 000000000..b26543f4c
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Close Window"
++            "value" : "Close window"
 +          }
 +        }
 +      }
@@ -412,7 +412,7 @@ index 000000000..b26543f4c
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Turn Off and Close Shells"
++            "value" : "Turn off and close shells"
 +          }
 +        }
 +      }
@@ -446,7 +446,7 @@ index 000000000..b26543f4c
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Enable Tabs and Open Shell"
++            "value" : "Enable tabs and open shell"
 +          }
 +        }
 +      }
@@ -525,7 +525,7 @@ index 000000000..b26543f4c
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Rename Shell Tab"
++            "value" : "Rename shell tab"
 +          }
 +        }
 +      }
@@ -655,7 +655,7 @@ index 000000000..b26543f4c
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Same as Editor"
++            "value" : "Same as editor"
 +          }
 +        }
 +      }
@@ -690,7 +690,7 @@ index 000000000..b26543f4c
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Choose Folder…"
++            "value" : "Choose folder…"
 +          }
 +        }
 +      }
@@ -702,7 +702,7 @@ index 000000000..b26543f4c
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Start Here"
++            "value" : "Start here"
 +          }
 +        }
 +      }
@@ -714,7 +714,7 @@ index 000000000..b26543f4c
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Close Tab"
++            "value" : "Close tab"
 +          }
 +        }
 +      }
@@ -747,7 +747,7 @@ index 000000000..b26543f4c
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Shell Not Running"
++            "value" : "Shell not running"
 +          }
 +        }
 +      }
@@ -771,7 +771,7 @@ index 000000000..b26543f4c
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Try Again"
++            "value" : "Try again"
 +          }
 +        }
 +      }
@@ -783,7 +783,7 @@ index 000000000..b26543f4c
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Start New Session"
++            "value" : "Start new session"
 +          }
 +        }
 +      }
@@ -866,7 +866,7 @@ index 7de3db4ac..360af83be 100644
              NSApp.relaunch()
          }
 diff --git a/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift b/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift
-index 3b35974a4..c6321e368 100644
+index 3b35974a4..f67df903c 100644
 --- a/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift	
 +++ b/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift	
 @@ -200,6 +200,12 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
@@ -874,7 +874,7 @@ index 3b35974a4..c6321e368 100644
                         systemImage: "arrow.up.forward.square",
                         action: #selector(openWithExternalEditor), keyEquivalent: ""),
 +        ]
-+        contextMenu.items.append(NSMenuItem(title: String(localized: "TerminalMenu.openTerminalHere", defaultValue: "Open Shell Here", table: "Terminal",
++        contextMenu.items.append(NSMenuItem(title: String(localized: "TerminalMenu.openTerminalHere", defaultValue: "Open shell here", table: "Terminal",
 +                                                          comment: "file browser context menu item"),
 +                                            systemImage: "apple.terminal",
 +                                            action: #selector(openTerminalHere), keyEquivalent: ""))
@@ -2307,7 +2307,7 @@ index 000000000..154fa1ee8
 +}
 diff --git a/CotEditor/Sources/Terminal/TerminalCommands.swift b/CotEditor/Sources/Terminal/TerminalCommands.swift
 new file mode 100644
-index 000000000..a50ec799f
+index 000000000..c425bbbf9
 --- /dev/null
 +++ b/CotEditor/Sources/Terminal/TerminalCommands.swift
 @@ -0,0 +1,163 @@
@@ -2355,11 +2355,11 @@ index 000000000..a50ec799f
 +        else { return assertionFailure() }
 +
 +        if let index = fileMenu.items.firstIndex(where: { $0.action == Selector(("newDocumentAsTab:")) }) {
-+            let newTerminal = NSMenuItem(title: String(localized: "TerminalMenu.newTerminalTab", defaultValue: "New Shell Tab", table: "Terminal",
++            let newTerminal = NSMenuItem(title: String(localized: "TerminalMenu.newTerminalTab", defaultValue: "New shell tab", table: "Terminal",
 +                                                       comment: "File menu item opening a terminal tab in the folder window"),
 +                                         action: #selector(DirectoryDocument.newTerminalTab(_:)), keyEquivalent: "")
 +            newTerminal.image = NSImage(systemSymbolName: "apple.terminal", accessibilityDescription: nil)
-+            let rename = NSMenuItem(title: String(localized: "TerminalMenu.renameTerminalTab", defaultValue: "Rename Shell Tab…", table: "Terminal",
++            let rename = NSMenuItem(title: String(localized: "TerminalMenu.renameTerminalTab", defaultValue: "Rename shell tab…", table: "Terminal",
 +                                                  comment: "File menu item"),
 +                                    action: #selector(DirectoryDocument.renameTerminalTab(_:)), keyEquivalent: "")
 +            fileMenu.insertItem(newTerminal, at: index + 1)
@@ -2450,7 +2450,7 @@ index 000000000..a50ec799f
 +    var newTerminalMenuItems: [DirectoryTabBar.MenuItem] {
 +
 +        var items: [DirectoryTabBar.MenuItem] = [
-+            .init(title: String(localized: "TerminalMenu.newTerminal", defaultValue: "New Shell", table: "Terminal",
++            .init(title: String(localized: "TerminalMenu.newTerminal", defaultValue: "New shell", table: "Terminal",
 +                                comment: "menu item in the tab strip’s add menu"),
 +                  systemImage: "apple.terminal") { [weak self] in
 +                Task { await self?.requestTerminalTab() }
@@ -3050,7 +3050,7 @@ index 000000000..19a3a3c44
 +}
 diff --git a/CotEditor/Sources/Terminal/TerminalPrompts.swift b/CotEditor/Sources/Terminal/TerminalPrompts.swift
 new file mode 100644
-index 000000000..519c464d3
+index 000000000..cfbc741ce
 --- /dev/null
 +++ b/CotEditor/Sources/Terminal/TerminalPrompts.swift
 @@ -0,0 +1,168 @@
@@ -3145,13 +3145,13 @@ index 000000000..519c464d3
 +                alert.messageText = String(localized: "TerminalPrompt.closeTab.message", defaultValue: "Close the shell “\(title)”?", table: "Terminal",
 +                                           comment: "%@ is the name of the terminal tab")
 +                alert.informativeText = stopsWork
-+                alert.addButton(withTitle: String(localized: "TerminalPrompt.closeTab.button", defaultValue: "Close Shell", table: "Terminal",
++                alert.addButton(withTitle: String(localized: "TerminalPrompt.closeTab.button", defaultValue: "Close shell", table: "Terminal",
 +                                                  comment: "button label"))
 +
 +            case .many(.window, _):
 +                alert.messageText = String(localized: "TerminalPrompt.closeWindow.message", defaultValue: "Close this window with running shells?", table: "Terminal")
 +                alert.informativeText = stopsAllWork
-+                alert.addButton(withTitle: String(localized: "TerminalPrompt.closeWindow.button", defaultValue: "Close Window", table: "Terminal",
++                alert.addButton(withTitle: String(localized: "TerminalPrompt.closeWindow.button", defaultValue: "Close window", table: "Terminal",
 +                                                  comment: "button label"))
 +
 +            case .many(.quit, _):
@@ -3166,7 +3166,7 @@ index 000000000..519c464d3
 +                                    defaultValue: "Shells are only shown as tabs, so every shell tab in every folder window will be closed.",
 +                                    table: "Terminal")
 +                alert.informativeText = liveCount > 0 ? closes + " " + stopsAllWork : closes
-+                alert.addButton(withTitle: String(localized: "TerminalPrompt.disableTabs.button", defaultValue: "Turn Off and Close Shells", table: "Terminal",
++                alert.addButton(withTitle: String(localized: "TerminalPrompt.disableTabs.button", defaultValue: "Turn off and close shells", table: "Terminal",
 +                                                  comment: "button label"))
 +        }
 +        alert.addButton(withTitle: String(localized: "TerminalPrompt.cancel", defaultValue: "Cancel", table: "Terminal", comment: "button label"))
@@ -3182,7 +3182,7 @@ index 000000000..519c464d3
 +        alert.informativeText = String(localized: "TerminalPrompt.enableTabs.information",
 +                                       defaultValue: "Shell tabs appear next to file tabs, which are turned off. Turning on file tabs applies to all folder windows.",
 +                                       table: "Terminal")
-+        alert.addButton(withTitle: String(localized: "TerminalPrompt.enableTabs.button", defaultValue: "Enable Tabs and Open Shell", table: "Terminal",
++        alert.addButton(withTitle: String(localized: "TerminalPrompt.enableTabs.button", defaultValue: "Enable tabs and open shell", table: "Terminal",
 +                                          comment: "button label"))
 +        alert.addButton(withTitle: String(localized: "TerminalPrompt.cancel", defaultValue: "Cancel", table: "Terminal", comment: "button label"))
 +
@@ -3198,7 +3198,7 @@ index 000000000..519c464d3
 +                                         comment: "placeholder of the tab name field; leaving it empty returns to the automatic name")
 +
 +        let alert = NSAlert()
-+        alert.messageText = String(localized: "TerminalPrompt.rename.message", defaultValue: "Rename Shell Tab", table: "Terminal")
++        alert.messageText = String(localized: "TerminalPrompt.rename.message", defaultValue: "Rename shell tab", table: "Terminal")
 +        alert.informativeText = String(localized: "TerminalPrompt.rename.information",
 +                                       defaultValue: "Leave the name empty to use the automatic name.", table: "Terminal")
 +        alert.accessoryView = field
@@ -3697,7 +3697,7 @@ index 000000000..b0a0ed05d
 +}
 diff --git a/CotEditor/Sources/Terminal/TerminalSettingsView.swift b/CotEditor/Sources/Terminal/TerminalSettingsView.swift
 new file mode 100644
-index 000000000..25bc2c45d
+index 000000000..1eac65412
 --- /dev/null
 +++ b/CotEditor/Sources/Terminal/TerminalSettingsView.swift
 @@ -0,0 +1,167 @@
@@ -3752,7 +3752,7 @@ index 000000000..25bc2c45d
 +
 +                VStack(alignment: .leading, spacing: 6) {
 +                    Picker(selection: $theme) {
-+                        Text(String(localized: "TerminalSettings.theme.sameAsEditor", defaultValue: "Same as Editor", table: "Terminal",
++                        Text(String(localized: "TerminalSettings.theme.sameAsEditor", defaultValue: "Same as editor", table: "Terminal",
 +                                    comment: "terminal theme choice that follows the editor’s theme")).tag("")
 +                        Divider()
 +                        ForEach(ThemeManager.shared.settingNames, id: \.self) { name in
@@ -4002,7 +4002,7 @@ index 000000000..bafcb60c5
 +}
 diff --git a/CotEditor/Sources/Terminal/TerminalTabViewController.swift b/CotEditor/Sources/Terminal/TerminalTabViewController.swift
 new file mode 100644
-index 000000000..b09264a36
+index 000000000..1e842affe
 --- /dev/null
 +++ b/CotEditor/Sources/Terminal/TerminalTabViewController.swift
 @@ -0,0 +1,328 @@
@@ -4217,7 +4217,7 @@ index 000000000..b09264a36
 +        panel.canChooseDirectories = true
 +        panel.canCreateDirectories = false
 +        panel.allowsMultipleSelection = false
-+        panel.prompt = String(localized: "TerminalStatus.chooseFolder.prompt", defaultValue: "Start Here", table: "Terminal",
++        panel.prompt = String(localized: "TerminalStatus.chooseFolder.prompt", defaultValue: "Start here", table: "Terminal",
 +                              comment: "button label in the panel choosing the folder a terminal starts in")
 +        panel.directoryURL = TerminalLaunchConfiguration.isUsableDirectory(self.session.startingDirectory)
 +            ? self.session.startingDirectory
@@ -4254,9 +4254,9 @@ index 000000000..b09264a36
 +                    Label(String(localized: "TerminalStatus.ended", defaultValue: "Session ended", table: "Terminal"), systemImage: "exclamationmark.triangle")
 +                        .foregroundStyle(.secondary)
 +                    Spacer()
-+                    Button(String(localized: "TerminalStatus.startNewSession", defaultValue: "Start New Session", table: "Terminal", comment: "button label"),
++                    Button(String(localized: "TerminalStatus.startNewSession", defaultValue: "Start new session", table: "Terminal", comment: "button label"),
 +                           action: self.start)
-+                    Button(String(localized: "TerminalStatus.closeTab", defaultValue: "Close Tab", table: "Terminal", comment: "button label"),
++                    Button(String(localized: "TerminalStatus.closeTab", defaultValue: "Close tab", table: "Terminal", comment: "button label"),
 +                           action: self.close)
 +                }
 +                .controlSize(.small)
@@ -4270,10 +4270,10 @@ index 000000000..b09264a36
 +            case .inactive:
 +                self.placeholder(
 +                    systemImage: "apple.terminal",
-+                    title: String(localized: "TerminalStatus.inactive.title", defaultValue: "Shell Not Running", table: "Terminal"),
++                    title: String(localized: "TerminalStatus.inactive.title", defaultValue: "Shell not running", table: "Terminal"),
 +                    message: String(localized: "TerminalStatus.inactive.message",
 +                                    defaultValue: "Processes and their output are not restored after CotEditor quits.", table: "Terminal"),
-+                    primary: String(localized: "TerminalStatus.startNewSession", defaultValue: "Start New Session", table: "Terminal",
++                    primary: String(localized: "TerminalStatus.startNewSession", defaultValue: "Start new session", table: "Terminal",
 +                                    comment: "button label"))
 +
 +            case .failed(let error):
@@ -4281,7 +4281,7 @@ index 000000000..b09264a36
 +                    systemImage: "exclamationmark.triangle",
 +                    title: error.errorDescription ?? "",
 +                    message: error.recoverySuggestion ?? "",
-+                    primary: String(localized: "TerminalStatus.retry", defaultValue: "Try Again", table: "Terminal", comment: "button label"))
++                    primary: String(localized: "TerminalStatus.retry", defaultValue: "Try again", table: "Terminal", comment: "button label"))
 +        }
 +    }
 +
@@ -4320,10 +4320,10 @@ index 000000000..b09264a36
 +                        .keyboardShortcut(.defaultAction)
 +                }
 +                if launcher == nil {
-+                    Button(String(localized: "TerminalStatus.chooseFolder", defaultValue: "Choose Folder…", table: "Terminal", comment: "button label"),
++                    Button(String(localized: "TerminalStatus.chooseFolder", defaultValue: "Choose folder…", table: "Terminal", comment: "button label"),
 +                           action: self.chooseFolder)
 +                }
-+                Button(String(localized: "TerminalStatus.closeTab", defaultValue: "Close Tab", table: "Terminal", comment: "button label"),
++                Button(String(localized: "TerminalStatus.closeTab", defaultValue: "Close tab", table: "Terminal", comment: "button label"),
 +                       action: self.close)
 +            }
 +        }

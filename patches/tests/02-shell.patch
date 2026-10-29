@@ -1,6 +1,6 @@
 diff --git a/Tests/Sources/Models/DirectoryTabTests+Terminal.swift b/Tests/Sources/Models/DirectoryTabTests+Terminal.swift
 new file mode 100644
-index 000000000..d87289002
+index 000000000..a3f9556cd
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+Terminal.swift
 @@ -0,0 +1,885 @@
@@ -285,7 +285,7 @@ index 000000000..d87289002
 +            #expect(directory.validateUserInterfaceItem(NSMenuItem(title: "", action: #selector(DirectoryDocument.newTerminalTab(_:)), keyEquivalent: "")))
 +            #expect(!directory.validateUserInterfaceItem(NSMenuItem(title: "", action: #selector(DirectoryDocument.newRootTerminalTab(_:)), keyEquivalent: "")),
 +                    "the root runs no terminals of its own")
-+            #expect(directory.newTerminalMenuItems.map(\.title) == ["New Shell"])
++            #expect(directory.newTerminalMenuItems.map(\.title) == ["New shell"])
 +
 +            await directory.requestTerminalTab()
 +            let session = try #require(directory.activeTerminalSession)
@@ -319,7 +319,7 @@ index 000000000..d87289002
 +
 +        #expect(directory.validateUserInterfaceItem(NSMenuItem(title: "", action: #selector(DirectoryDocument.newTerminalTab(_:)), keyEquivalent: "")))
 +        #expect(directory.validateUserInterfaceItem(NSMenuItem(title: "", action: #selector(DirectoryDocument.newRootTerminalTab(_:)), keyEquivalent: "")))
-+        #expect(directory.newTerminalMenuItems.map(\.title) == ["New Shell", "Elsewhere Shell"], "both kinds of shell are offered")
++        #expect(directory.newTerminalMenuItems.map(\.title) == ["New shell", "Elsewhere Shell"], "both kinds of shell are offered")
 +
 +        await directory.requestRootTerminalTab()
 +        let session = try #require(directory.activeTerminalSession)

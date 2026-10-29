@@ -1,8 +1,8 @@
 diff --git a/CotEditor/Localizables/Document Window/Document.xcstrings b/CotEditor/Localizables/Document Window/Document.xcstrings
-index 6225cbd3e..43be1d87c 100644
+index 6225cbd3e..f699123b5 100644
 --- a/CotEditor/Localizables/Document Window/Document.xcstrings	
 +++ b/CotEditor/Localizables/Document Window/Document.xcstrings	
-@@ -2630,115 +2630,1255 @@
+@@ -2630,115 +2630,1369 @@
          }
        }
      },
@@ -25,13 +25,13 @@ index 6225cbd3e..43be1d87c 100644
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "File Tabs"
++            "value" : "File tabs"
 +          }
 +        },
 +        "en-GB" : {
 +          "stringUnit" : {
 +            "state" : "translated",
-+            "value" : "File Tabs"
++            "value" : "File tabs"
 +          }
 +        },
 +        "es" : {
@@ -139,13 +139,13 @@ index 6225cbd3e..43be1d87c 100644
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "New Tab"
++            "value" : "New tab"
 +          }
 +        },
 +        "en-GB" : {
 +          "stringUnit" : {
 +            "state" : "translated",
-+            "value" : "New Tab"
++            "value" : "New tab"
 +          }
 +        },
 +        "es" : {
@@ -481,13 +481,13 @@ index 6225cbd3e..43be1d87c 100644
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Move Left"
++            "value" : "Move left"
 +          }
 +        },
 +        "en-GB" : {
 +          "stringUnit" : {
 +            "state" : "translated",
-+            "value" : "Move Left"
++            "value" : "Move left"
 +          }
 +        },
 +        "es" : {
@@ -595,13 +595,13 @@ index 6225cbd3e..43be1d87c 100644
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Move Right"
++            "value" : "Move right"
 +          }
 +        },
 +        "en-GB" : {
 +          "stringUnit" : {
 +            "state" : "translated",
-+            "value" : "Move Right"
++            "value" : "Move right"
 +          }
 +        },
 +        "es" : {
@@ -709,13 +709,13 @@ index 6225cbd3e..43be1d87c 100644
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Move to New Window"
++            "value" : "Move to new window"
 +          }
 +        },
 +        "en-GB" : {
 +          "stringUnit" : {
 +            "state" : "translated",
-+            "value" : "Move to New Window"
++            "value" : "Move to new window"
 +          }
 +        },
 +        "es" : {
@@ -800,6 +800,120 @@ index 6225cbd3e..43be1d87c 100644
 +          "stringUnit" : {
 +            "state" : "translated",
 +            "value" : "移到新視窗"
++          }
++        }
++      }
++    },
++    "DirectoryTabBar.newFile" : {
++      "comment" : "noun; menu item",
++      "extractionState" : "extracted_with_value",
++      "localizations" : {
++        "cs" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "Nový soubor"
++          }
++        },
++        "de" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "Neue Datei"
++          }
++        },
++        "en" : {
++          "stringUnit" : {
++            "state" : "new",
++            "value" : "New file"
++          }
++        },
++        "en-GB" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "New file"
++          }
++        },
++        "es" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "Nuevo archivo"
++          }
++        },
++        "fr" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "Nouveau fichier"
++          }
++        },
++        "it" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "Nuovo file"
++          }
++        },
++        "ja" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "新規ファイル"
++          }
++        },
++        "ko" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "새 파일"
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "Nieuw bestand"
++          }
++        },
++        "pl" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "Nowy plik"
++          }
++        },
++        "pt" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "Novo Arquivo"
++          }
++        },
++        "ru" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "Новый файл"
++          }
++        },
++        "tr" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "Yeni Dosya"
++          }
++        },
++        "uk" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "Новий файл"
++          }
++        },
++        "zh-Hans" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "新建文件"
++          }
++        },
++        "zh-Hant" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "新增檔案"
++          }
++        },
++        "zh-HK" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "新增檔案"
 +          }
 +        }
 +      }
@@ -938,14 +1052,14 @@ index 6225cbd3e..43be1d87c 100644
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Close Window"
++            "value" : "Close window"
            }
          },
          "en-GB" : {
            "stringUnit" : {
              "state" : "translated",
 -            "value" : "Document has unsaved changes"
-+            "value" : "Close Window"
++            "value" : "Close window"
            }
          },
          "es" : {
@@ -1057,13 +1171,13 @@ index 6225cbd3e..43be1d87c 100644
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Show Next Tab"
++            "value" : "Show next tab"
 +          }
 +        },
 +        "en-GB" : {
 +          "stringUnit" : {
 +            "state" : "translated",
-+            "value" : "Show Next Tab"
++            "value" : "Show next tab"
 +          }
 +        },
 +        "es" : {
@@ -1183,13 +1297,13 @@ index 6225cbd3e..43be1d87c 100644
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Show Previous Tab"
++            "value" : "Show previous tab"
 +          }
 +        },
 +        "en-GB" : {
 +          "stringUnit" : {
 +            "state" : "translated",
-+            "value" : "Show Previous Tab"
++            "value" : "Show previous tab"
 +          }
 +        },
 +        "es" : {
@@ -1691,7 +1805,7 @@ index 2260d3a5f..37a7b22b9 100644
      
 diff --git a/CotEditor/Sources/Document Window/Content View/DirectoryFileTabBar.swift b/CotEditor/Sources/Document Window/Content View/DirectoryFileTabBar.swift
 new file mode 100644
-index 000000000..8f9f5ccfd
+index 000000000..1a9d3fcaa
 --- /dev/null
 +++ b/CotEditor/Sources/Document Window/Content View/DirectoryFileTabBar.swift	
 @@ -0,0 +1,430 @@
@@ -1833,35 +1947,35 @@ index 000000000..8f9f5ccfd
 +        // so it must take on whatever the window shows beneath it, editor or placeholder.
 +        .frame(height: Self.height)
 +        .accessibilityElement(children: .contain)
-+        .accessibilityLabel(String(localized: "DirectoryTabBar.accessibilityLabel", defaultValue: "File Tabs", table: "Document",
++        .accessibilityLabel(String(localized: "DirectoryTabBar.accessibilityLabel", defaultValue: "File tabs", table: "Document",
 +                                   comment: "accessibility label for the tab bar listing the files open in a folder window"))
 +    }
 +
 +    /// The accessibility label and tooltip of the “+” menu.
 +    static var addMenuLabel: String {
 +
-+        String(localized: "DirectoryTabBar.add.accessibilityLabel", defaultValue: "New Tab", table: "Document",
++        String(localized: "DirectoryTabBar.add.accessibilityLabel", defaultValue: "New tab", table: "Document",
 +               comment: "accessibility label and tooltip of the menu at the end of the tab bar that opens a new tab")
 +    }
 +
 +
 +    static var moveToNewWindowLabel: String {
 +
-+        String(localized: "DirectoryTabBar.moveToNewWindow", defaultValue: "Move to New Window", table: "Document",
++        String(localized: "DirectoryTabBar.moveToNewWindow", defaultValue: "Move to new window", table: "Document",
 +               comment: "context menu item and accessibility action moving a tab into a window of its own")
 +    }
 +
 +
 +    static var moveLeftLabel: String {
 +
-+        String(localized: "DirectoryTabBar.moveLeft", defaultValue: "Move Left", table: "Document",
++        String(localized: "DirectoryTabBar.moveLeft", defaultValue: "Move left", table: "Document",
 +               comment: "accessibility action moving a tab one place to the left")
 +    }
 +
 +
 +    static var moveRightLabel: String {
 +
-+        String(localized: "DirectoryTabBar.moveRight", defaultValue: "Move Right", table: "Document",
++        String(localized: "DirectoryTabBar.moveRight", defaultValue: "Move right", table: "Document",
 +               comment: "accessibility action moving a tab one place to the right")
 +    }
 +
@@ -2126,7 +2240,7 @@ index 000000000..8f9f5ccfd
 +    }
 +}
 diff --git a/CotEditor/Sources/Document Window/DocumentWindow.swift b/CotEditor/Sources/Document Window/DocumentWindow.swift
-index 30bddbef7..5d950cfe0 100644
+index 30bddbef7..1decfe527 100644
 --- a/CotEditor/Sources/Document Window/DocumentWindow.swift	
 +++ b/CotEditor/Sources/Document Window/DocumentWindow.swift	
 @@ -103,13 +103,63 @@ final class DocumentWindow: NSWindow {
@@ -2215,7 +2329,7 @@ index 30bddbef7..5d950cfe0 100644
 +            !fileMenu.items.contains(where: { $0.action == #selector(closeWindow(_:)) })
 +        else { return }
 +        
-+        let item = NSMenuItem(title: String(localized: "DocumentWindow.closeWindow", defaultValue: "Close Window", table: "Document",
++        let item = NSMenuItem(title: String(localized: "DocumentWindow.closeWindow", defaultValue: "Close window", table: "Document",
 +                                            comment: "File menu item closing the whole window rather than its selected file tab"),
 +                              action: #selector(closeWindow(_:)), keyEquivalent: "w")
 +        item.keyEquivalentModifierMask = [.command, .shift]
@@ -2240,10 +2354,10 @@ index 30bddbef7..5d950cfe0 100644
 +            !windowMenu.items.contains(where: { $0.action == #selector(NSWindow.selectNextTab(_:)) })
 +        else { return }
 +        
-+        let previous = NSMenuItem(title: String(localized: "DocumentWindow.showPreviousTab", defaultValue: "Show Previous Tab", table: "Document",
++        let previous = NSMenuItem(title: String(localized: "DocumentWindow.showPreviousTab", defaultValue: "Show previous tab", table: "Document",
 +                                                comment: "Window menu item selecting the tab to the left"),
 +                                  action: #selector(NSWindow.selectPreviousTab(_:)), keyEquivalent: "{")
-+        let next = NSMenuItem(title: String(localized: "DocumentWindow.showNextTab", defaultValue: "Show Next Tab", table: "Document",
++        let next = NSMenuItem(title: String(localized: "DocumentWindow.showNextTab", defaultValue: "Show next tab", table: "Document",
 +                                            comment: "Window menu item selecting the tab to the right"),
 +                              action: #selector(NSWindow.selectNextTab(_:)), keyEquivalent: "}")
 +        
@@ -2403,7 +2517,7 @@ index df9ba1b11..2ce19f104 100644
              else { return }
              
 diff --git a/CotEditor/Sources/Document Window/WindowContentViewController.swift b/CotEditor/Sources/Document Window/WindowContentViewController.swift
-index 0f8c4ebb0..1ace7427f 100644
+index 0f8c4ebb0..34e539e3d 100644
 --- a/CotEditor/Sources/Document Window/WindowContentViewController.swift	
 +++ b/CotEditor/Sources/Document Window/WindowContentViewController.swift	
 @@ -48,9 +48,18 @@ final class WindowContentViewController: NSSplitViewController, NSToolbarItemVal
@@ -2678,7 +2792,7 @@ index 0f8c4ebb0..1ace7427f 100644
 +        // A new file is created in the local folder, or by the root of a window without one, if it can.
 +        let canCreateFiles = (directory.fileURL != nil) || (directory.root?.canCreateFiles == true)
 +        let newFile: [DirectoryTabBar.MenuItem] = !canCreateFiles ? [] : [
-+            .init(title: String(localized: "New File", table: "Document", comment: "noun; menu item"),
++            .init(title: String(localized: "DirectoryTabBar.newFile", defaultValue: "New file", table: "Document", comment: "noun; menu item"),
 +                  systemImage: "document.badge.plus") { [weak directory] in
 +                Task { await directory?.createFileInNewTab() }
 +            },

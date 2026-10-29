@@ -198,10 +198,10 @@ index 000000000..3ee0ae05f
 +}
 diff --git a/Tests/Sources/Models/DirectoryTabTests+Items.swift b/Tests/Sources/Models/DirectoryTabTests+Items.swift
 new file mode 100644
-index 000000000..3e6c73371
+index 000000000..945d14059
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+Items.swift
-@@ -0,0 +1,548 @@
+@@ -0,0 +1,596 @@
 +//
 +//  DirectoryTabTests+Items.swift
 +//  Tests
@@ -342,6 +342,54 @@ index 000000000..3e6c73371
 +            #expect(directory.openTabItem(successor))
 +            #expect(successor.controllers.count == 1)
 +            #expect(successor.controllers.first !== controller)
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func fileBrowserHighlightsOnlyTheFileOfTheSelectedTab() async throws {
++
++        try await self.withDirectory(makesWindow: true) { directory, urls in
++            let outline = try #require(directory.fileBrowserViewController?.outlineView)
++            let isHighlighted = { (url: URL) in
++                let row = outline.row(forItem: directory.fileNode?.node(at: url))
++                return row >= 0 && outline.selectedRowIndexes == [row]
++            }
++            let item = FakeTabItem()
++            #expect(directory.openTabItem(item))
++
++            // Files opened other than by a click, such as from Quick Open, are highlighted too.
++            #expect(await directory.openDocument(at: urls[0]))
++            let first = try #require(directory.activeFileDocument)
++            #expect(isHighlighted(urls[0]))
++            #expect(await directory.openDocument(at: urls[1]))
++            #expect(isHighlighted(urls[1]))
++            directory.selectDocument(first)
++            #expect(isHighlighted(urls[0]), "the highlight follows the selected tab")
++
++            directory.selectTabItem(item)
++            #expect(outline.selectedRow == -1, "a tab that is not a file highlights no file")
++            directory.selectDocument(first)
++            #expect(isHighlighted(urls[0]))
++
++            // Closing the selected file hands the selection to the tab that is not a file before it.
++            let firstID = try #require(directory.tabState.entry(for: first)?.id)
++            directory.moveTab(id: firstID, to: 2)
++            directory.moveTab(id: item.id, to: 1)
++            await directory.closeTab(id: firstID)
++            #expect(directory.activeTabItem === item)
++            #expect(outline.selectedRow == -1, "the closed file is no longer highlighted")
++
++            // A row that is not highlighted can be clicked, which opens the closed file again.
++            outline.selectRowIndexes([outline.row(forItem: directory.fileNode?.node(at: urls[0]))], byExtendingSelection: false)
++            try await self.wait { directory.activeFileDocument?.fileURL == urls[0] }
++            #expect(isHighlighted(urls[0]))
++
++            // With every tab closed, nothing is highlighted.
++            for id in directory.tabState.entries.map(\.id) {
++                await directory.closeTab(id: id)
++            }
++            #expect(directory.tabState.entries.isEmpty)
++            #expect(outline.selectedRow == -1)
 +        }
 +    }
 +

@@ -866,7 +866,7 @@ index 7de3db4ac..360af83be 100644
              NSApp.relaunch()
          }
 diff --git a/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift b/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift
-index c78108ae3..8ee3c3d9e 100644
+index 3b35974a4..c6321e368 100644
 --- a/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift	
 +++ b/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift	
 @@ -200,6 +200,12 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
@@ -882,7 +882,7 @@ index c78108ae3..8ee3c3d9e 100644
              .separator(),
              
              NSMenuItem(title: String(localized: "Move to Trash", table: "Document", comment: "verb; menu item"),
-@@ -429,6 +435,9 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
+@@ -445,6 +451,9 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
              case #selector(openInNewWindow):
                  menuItem.isHidden = self.targetRows(for: menuItem).isEmpty
                  
@@ -892,7 +892,7 @@ index c78108ae3..8ee3c3d9e 100644
              case #selector(addFile):
                  return self.targetFolderNode(for: menuItem)?.file.isWritable == true
                  
-@@ -545,6 +554,17 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
+@@ -561,6 +570,17 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
      }
      
      

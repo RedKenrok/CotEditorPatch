@@ -6890,10 +6890,10 @@ index 000000000..fc554bbe5
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteFileBrowserViewController.swift b/CotEditor/Sources/Remote/RemoteFileBrowserViewController.swift
 new file mode 100644
-index 000000000..34749952f
+index 000000000..a69d3e450
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteFileBrowserViewController.swift
-@@ -0,0 +1,1654 @@
+@@ -0,0 +1,1655 @@
 +//
 +//  RemoteFileBrowserViewController.swift
 +//
@@ -8089,7 +8089,7 @@ index 000000000..34749952f
 +    }
 +
 +
-+    /// Highlights the file of the selected tab, if it is a loaded row.
++    /// Highlights the file of the selected tab if it is a loaded row, and nothing otherwise, as the local file browser does.
 +    private func observeSelection() {
 +
 +        guard self.selectionObservation == nil, let directory = self.session.directory else { return }
@@ -8111,10 +8111,11 @@ index 000000000..34749952f
 +            document.identity.endpoint == self.session.identity.endpoint,
 +            let components = RemotePath.relativePath(of: document.identity.requestedPath, in: self.session.identity.path),
 +            let node = self.session.tree.node(atRelativePath: components)
-+        else { return }
++        else { return self.outlineView.deselectAll(nil) }
 +
 +        let row = self.outlineView.row(forItem: node)
-+        guard row >= 0, row != self.outlineView.selectedRow else { return }
++        guard row >= 0 else { return self.outlineView.deselectAll(nil) }
++        guard row != self.outlineView.selectedRow else { return }
 +
 +        self.outlineView.selectRowIndexes([row], byExtendingSelection: false)
 +        self.outlineView.scrollRowToVisible(row)

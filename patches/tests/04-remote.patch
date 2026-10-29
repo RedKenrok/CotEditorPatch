@@ -479,10 +479,10 @@ index 000000000..4aea7be82
 +}
 diff --git a/Tests/Sources/Models/DirectoryTabTests+RemoteFolders.swift b/Tests/Sources/Models/DirectoryTabTests+RemoteFolders.swift
 new file mode 100644
-index 000000000..c990a369a
+index 000000000..7cdd66292
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+RemoteFolders.swift
-@@ -0,0 +1,797 @@
+@@ -0,0 +1,825 @@
 +//
 +//  DirectoryTabTests+RemoteFolders.swift
 +//
@@ -1187,6 +1187,34 @@ index 000000000..c990a369a
 +            let tabs = try #require(try await self.archivedTabs(of: session, bed: bed))
 +            let archive = try #require(try PropertyListSerialization.propertyList(from: tabs, format: nil) as? [String: Any])
 +            #expect((archive["entries"] as? [[String: Any]])?.compactMap { $0["kind"] as? String } == ["fake", RemoteTabArchive.kind])
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func theSidebarHighlightsOnlyTheFileOfTheSelectedTab() async throws {
++
++        try await self.withRemoteFolder { session, directory, bed in
++            let sidebar = try #require(directory.windowContentViewController?.splitViewItems.first?.viewController as? RemoteFileBrowserViewController)
++            let kind = FakeTabKind()
++            directory.tabKinds = [kind.kind] + DirectoryTabKind.registered
++            let item = FakeTabItem()
++            #expect(directory.openTabItem(item))
++
++            let index = try await self.waitForNode(["index.html"], in: session)
++            try await self.wait { sidebar.outlineView.row(forItem: index) >= 0 }
++            session.activate(index)
++            let document = try await self.waitForDocument(at: "/srv/site/index.html", in: directory, bed: bed)
++            try await self.wait { sidebar.outlineView.selectedRow == sidebar.outlineView.row(forItem: index) }
++
++            directory.selectTabItem(item)
++            try await self.wait { sidebar.outlineView.selectedRow == -1 }
++            directory.selectDocument(document)
++            try await self.wait { sidebar.outlineView.selectedRow == sidebar.outlineView.row(forItem: index) }
++
++            // The tab that is not a file takes over the selection from the closed file.
++            await directory.closeTab(id: try #require(directory.tabState.entry(for: document)?.id))
++            #expect(directory.activeTabItem === item)
++            try await self.wait { sidebar.outlineView.selectedRow == -1 }
 +        }
 +    }
 +

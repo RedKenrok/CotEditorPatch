@@ -2311,25 +2311,51 @@ index 4ef284922..15c480bc9 100644
      }
      
 diff --git a/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift b/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift
-index d469bfff7..c78108ae3 100644
+index d469bfff7..3b35974a4 100644
 --- a/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift	
 +++ b/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift	
-@@ -336,8 +336,13 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
+@@ -334,14 +334,35 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
+     // MARK: Public Methods
+     
      /// Selects the current document in the outline view.
++    ///
++    /// The highlight always names the file in the selected tab, and nothing while the selected tab is
++    /// not a file. Clicking a row that is already selected does not change the selection, so a row left
++    /// highlighted for a file that is not shown could not be clicked to open that file.
      func selectCurrentDocument() {
          
-+        // Keep the last file highlighted as context while a tab that is not a file is shown.
-+        guard self.document.activeTabItem == nil else { return }
+-        guard
+-            let fileURL = self.document.currentDocument?.fileURL,
+-            let node = self.document.fileNode?.node(at: fileURL)
+-        else { return }
 +        guard let fileURL = self.document.activeFileDocument?.fileURL else {
 +            self.outlineView.deselectAll(nil)
 +            return
 +        }
-         guard
--            let fileURL = self.document.currentDocument?.fileURL,
-             let node = self.document.fileNode?.node(at: fileURL)
-         else { return }
++        
++        // Clicking an alias opens its original, which may lie elsewhere or outside the folder,
++        // so the clicked alias stays highlighted instead.
++        if let selectedNode = self.outlineView.item(atRow: self.outlineView.selectedRow) as? FileNode,
++           selectedNode.file.isAlias,
++           (try? URL(resolvingAliasFileAt: selectedNode.file.fileURL)) == fileURL
++        {
++            return
++        }
          
-@@ -365,6 +370,20 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
+-        self.select(node: node)
++        guard let node = self.document.fileNode?.node(at: fileURL) else {
++            self.outlineView.deselectAll(nil)
++            return
++        }
++        
++        // A filtered-out row cannot be selected, and the row selected before must not stay highlighted.
++        if self.select(node: node) == nil {
++            self.outlineView.deselectAll(nil)
++        }
+     }
+     
+     
+@@ -365,6 +386,20 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
      }
      
      
@@ -2350,7 +2376,7 @@ index d469bfff7..c78108ae3 100644
      /// Invoked when the file node did updated externally.
      ///
      /// - Parameter node: The file node whose children were changed.
-@@ -1216,7 +1235,12 @@ extension FileBrowserViewController: NSOutlineViewDelegate {
+@@ -1216,7 +1251,12 @@ extension FileBrowserViewController: NSOutlineViewDelegate {
              !node.file.isDirectory
          else { return }
          
@@ -2896,10 +2922,10 @@ index 3f4cf10f1..6e387c610 100644
      
 diff --git a/CotEditor/Sources/Document/DirectoryDocument+TabItems.swift b/CotEditor/Sources/Document/DirectoryDocument+TabItems.swift
 new file mode 100644
-index 000000000..523299fa9
+index 000000000..eb4861058
 --- /dev/null
 +++ b/CotEditor/Sources/Document/DirectoryDocument+TabItems.swift
-@@ -0,0 +1,172 @@
+@@ -0,0 +1,173 @@
 +//
 +//  DirectoryDocument+TabItems.swift
 +//
@@ -2986,8 +3012,8 @@ index 000000000..523299fa9
 +        self.detachCurrentDocument()
 +        self.windowContentViewController?.showActiveTab()
 +        self.windowController?.synchronizeWindowTitleWithDocumentName()
++        self.fileBrowserViewController?.selectCurrentDocument()
 +        self.invalidateRestorableState()
-+        // The file browser keeps highlighting the last file as context; the tab is not a file.
 +    }
 +
 +
@@ -3069,11 +3095,12 @@ index 000000000..523299fa9
 +            case nil:
 +                self.windowContentViewController?.showActiveTab()
 +                self.windowController?.synchronizeWindowTitleWithDocumentName()
++                self.fileBrowserViewController?.selectCurrentDocument()
 +        }
 +    }
 +}
 diff --git a/CotEditor/Sources/Document/DirectoryDocument.swift b/CotEditor/Sources/Document/DirectoryDocument.swift
-index f1a5f5164..dc1245e8b 100644
+index f1a5f5164..f1d5b6f01 100644
 --- a/CotEditor/Sources/Document/DirectoryDocument.swift
 +++ b/CotEditor/Sources/Document/DirectoryDocument.swift
 @@ -24,17 +24,21 @@
@@ -3243,7 +3270,7 @@ index f1a5f5164..dc1245e8b 100644
      }
      
      
-@@ -89,18 +193,48 @@ final class DirectoryDocument: NSDocument {
+@@ -89,19 +193,47 @@ final class DirectoryDocument: NSDocument {
          
          super.restoreState(with: coder)
          
@@ -3259,6 +3286,7 @@ index f1a5f5164..dc1245e8b 100644
 -        
 -        Task {
 -            await self.openDocument(at: documentURL)
+-            self.fileBrowserViewController?.selectCurrentDocument()
 +        guard let directoryURL = self.fileURL else { return }
 +        
 +        // With tabs off only the file that was showing comes back; the others were either
@@ -3289,7 +3317,6 @@ index f1a5f5164..dc1245e8b 100644
 +                // Show the saved selection as soon as it exists instead of waiting for every member.
 +                if index == archive.selectedIndex, let document, generation == self.selectionGeneration {
 +                    self.changeFrontmostDocument(to: document)
-+                    self.fileBrowserViewController?.selectCurrentDocument()
 +                    generation = self.selectionGeneration
 +                    didSelect = true
 +                }
@@ -3301,10 +3328,10 @@ index f1a5f5164..dc1245e8b 100644
 +            guard !didSelect, generation == self.selectionGeneration, let document = self.documents.last else { return }
 +            
 +            self.changeFrontmostDocument(to: document)
-             self.fileBrowserViewController?.selectCurrentDocument()
          }
      }
-@@ -109,16 +243,50 @@ final class DirectoryDocument: NSDocument {
+     
+@@ -109,16 +241,50 @@ final class DirectoryDocument: NSDocument {
      override func makeWindowControllers() {
          
          self.addWindowController(DocumentWindowController(directoryDocument: self))
@@ -3321,15 +3348,15 @@ index f1a5f5164..dc1245e8b 100644
 -                let hasEditedDocuments = self.documents.contains(where: \.isDocumentEdited)
 -                self.windowController?.setDocumentEdited(hasEditedDocuments)
 +                self.synchronizeEditedState()
-             }
-         }
++            }
++        }
 +
 +        // bookmarks follow renamed and moved members, but the archive must be rewritten to reflect them
 +        if self.fileURLObserver == nil {
 +            self.fileURLObserver = NotificationCenter.default.addObserver(for: NSDocument.DidChangeFileURLMessage.self) { [weak self] _ in
 +                self?.invalidateRestorableState()
-+            }
-+        }
+             }
+         }
 +        
 +        if self.usesDirectoryFileTabsObserver == nil {
 +            self.usesDirectoryFileTabsObserver = UserDefaults.standard.publisher(for: .usesDirectoryFileTabs, initial: true)
@@ -3357,7 +3384,7 @@ index f1a5f5164..dc1245e8b 100644
      }
      
      
-@@ -162,31 +330,53 @@ final class DirectoryDocument: NSDocument {
+@@ -162,31 +328,53 @@ final class DirectoryDocument: NSDocument {
      
      override func shouldCloseWindowController(_ windowController: NSWindowController, delegate: Any?, shouldClose shouldCloseSelector: Selector?, contextInfo: UnsafeMutableRawPointer?) {
          
@@ -3423,7 +3450,7 @@ index f1a5f5164..dc1245e8b 100644
      }
      
      
-@@ -256,6 +446,50 @@ final class DirectoryDocument: NSDocument {
+@@ -256,6 +444,50 @@ final class DirectoryDocument: NSDocument {
      
      
      // MARK: Public Methods
@@ -3474,7 +3501,7 @@ index f1a5f5164..dc1245e8b 100644
      
      /// Returns the opened document at the given file node.
      ///
-@@ -267,6 +501,132 @@ final class DirectoryDocument: NSDocument {
+@@ -267,6 +499,131 @@ final class DirectoryDocument: NSDocument {
      }
      
      
@@ -3488,7 +3515,6 @@ index f1a5f5164..dc1245e8b 100644
 +
 +        self.selectionGeneration += 1
 +        self.changeFrontmostDocument(to: document)
-+        self.fileBrowserViewController?.selectCurrentDocument()
 +    }
 +
 +
@@ -3607,7 +3633,7 @@ index f1a5f5164..dc1245e8b 100644
      /// Opens a document as a member.
      ///
      /// This method opens the alias destination instead, only if the URL already has permission.
-@@ -276,75 +636,13 @@ final class DirectoryDocument: NSDocument {
+@@ -276,75 +633,13 @@ final class DirectoryDocument: NSDocument {
      ///   - asPlainText: If `true`, the document is forcibly opened as a plain text file.
      ///   - prefersOriginal: If `true`, opens the alias destination only if the URL already has permission. Otherwise, opens the original file.
      ///   - recordsHistory: If `true`, records the opened document in the document history.
@@ -3689,7 +3715,7 @@ index f1a5f5164..dc1245e8b 100644
      }
      
      
-@@ -382,6 +680,36 @@ final class DirectoryDocument: NSDocument {
+@@ -382,6 +677,36 @@ final class DirectoryDocument: NSDocument {
      }
      
      
@@ -3726,7 +3752,7 @@ index f1a5f5164..dc1245e8b 100644
      /// Creates a folder at the same level in the given file node.
      ///
      /// - Parameter parentNode: The file node where creates a new file.
-@@ -557,23 +885,23 @@ final class DirectoryDocument: NSDocument {
+@@ -557,23 +882,23 @@ final class DirectoryDocument: NSDocument {
              throw CocoaError(.fileWriteUnknown)
          }
          
@@ -3761,7 +3787,7 @@ index f1a5f5164..dc1245e8b 100644
      /// Reveals a file in the file browser.
      ///
      /// - Parameter fileURL: The file URL to reveal.
-@@ -628,30 +956,58 @@ final class DirectoryDocument: NSDocument {
+@@ -628,30 +953,58 @@ final class DirectoryDocument: NSDocument {
          }
          
          if let document = self.documents.first(where: { $0.fileURL == fileURL }) {
@@ -3838,7 +3864,7 @@ index f1a5f5164..dc1245e8b 100644
              }
          }
      }
-@@ -672,7 +1028,290 @@ final class DirectoryDocument: NSDocument {
+@@ -672,7 +1025,290 @@ final class DirectoryDocument: NSDocument {
      
      
      // MARK: Private Methods
@@ -4130,7 +4156,7 @@ index f1a5f5164..dc1245e8b 100644
      /// Returns whether the receiver should open a file at the given URL as a text-plain file.
      ///
      /// - Parameters:
-@@ -725,11 +1364,17 @@ final class DirectoryDocument: NSDocument {
+@@ -725,21 +1361,40 @@ final class DirectoryDocument: NSDocument {
      /// - Parameter document: The document to bring frontmost.
      private func changeFrontmostDocument(to document: DataDocument) {
          
@@ -4150,7 +4176,11 @@ index f1a5f5164..dc1245e8b 100644
          document.windowController = self.windowController
          self.windowController?.fileDocument = document
          self.currentDocument = document
-@@ -740,6 +1385,18 @@ final class DirectoryDocument: NSDocument {
+         document.makeWindowControllers()
++        self.fileBrowserViewController?.selectCurrentDocument()
+         
+         // clean-up
+         self.disposeUnusedDocuments()
      }
      
      
@@ -4169,7 +4199,7 @@ index f1a5f5164..dc1245e8b 100644
      /// Records the document in the document history.
      ///
      /// - Parameters:
-@@ -753,13 +1410,22 @@ final class DirectoryDocument: NSDocument {
+@@ -753,13 +1408,22 @@ final class DirectoryDocument: NSDocument {
      }
      
      

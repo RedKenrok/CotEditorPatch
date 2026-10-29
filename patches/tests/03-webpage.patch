@@ -1,6 +1,6 @@
 diff --git a/Tests/Sources/Models/DirectoryTabTests+WebPage.swift b/Tests/Sources/Models/DirectoryTabTests+WebPage.swift
 new file mode 100644
-index 000000000..e8fff9543
+index 000000000..c90da64dc
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+WebPage.swift
 @@ -0,0 +1,656 @@
@@ -561,7 +561,7 @@ index 000000000..e8fff9543
 +            // Dialogs show only on the frontmost window while the app is not active, which an untitled
 +            // document the app opened at launch would be; only this serialized suite opens windows.
 +            for document in NSDocumentController.shared.documents
-+            where type(of: document) == Document.self && document.fileURL == nil && !document.isDocumentEdited && (document as? Document)?.directoryDocument == nil {
++            where type(of: document) == TextDocument.self && document.fileURL == nil && !document.isDocumentEdited && (document as? TextDocument)?.directoryDocument == nil {
 +                document.close()
 +            }
 +            directory.windowController?.window?.orderFrontRegardless()

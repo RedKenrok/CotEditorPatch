@@ -1,8 +1,8 @@
 diff --git a/CotEditor/Localizables/Document Window/Document.xcstrings b/CotEditor/Localizables/Document Window/Document.xcstrings
-index 6225cbd3e..f699123b5 100644
+index b4dd6c595..1f7881013 100644
 --- a/CotEditor/Localizables/Document Window/Document.xcstrings	
 +++ b/CotEditor/Localizables/Document Window/Document.xcstrings	
-@@ -2630,115 +2630,1369 @@
+@@ -2634,162 +2634,1416 @@
          }
        }
      },
@@ -918,13 +918,60 @@ index 6225cbd3e..f699123b5 100644
 +        }
 +      }
 +    },
-     "Document has unsaved changes" : {
-       "comment" : "tooltip for the “edited” indicator in the window tab",
+     "Disconnected" : {
+       "comment" : "window subtitle; for remote document",
        "localizations" : {
-         "cs" : {
+         "de" : {
            "stringUnit" : {
              "state" : "translated",
--            "value" : "Dokument obsahuje neuložené změny"
+-            "value" : "Getrennt"
++            "value" : "Getrennt"
++          }
++        },
++        "en-GB" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Disconnected"
++          }
++        },
++        "es" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "Desconectado"
++          }
++        },
++        "fr" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "Déconnecté"
++          }
++        },
++        "ja" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "切断済み"
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "needs_review",
++            "value" : "Verbinding verbroken"
++          }
++        },
++        "zh-HK" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "已中斷連線"
++          }
++        }
++      }
++    },
++    "Document has unsaved changes" : {
++      "comment" : "tooltip for the “edited” indicator in the window tab",
++      "localizations" : {
++        "cs" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "Dokument obsahuje neuložené změny"
 +          }
 +        },
@@ -1040,12 +1087,11 @@ index 6225cbd3e..f699123b5 100644
 +          "stringUnit" : {
 +            "state" : "translated",
 +            "value" : "Zavřít okno"
-           }
-         },
-         "de" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "Das Dokument enthält ungesicherte Änderungen."
++          }
++        },
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "Fenster schließen"
 +          }
 +        },
@@ -1058,35 +1104,36 @@ index 6225cbd3e..f699123b5 100644
          "en-GB" : {
            "stringUnit" : {
              "state" : "translated",
--            "value" : "Document has unsaved changes"
+-            "value" : "Disconnected"
 +            "value" : "Close window"
            }
          },
          "es" : {
            "stringUnit" : {
-             "state" : "translated",
--            "value" : "El documento tiene cambios no guardados"
+-            "state" : "needs_review",
+-            "value" : "Desconectado"
++            "state" : "translated",
 +            "value" : "Cerrar ventana"
            }
          },
          "fr" : {
            "stringUnit" : {
-             "state" : "translated",
--            "value" : "Le document contient des modifications non enregistrées."
+-            "state" : "needs_review",
+-            "value" : "Déconnecté"
++            "state" : "translated",
 +            "value" : "Fermer la fenêtre"
-           }
-         },
--        "hi" : {
-+        "it" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "दस्तावेज़ में सहेजे न गए बदलाव हैं"
-+            "value" : "Chiudi finestra"
 +          }
 +        },
-+        "ja" : {
++        "it" : {
 +          "stringUnit" : {
 +            "state" : "translated",
++            "value" : "Chiudi finestra"
+           }
+         },
+         "ja" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "切断済み"
 +            "value" : "ウインドウを閉じる"
 +          }
 +        },
@@ -1094,10 +1141,12 @@ index 6225cbd3e..f699123b5 100644
 +          "stringUnit" : {
 +            "state" : "translated",
 +            "value" : "윈도우 닫기"
-+          }
-+        },
-+        "nl" : {
-+          "stringUnit" : {
+           }
+         },
+         "nl" : {
+           "stringUnit" : {
+-            "state" : "needs_review",
+-            "value" : "Verbinding verbroken"
 +            "state" : "translated",
 +            "value" : "Venster sluiten"
 +          }
@@ -1142,29 +1191,34 @@ index 6225cbd3e..f699123b5 100644
 +          "stringUnit" : {
 +            "state" : "translated",
 +            "value" : "關閉視窗"
-+          }
-+        },
-+        "zh-HK" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "zh-HK" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "已中斷連線"
 +            "value" : "關閉視窗"
-+          }
-+        }
-+      }
-+    },
+           }
+         }
+       }
+     },
+-    "Document has unsaved changes" : {
+-      "comment" : "tooltip for the “edited” indicator in the window tab",
 +    "DocumentWindow.showNextTab" : {
 +      "comment" : "Window menu item selecting the tab to the right",
 +      "extractionState" : "extracted_with_value",
-+      "localizations" : {
-+        "cs" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+       "localizations" : {
+         "cs" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Dokument obsahuje neuložené změny"
 +            "value" : "Zobrazit další panel"
-+          }
-+        },
-+        "de" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "de" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Das Dokument enthält ungesicherte Änderungen."
 +            "value" : "Nächsten Tab zeigen"
 +          }
 +        },
@@ -1172,107 +1226,100 @@ index 6225cbd3e..f699123b5 100644
 +          "stringUnit" : {
 +            "state" : "new",
 +            "value" : "Show next tab"
-+          }
-+        },
-+        "en-GB" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "en-GB" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Document has unsaved changes"
 +            "value" : "Show next tab"
-+          }
-+        },
-+        "es" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "es" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "El documento tiene cambios no guardados"
 +            "value" : "Mostrar pestaña siguiente"
-+          }
-+        },
-+        "fr" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "fr" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Le document contient des modifications non enregistrées."
 +            "value" : "Afficher l’onglet suivant"
            }
          },
-         "it" : {
+-        "hi" : {
++        "it" : {
            "stringUnit" : {
              "state" : "translated",
--            "value" : "Il documento contiene modifiche non salvate"
+-            "value" : "दस्तावेज़ में सहेजे न गए बदलाव हैं"
 +            "value" : "Mostra pannello successivo"
-           }
-         },
-         "ja" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "書類に保存されていない変更があります"
++          }
++        },
++        "ja" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "次のタブを表示"
-           }
-         },
-         "ko" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "문서에 저장하지 않은 변경 사항이 있습니다."
++          }
++        },
++        "ko" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "다음 탭 보기"
-           }
-         },
-         "nl" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "Document heeft niet-bewaarde wijzigingen."
++          }
++        },
++        "nl" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "Toon volgende tabblad"
-           }
-         },
-         "pl" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "Dokument ma niezachowane zmiany"
++          }
++        },
++        "pl" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "Pokaż następną kartę"
-           }
-         },
-         "pt" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "Documento contém alterações não salvas"
++          }
++        },
++        "pt" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "Mostrar separador seguinte"
-           }
-         },
-         "ru" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "В документе есть несохраненные изменения"
++          }
++        },
++        "ru" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "Показать следующую вкладку"
-           }
-         },
-         "tr" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "Belgede kaydedilmemiş değişiklikler var"
++          }
++        },
++        "tr" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "Sonraki Sekmeyi Göster"
-           }
-         },
-         "uk" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "Документ містить незбережені зміни"
++          }
++        },
++        "uk" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "Показати наступну вкладку"
-           }
-         },
-         "zh-Hans" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "文稿中存在未保存的更改"
++          }
++        },
++        "zh-Hans" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "显示下一个标签页"
-           }
-         },
-         "zh-Hant" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "文件內包含尚未存檔的內容變更"
++          }
++        },
++        "zh-Hant" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "顯示下一個標籤頁"
-           }
-         },
-         "zh-HK" : {
-           "stringUnit" : {
-             "state" : "translated",
--            "value" : "文件包括未儲存的變更"
++          }
++        },
++        "zh-HK" : {
++          "stringUnit" : {
++            "state" : "translated",
 +            "value" : "顯示下一個標籤頁"
 +          }
 +        }
@@ -1316,83 +1363,95 @@ index 6225cbd3e..f699123b5 100644
 +          "stringUnit" : {
 +            "state" : "translated",
 +            "value" : "Afficher l’onglet précédent"
-+          }
-+        },
-+        "it" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "it" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Il documento contiene modifiche non salvate"
 +            "value" : "Mostra pannello precedente"
-+          }
-+        },
-+        "ja" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "ja" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "書類に保存されていない変更があります"
 +            "value" : "前のタブを表示"
-+          }
-+        },
-+        "ko" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "ko" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "문서에 저장하지 않은 변경 사항이 있습니다."
 +            "value" : "이전 탭 보기"
-+          }
-+        },
-+        "nl" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "nl" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Document heeft niet-bewaarde wijzigingen."
 +            "value" : "Toon vorige tabblad"
-+          }
-+        },
-+        "pl" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "pl" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Dokument ma niezachowane zmiany"
 +            "value" : "Pokaż poprzednią kartę"
-+          }
-+        },
-+        "pt" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "pt" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Documento contém alterações não salvas"
 +            "value" : "Mostrar separador anterior"
-+          }
-+        },
-+        "ru" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "ru" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "В документе есть несохраненные изменения"
 +            "value" : "Показать предыдущую вкладку"
-+          }
-+        },
-+        "tr" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "tr" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Belgede kaydedilmemiş değişiklikler var"
 +            "value" : "Önceki Sekmeyi Göster"
-+          }
-+        },
-+        "uk" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "uk" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Документ містить незбережені зміни"
 +            "value" : "Показати попередню вкладку"
-+          }
-+        },
-+        "zh-Hans" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "zh-Hans" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "文稿中存在未保存的更改"
 +            "value" : "显示上一个标签页"
-+          }
-+        },
-+        "zh-Hant" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "zh-Hant" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "文件內包含尚未存檔的內容變更"
 +            "value" : "顯示上一個標籤頁"
-+          }
-+        },
-+        "zh-HK" : {
-+          "stringUnit" : {
-+            "state" : "translated",
+           }
+         },
+         "zh-HK" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "文件包括未儲存的變更"
 +            "value" : "顯示上一個標籤頁"
            }
          }
        }
 diff --git a/CotEditor/Localizables/Settings/Panes/WindowSettings.xcstrings b/CotEditor/Localizables/Settings/Panes/WindowSettings.xcstrings
-index 65ee0392c..be8a1d702 100644
+index b4855a318..fc324a24c 100644
 --- a/CotEditor/Localizables/Settings/Panes/WindowSettings.xcstrings
 +++ b/CotEditor/Localizables/Settings/Panes/WindowSettings.xcstrings
 @@ -3493,6 +3493,113 @@
@@ -1510,10 +1569,10 @@ index 65ee0392c..be8a1d702 100644
        "localizations" : {
          "cs" : {
 diff --git a/CotEditor/Sources/Application/AppDelegate.swift b/CotEditor/Sources/Application/AppDelegate.swift
-index e43e248e6..7de3db4ac 100644
+index 08ce06fe0..3c4818909 100644
 --- a/CotEditor/Sources/Application/AppDelegate.swift
 +++ b/CotEditor/Sources/Application/AppDelegate.swift
-@@ -160,6 +160,8 @@ extension Logger {
+@@ -157,6 +157,8 @@ extension Logger {
          _ = DocumentController.shared
          
          self.prepareMainMenu()
@@ -1523,10 +1582,10 @@ index e43e248e6..7de3db4ac 100644
          #if SPARKLE
          UpdaterManager.shared.setup()
 diff --git a/CotEditor/Sources/Application/Defaults/DefaultKeys.swift b/CotEditor/Sources/Application/Defaults/DefaultKeys.swift
-index ad5a369e4..8a52c4ed8 100644
+index 2b052049e..23fa127f0 100644
 --- a/CotEditor/Sources/Application/Defaults/DefaultKeys.swift
 +++ b/CotEditor/Sources/Application/Defaults/DefaultKeys.swift
-@@ -53,6 +53,7 @@ extension DefaultKeys {
+@@ -56,6 +56,7 @@ extension DefaultKeys {
      
      // Window
      static let windowTabbing = DefaultKey<Int>("windowTabbing")
@@ -1535,7 +1594,7 @@ index ad5a369e4..8a52c4ed8 100644
      static let windowHeight = DefaultKey<Double?>("windowHeight")
      static let showLineNumbers = DefaultKey<Bool>("showLineNumbers")
 diff --git a/CotEditor/Sources/Application/Defaults/DefaultSettings+Porting.swift b/CotEditor/Sources/Application/Defaults/DefaultSettings+Porting.swift
-index f43a97307..7be75c79a 100644
+index cacf5510e..19fb15fd4 100644
 --- a/CotEditor/Sources/Application/Defaults/DefaultSettings+Porting.swift
 +++ b/CotEditor/Sources/Application/Defaults/DefaultSettings+Porting.swift
 @@ -50,6 +50,7 @@ extension DefaultSettings {
@@ -1547,10 +1606,10 @@ index f43a97307..7be75c79a 100644
          .windowHeight,
          .showLineNumbers,
 diff --git a/CotEditor/Sources/Application/Defaults/DefaultSettings.swift b/CotEditor/Sources/Application/Defaults/DefaultSettings.swift
-index 6ed8c35ca..a547cc4a6 100644
+index d7fb06395..a6a5e0eff 100644
 --- a/CotEditor/Sources/Application/Defaults/DefaultSettings.swift
 +++ b/CotEditor/Sources/Application/Defaults/DefaultSettings.swift
-@@ -57,6 +57,7 @@ struct DefaultSettings {
+@@ -61,6 +61,7 @@ struct DefaultSettings {
              
              // Window
              .windowTabbing: -1,  // = Respect System Setting
@@ -1559,7 +1618,7 @@ index 6ed8c35ca..a547cc4a6 100644
              .showInvisibles: false,
              .showInvisibleNewLine: true,
 diff --git a/CotEditor/Sources/Document Window/Content View/ContentViewController.swift b/CotEditor/Sources/Document Window/Content View/ContentViewController.swift
-index 2260d3a5f..37a7b22b9 100644
+index 42bc18b7c..2c88de75b 100644
 --- a/CotEditor/Sources/Document Window/Content View/ContentViewController.swift	
 +++ b/CotEditor/Sources/Document Window/Content View/ContentViewController.swift	
 @@ -33,6 +33,36 @@ final class ContentViewController: NSViewController {
@@ -1608,7 +1667,7 @@ index 2260d3a5f..37a7b22b9 100644
          
          self.view = view
      }
-@@ -71,16 +101,190 @@ final class ContentViewController: NSViewController {
+@@ -71,16 +101,201 @@ final class ContentViewController: NSViewController {
      /// - Parameter oldDocument: The previous document.
      private func updateDocument(from oldDocument: DataDocument?) {
          
@@ -1749,10 +1808,13 @@ index 2260d3a5f..37a7b22b9 100644
 +    }
 +
 +
-+    /// Returns each split's clip position measured from its inset-adjusted top-left corner.
++    /// Returns each split's clip position measured from the inset-adjusted corner where its text starts:
++    /// the top-left for horizontal text, and the top-right for vertical text.
 +    ///
 +    /// Raw origins are not stored because the topmost legal origin is negative by the content insets
 +    /// (for example under the toolbar), and those insets may differ by the time the editor is shown again.
++    /// Vertical text is measured from the right because its lines run from right to left: lazy layout
++    /// widens the text view to the left, which moves every position measured from the left edge.
 +    ///
 +    /// - Parameter editor: The editor whose splits to measure.
 +    /// - Returns: One offset per text view, or `nil` for a text view without a scroll view.
@@ -1761,8 +1823,11 @@ index 2260d3a5f..37a7b22b9 100644
 +        editor.textViews.map { textView in
 +            textView.enclosingScrollView.map { scrollView in
 +                let clip = scrollView.contentView
-+                return NSPoint(x: clip.bounds.origin.x + clip.contentInsets.left,
-+                               y: clip.bounds.origin.y + clip.contentInsets.top)
++                let x = (textView.layoutOrientation == .vertical)
++                    ? clip.documentRect.maxX + clip.contentInsets.right - clip.bounds.maxX
++                    : clip.bounds.origin.x + clip.contentInsets.left
++                
++                return NSPoint(x: x, y: clip.bounds.origin.y + clip.contentInsets.top)
 +            }
 +        }
 +    }
@@ -1782,15 +1847,20 @@ index 2260d3a5f..37a7b22b9 100644
 +            let clip = scrollView.contentView
 +            guard let offset else { return clip.bounds.origin }
 +            
-+            // Text is laid out lazily, so the document may not yet be as tall as the offset needs, and
-+            // the clamping below would pull the view up. Laying out as far as the view will show avoids that.
++            // Text is laid out lazily, so the document may not yet be as long as the offset needs, and
++            // the clamping below would pull the view back. Laying out as far as the view will show avoids that.
++            // -> Container coordinates do not rotate with vertical text: lines always advance along their y-axis.
++            let isVertical = textView.layoutOrientation == .vertical
 +            if let layoutManager = textView.layoutManager, let container = textView.textContainer {
-+                layoutManager.ensureLayout(forBoundingRect: NSRect(x: 0, y: 0, width: container.size.width,
-+                                                                   height: offset.y + clip.bounds.height), in: container)
++                let extent = isVertical ? offset.x + clip.bounds.width : offset.y + clip.bounds.height
++                layoutManager.ensureLayout(forBoundingRect: NSRect(x: 0, y: 0, width: container.size.width, height: extent),
++                                           in: container)
 +            }
 +            
 +            var bounds = clip.bounds
-+            bounds.origin = NSPoint(x: offset.x - clip.contentInsets.left,
++            bounds.origin = NSPoint(x: isVertical
++                                        ? clip.documentRect.maxX + clip.contentInsets.right - clip.bounds.width - offset.x
++                                        : offset.x - clip.contentInsets.left,
 +                                    y: offset.y - clip.contentInsets.top)
 +            // constrainBoundsRect(_:) clamps within the inset-adjusted scrollable range,
 +            // so a view left at the very top returns there although that origin is negative,
@@ -2406,10 +2476,10 @@ index 30bddbef7..1decfe527 100644
      }
  }
 diff --git a/CotEditor/Sources/Document Window/DocumentWindowController.swift b/CotEditor/Sources/Document Window/DocumentWindowController.swift
-index 4ef284922..15c480bc9 100644
+index a67cbfb31..33a7792b2 100644
 --- a/CotEditor/Sources/Document Window/DocumentWindowController.swift	
 +++ b/CotEditor/Sources/Document Window/DocumentWindowController.swift	
-@@ -223,9 +223,12 @@ final class DocumentWindowController: NSWindowController, NSWindowDelegate {
+@@ -233,9 +233,12 @@ final class DocumentWindowController: NSWindowController, NSWindowDelegate {
          
          if self.isDirectoryDocument {
              // display current document title as window subtitle
@@ -2425,10 +2495,10 @@ index 4ef284922..15c480bc9 100644
      }
      
 diff --git a/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift b/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift
-index d469bfff7..3b35974a4 100644
+index 881c6f256..616ed5f47 100644
 --- a/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift	
 +++ b/CotEditor/Sources/Document Window/Sidebar/File Browser/FileBrowserViewController.swift	
-@@ -334,14 +334,35 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
+@@ -328,14 +328,35 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
      // MARK: Public Methods
      
      /// Selects the current document in the outline view.
@@ -2469,7 +2539,7 @@ index d469bfff7..3b35974a4 100644
      }
      
      
-@@ -365,6 +386,20 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
+@@ -359,6 +380,20 @@ final class FileBrowserViewController: NSViewController, NSMenuItemValidation {
      }
      
      
@@ -2490,7 +2560,7 @@ index d469bfff7..3b35974a4 100644
      /// Invoked when the file node did updated externally.
      ///
      /// - Parameter node: The file node whose children were changed.
-@@ -1216,7 +1251,12 @@ extension FileBrowserViewController: NSOutlineViewDelegate {
+@@ -1200,7 +1235,12 @@ extension FileBrowserViewController: NSOutlineViewDelegate {
              !node.file.isDirectory
          else { return }
          
@@ -2504,20 +2574,20 @@ index d469bfff7..3b35974a4 100644
          }
      }
 diff --git a/CotEditor/Sources/Document Window/Sidebar/Folder Find/FolderFinder.swift b/CotEditor/Sources/Document Window/Sidebar/Folder Find/FolderFinder.swift
-index df9ba1b11..2ce19f104 100644
+index 5e4c8bce0..521a3bee6 100644
 --- a/CotEditor/Sources/Document Window/Sidebar/Folder Find/FolderFinder.swift	
 +++ b/CotEditor/Sources/Document Window/Sidebar/Folder Find/FolderFinder.swift	
-@@ -222,7 +222,7 @@ import TextFind
+@@ -227,7 +227,7 @@ import TextFind
              else { return }
              
              guard
--                let document = self.document.currentDocument as? Document,
-+                let document = self.document.activeFileDocument as? Document,
+-                let document = self.document.currentDocument as? TextDocument,
++                let document = self.document.activeFileDocument as? TextDocument,
                  let textView = document.textView
              else { return }
              
 diff --git a/CotEditor/Sources/Document Window/WindowContentViewController.swift b/CotEditor/Sources/Document Window/WindowContentViewController.swift
-index 0f8c4ebb0..34e539e3d 100644
+index 41dd5e54a..b9e47bc11 100644
 --- a/CotEditor/Sources/Document Window/WindowContentViewController.swift	
 +++ b/CotEditor/Sources/Document Window/WindowContentViewController.swift	
 @@ -48,9 +48,18 @@ final class WindowContentViewController: NSSplitViewController, NSToolbarItemVal
@@ -2618,7 +2688,7 @@ index 0f8c4ebb0..34e539e3d 100644
 +            }
 +            // edited markers and titles are not part of the tab state
 +            self.directoryTabDocumentObservers = [
-+                NotificationCenter.default.addObserver(for: Document.DidUpdateChangeMessage.self) { [weak self] _ in
++                NotificationCenter.default.addObserver(for: TextDocument.DidUpdateChangeMessage.self) { [weak self] _ in
 +                    self?.refreshDirectoryTabBar()
 +                },
 +                NotificationCenter.default.addObserver(for: NSDocument.DidChangeFileURLMessage.self) { [weak self] _ in
@@ -2641,7 +2711,7 @@ index 0f8c4ebb0..34e539e3d 100644
      }
      
      
-@@ -433,6 +499,12 @@ final class WindowContentViewController: NSSplitViewController, NSToolbarItemVal
+@@ -437,6 +503,12 @@ final class WindowContentViewController: NSSplitViewController, NSToolbarItemVal
      /// Moves the focus to the editor.
      private func focusEditor() {
          
@@ -2654,7 +2724,7 @@ index 0f8c4ebb0..34e539e3d 100644
          guard
              let window = self.viewIfLoaded?.window,
              let textView = self.documentViewController?.focusedTextView
-@@ -445,12 +517,161 @@ final class WindowContentViewController: NSSplitViewController, NSToolbarItemVal
+@@ -449,12 +521,161 @@ final class WindowContentViewController: NSSplitViewController, NSToolbarItemVal
      /// Updates the document in children.
      private func updateDocument() {
          
@@ -2891,19 +2961,19 @@ index ecb70fc2f..0f83a6821 100644
          
          switch item.action {
 diff --git a/CotEditor/Sources/Document/DirectoryDocument+Actions.swift b/CotEditor/Sources/Document/DirectoryDocument+Actions.swift
-index 3f4cf10f1..6e387c610 100644
+index d4f78a569..81bf20eec 100644
 --- a/CotEditor/Sources/Document/DirectoryDocument+Actions.swift
 +++ b/CotEditor/Sources/Document/DirectoryDocument+Actions.swift
 @@ -49,10 +49,10 @@ extension DirectoryDocument {
                   #selector(changeLineEnding),
                   #selector(toggleEditable):
                  // -> PreviewDocument doesn't support file manipulation.
--                return (self.currentDocument as? Document)?.validateUserInterfaceItem(item) ?? false
-+                return (self.activeFileDocument as? Document)?.validateUserInterfaceItem(item) ?? false
+-                return (self.currentDocument as? TextDocument)?.validateUserInterfaceItem(item) ?? false
++                return (self.activeFileDocument as? TextDocument)?.validateUserInterfaceItem(item) ?? false
                  
              case #selector(changeSyntax):
--                guard let document = self.currentDocument as? Document else {
-+                guard let document = self.activeFileDocument as? Document else {
+-                guard let document = self.currentDocument as? TextDocument else {
++                guard let document = self.activeFileDocument as? TextDocument else {
                      if let item = item as? NSMenuItem, let name = item.representedObject as? String {
                          item.state = .off
                          item.isHidden = (item.tag != SyntaxMenuTag.recentItem.rawValue &&
@@ -3008,29 +3078,29 @@ index 3f4cf10f1..6e387c610 100644
      
      @objc func changeEncoding(_ sender: NSMenuItem) {
          
--        (self.currentDocument as? Document)?.changeEncoding(sender)
-+        (self.activeFileDocument as? Document)?.changeEncoding(sender)
+-        (self.currentDocument as? TextDocument)?.changeEncoding(sender)
++        (self.activeFileDocument as? TextDocument)?.changeEncoding(sender)
      }
      
      
      @objc func changeLineEnding(_ sender: NSMenuItem) {
          
--        (self.currentDocument as? Document)?.changeLineEnding(sender)
-+        (self.activeFileDocument as? Document)?.changeLineEnding(sender)
+-        (self.currentDocument as? TextDocument)?.changeLineEnding(sender)
++        (self.activeFileDocument as? TextDocument)?.changeLineEnding(sender)
      }
      
      
      @objc func changeSyntax(_ sender: NSMenuItem) {
          
--        (self.currentDocument as? Document)?.changeSyntax(sender)
-+        (self.activeFileDocument as? Document)?.changeSyntax(sender)
+-        (self.currentDocument as? TextDocument)?.changeSyntax(sender)
++        (self.activeFileDocument as? TextDocument)?.changeSyntax(sender)
      }
      
      
      @objc func toggleEditable(_ sender: Any?) {
          
--        (self.currentDocument as? Document)?.toggleEditable(sender)
-+        (self.activeFileDocument as? Document)?.toggleEditable(sender)
+-        (self.currentDocument as? TextDocument)?.toggleEditable(sender)
++        (self.activeFileDocument as? TextDocument)?.toggleEditable(sender)
      }
      
      
@@ -3214,7 +3284,7 @@ index 000000000..eb4861058
 +    }
 +}
 diff --git a/CotEditor/Sources/Document/DirectoryDocument.swift b/CotEditor/Sources/Document/DirectoryDocument.swift
-index f1a5f5164..f1d5b6f01 100644
+index dcb4c4b8f..c40e329fe 100644
 --- a/CotEditor/Sources/Document/DirectoryDocument.swift
 +++ b/CotEditor/Sources/Document/DirectoryDocument.swift
 @@ -24,17 +24,21 @@
@@ -3458,7 +3528,7 @@ index f1a5f5164..f1d5b6f01 100644
          
          // observe document updates for the edited marker in the close button
          if self.documentObserver == nil {
-             self.documentObserver = NotificationCenter.default.addObserver(for: Document.DidUpdateChangeMessage.self) { [unowned self] _ in
+             self.documentObserver = NotificationCenter.default.addObserver(for: TextDocument.DidUpdateChangeMessage.self) { [unowned self] _ in
 -                let hasEditedDocuments = self.documents.contains(where: \.isDocumentEdited)
 -                self.windowController?.setDocumentEdited(hasEditedDocuments)
 +                self.synchronizeEditedState()
@@ -3757,7 +3827,7 @@ index f1a5f5164..f1d5b6f01 100644
 -        
 -        if let currentDocument,
 -           fileURL == currentDocument.fileURL,
--           !asPlainText || currentDocument is Document
+-           !asPlainText || currentDocument is TextDocument
 -        {
 -            return true  // already open
 -        }
@@ -3770,7 +3840,7 @@ index f1a5f5164..f1d5b6f01 100644
 -        {
 -            if let currentDocument,
 -               resolvedURL == currentDocument.fileURL,
--               !asPlainText || currentDocument is Document
+-               !asPlainText || currentDocument is TextDocument
 -            {
 -                return true  // already open
 -            }
@@ -3779,7 +3849,7 @@ index f1a5f5164..f1d5b6f01 100644
 -        }
 -        
 -        // existing document
--        if let document = NSDocumentController.shared.document(for: fileURL) as? Document {
+-        if let document = NSDocumentController.shared.document(for: fileURL) as? TextDocument {
 -            if self.documents.contains(document) {
 -                self.changeFrontmostDocument(to: document)
 -                if recordsHistory {
@@ -3919,7 +3989,7 @@ index f1a5f5164..f1d5b6f01 100644
 -            self.documents.removeFirst(document)
 -            self.invalidateRestorableState()
 -            
--            if let document = document as? Document {
+-            if let document = document as? TextDocument {
 -                // create a new window for the document
 -                document.windowController = nil
 -                document.makeWindowControllers()
@@ -3941,7 +4011,7 @@ index f1a5f5164..f1d5b6f01 100644
 +        // detach the document from the receiver
 +        self.removeOwnedDocument(document, closesDocument: false)
 +        
-+        if let document = document as? Document {
++        if let document = document as? TextDocument {
 +            // create a new window for the document
 +            document.makeWindowControllers()
 +            document.showWindows()
@@ -3996,7 +4066,7 @@ index f1a5f5164..f1d5b6f01 100644
 +        guard !self.isClosed else { return nil }
 +        if let currentDocument,
 +           fileURL == currentDocument.fileURL,
-+           !asPlainText || currentDocument is Document
++           !asPlainText || currentDocument is TextDocument
 +        {
 +            return currentDocument  // already open
 +        }
@@ -4009,7 +4079,7 @@ index f1a5f5164..f1d5b6f01 100644
 +        {
 +            if let currentDocument,
 +               resolvedURL == currentDocument.fileURL,
-+               !asPlainText || currentDocument is Document
++               !asPlainText || currentDocument is TextDocument
 +            {
 +                return currentDocument  // already open
 +            }
@@ -4033,7 +4103,7 @@ index f1a5f5164..f1d5b6f01 100644
 +        }
 +
 +        // A text document already owned by a different window cannot become our child.
-+        if let document = NSDocumentController.shared.document(for: fileURL) as? Document {
++        if let document = NSDocumentController.shared.document(for: fileURL) as? TextDocument {
 +            if self.documents.contains(where: { $0 === document }) {
 +                if activates { self.changeFrontmostDocument(to: document) }
 +                return document
@@ -4937,42 +5007,42 @@ index 000000000..ab58d20d8
 +    }
 +}
 diff --git a/CotEditor/Sources/Document/DocumentController.swift b/CotEditor/Sources/Document/DocumentController.swift
-index 6d9bce4de..01f5e9f50 100644
+index 464e29934..c0ba621e7 100644
 --- a/CotEditor/Sources/Document/DocumentController.swift
 +++ b/CotEditor/Sources/Document/DocumentController.swift
-@@ -303,7 +303,7 @@ protocol AdditionalDocumentPreparing: NSDocument {
-             case let document as Document:
+@@ -328,7 +328,7 @@ protocol AdditionalDocumentPreparing: NSDocument {
+             case let document as TextDocument:
                  document
              case let document as DirectoryDocument:
--                document.currentDocument as? Document
-+                document.activeFileDocument as? Document
+-                document.currentDocument as? TextDocument
++                document.activeFileDocument as? TextDocument
              default:
                  nil
          }
 diff --git a/CotEditor/Sources/Scripting Support/DirectoryDocument+ScriptingSupport.swift b/CotEditor/Sources/Scripting Support/DirectoryDocument+ScriptingSupport.swift
-index 85cf00037..851be061f 100644
+index 31ec15163..2132c62be 100644
 --- a/CotEditor/Sources/Scripting Support/DirectoryDocument+ScriptingSupport.swift	
 +++ b/CotEditor/Sources/Scripting Support/DirectoryDocument+ScriptingSupport.swift	
 @@ -61,7 +61,7 @@ extension DirectoryDocument {
      /// Current document of the folder document (optional).
-     @objc var scriptCurrentDocument: Document? {
+     @objc var scriptCurrentDocument: TextDocument? {
          
--        self.currentDocument as? Document
-+        self.activeFileDocument as? Document
+-        self.currentDocument as? TextDocument
++        self.activeFileDocument as? TextDocument
      }
      
      
 @@ -214,7 +214,7 @@ extension DirectoryDocument {
      /// - Returns: The current text document, or `nil` if no text document is selected.
-     private func scriptDocument(for command: NSScriptCommand? = nil) -> Document? {
+     private func scriptDocument(for command: NSScriptCommand? = nil) -> TextDocument? {
          
--        guard let document = self.currentDocument as? Document else {
-+        guard let document = self.activeFileDocument as? Document else {
+-        guard let document = self.currentDocument as? TextDocument else {
++        guard let document = self.activeFileDocument as? TextDocument else {
              // report an AppleScript error
              let command = command ?? NSScriptCommand.current()
              command?.scriptErrorNumber = errOSAGeneralError
 diff --git a/CotEditor/Sources/Settings Window/Panes/WindowSettingsView.swift b/CotEditor/Sources/Settings Window/Panes/WindowSettingsView.swift
-index 815fff3a3..4e46877fe 100644
+index 1f15e7baa..375f087cb 100644
 --- a/CotEditor/Sources/Settings Window/Panes/WindowSettingsView.swift	
 +++ b/CotEditor/Sources/Settings Window/Panes/WindowSettingsView.swift	
 @@ -33,6 +33,7 @@ struct WindowSettingsView: View {

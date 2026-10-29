@@ -198,7 +198,7 @@ index 000000000..3ee0ae05f
 +}
 diff --git a/Tests/Sources/Models/DirectoryTabTests+Items.swift b/Tests/Sources/Models/DirectoryTabTests+Items.swift
 new file mode 100644
-index 000000000..fe2d20136
+index 000000000..d98a8ab77
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+Items.swift
 @@ -0,0 +1,633 @@
@@ -422,7 +422,7 @@ index 000000000..fe2d20136
 +            try await self.wait { directory.activeFileDocument === file }
 +            #expect(outlineView.selectedRow == row)
 +
-+            let untitled = Document()
++            let untitled = TextDocument()
 +            #expect(directory.adoptMember(untitled))
 +            #expect(outlineView.selectedRowIndexes.isEmpty, "a document without a sidebar file clears the row too")
 +            directory.selectDocument(file)
@@ -1045,10 +1045,10 @@ index 000000000..4ed2a41a9
 +}
 diff --git a/Tests/Sources/Models/DirectoryTabTests+Viewport.swift b/Tests/Sources/Models/DirectoryTabTests+Viewport.swift
 new file mode 100644
-index 000000000..432107cbd
+index 000000000..ef2fbf062
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+Viewport.swift
-@@ -0,0 +1,384 @@
+@@ -0,0 +1,395 @@
 +//
 +//  DirectoryTabTests+Viewport.swift
 +//  Tests
@@ -1234,7 +1234,7 @@ index 000000000..432107cbd
 +            window.directory.selectDocument(window.second)
 +            await window.settle()
 +            // Shrink the hidden document so both the retained selection and the stored offset are out of range.
-+            let document = try #require(window.first as? Document)
++            let document = try #require(window.first as? TextDocument)
 +            document.textStorage.replaceCharacters(in: NSRange(location: 0, length: document.textStorage.length), with: "short")
 +            window.directory.selectDocument(window.first)
 +            await window.settle()
@@ -1412,30 +1412,41 @@ index 000000000..432107cbd
 +    }
 +
 +
-+    /// The clip-view position measured from the inset-adjusted top-left, where `.zero` is the very top.
++    /// The clip-view position measured from the inset-adjusted corner where the text starts, where `.zero` is
++    /// the very start: the top-left for horizontal text, and the top-right for vertical text.
++    ///
++    /// Vertical text grows to the left while it is laid out, so only a position measured from the right
++    /// stays on the same text.
 +    func offset(of textView: NSTextView) -> NSPoint {
 +
 +        guard let clip = textView.enclosingScrollView?.contentView else { return NSPoint(x: CGFloat.nan, y: CGFloat.nan) }
 +
-+        return NSPoint(x: clip.bounds.origin.x + clip.contentInsets.left,
-+                       y: clip.bounds.origin.y + clip.contentInsets.top)
++        let x = (textView.layoutOrientation == .vertical)
++            ? clip.documentRect.maxX + clip.contentInsets.right - clip.bounds.maxX
++            : clip.bounds.origin.x + clip.contentInsets.left
++
++        return NSPoint(x: x, y: clip.bounds.origin.y + clip.contentInsets.top)
 +    }
 +
 +
++    /// Scrolls to a position measured as `offset(of:)` measures it.
 +    func scroll(_ textView: NSTextView, to offset: NSPoint) {
 +
 +        guard let scrollView = textView.enclosingScrollView else { return }
 +
 +        let clip = scrollView.contentView
 +        var bounds = clip.bounds
-+        bounds.origin = NSPoint(x: offset.x - clip.contentInsets.left, y: offset.y - clip.contentInsets.top)
++        bounds.origin = NSPoint(x: (textView.layoutOrientation == .vertical)
++                                    ? clip.documentRect.maxX + clip.contentInsets.right - clip.bounds.width - offset.x
++                                    : offset.x - clip.contentInsets.left,
++                                y: offset.y - clip.contentInsets.top)
 +        clip.scroll(to: clip.constrainBoundsRect(bounds).origin)
 +        scrollView.reflectScrolledClipView(clip)
 +    }
 +}
 diff --git a/Tests/Sources/Models/DirectoryTabTests.swift b/Tests/Sources/Models/DirectoryTabTests.swift
 new file mode 100644
-index 000000000..ebefc6e9a
+index 000000000..e0629dd42
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests.swift
 @@ -0,0 +1,878 @@
@@ -1478,9 +1489,9 @@ index 000000000..ebefc6e9a
 +    @Test func tabStatePreservesIdentityAndNeighborSelection() {
 +
 +        let state = DirectoryTabState()
-+        let first = Document()
-+        let second = Document()
-+        let third = Document()
++        let first = TextDocument()
++        let second = TextDocument()
++        let third = TextDocument()
 +        let firstID = state.insert(first).id
 +        let secondID = state.insert(second).id
 +        let thirdID = state.insert(third).id
@@ -1503,7 +1514,7 @@ index 000000000..ebefc6e9a
 +    @Test func tabStateMovesEntriesWithoutChangingSelection() {
 +
 +        let state = DirectoryTabState()
-+        let ids = [Document(), Document(), Document()].map { state.insert($0).id }
++        let ids = [TextDocument(), TextDocument(), TextDocument()].map { state.insert($0).id }
 +        state.select(ids[1])
 +
 +        state.move(ids[2], to: 0)
@@ -1519,7 +1530,7 @@ index 000000000..ebefc6e9a
 +    @Test func tabStateArrangesEntriesByArchivedOrder() {
 +
 +        let state = DirectoryTabState()
-+        let ids = [Document(), Document(), Document()].map { state.insert($0).id }
++        let ids = [TextDocument(), TextDocument(), TextDocument()].map { state.insert($0).id }
 +        state.select(ids[1])
 +
 +        state.arrange(by: [ids[2], UUID(), ids[0]])
@@ -1589,7 +1600,7 @@ index 000000000..ebefc6e9a
 +        try await self.withDirectory(makesWindow: true) { directory, urls in
 +            #expect(await directory.openDocument(at: urls[0]))
 +            #expect(await directory.openDocument(at: urls[1]))
-+            let document = try #require(directory.activeFileDocument as? Document)
++            let document = try #require(directory.activeFileDocument as? TextDocument)
 +            let directoryWindow = try #require(directory.windowControllers.first?.window)
 +            let textView = try #require((directoryWindow.contentViewController as? WindowContentViewController)?.documentViewController?.focusedTextView)
 +            textView.insertText("edited ", replacementRange: NSRange(location: 0, length: 0))
@@ -1764,7 +1775,7 @@ index 000000000..ebefc6e9a
 +        try await self.withDirectory(makesWindow: true) { directory, urls in
 +            #expect(await directory.openDocument(at: urls[0]))
 +            #expect(await directory.openDocument(at: urls[1]))
-+            let first = try #require(self.member(at: urls[0], in: directory) as? Document)
++            let first = try #require(self.member(at: urls[0], in: directory) as? TextDocument)
 +            first.textStorage.replaceCharacters(in: NSRange(0..<0), with: "edited ")
 +            first.updateChangeCount(.changeDone)
 +            #expect(first.hasUnautosavedChanges)
@@ -1782,7 +1793,7 @@ index 000000000..ebefc6e9a
 +
 +        try await self.withDirectory(makesWindow: true) { directory, urls in
 +            #expect(await directory.openDocument(at: urls[0]))
-+            let first = try #require(self.member(at: urls[0], in: directory) as? Document)
++            let first = try #require(self.member(at: urls[0], in: directory) as? TextDocument)
 +            first.textStorage.replaceCharacters(in: NSRange(0..<0), with: "edited ")
 +            first.updateChangeCount(.changeDone)
 +
@@ -2337,24 +2348,3 @@ index 97b57d36c..406eaffc4 100644
          
          result.characters.entire = nil
          #expect(result.formattedValue(type: .characters) == nil)
-diff --git a/Tests/Sources/Models/URLDetectorTests.swift b/Tests/Sources/Models/URLDetectorTests.swift
-index 86451b781..c326df5de 100644
---- a/Tests/Sources/Models/URLDetectorTests.swift
-+++ b/Tests/Sources/Models/URLDetectorTests.swift
-@@ -153,12 +153,15 @@ import ValueRange
-     
-     /// Waits until the given condition is satisfied.
-     ///
-+    /// The detector waits up to three quarters of a second after an edit, at utility priority, so the
-+    /// default timeout leaves room for a busy machine, such as while the whole test plan runs in parallel.
-+    ///
-     /// - Parameters:
-     ///   - timeout: The maximum duration to wait.
-     ///   - interval: The interval between condition checks.
-     ///   - condition: The condition to evaluate.
-     /// - Returns: `true` if the condition was satisfied; otherwise, `false`.
--    private func waitFor(timeout: Duration = .seconds(2), interval: Duration = .milliseconds(20), _ condition: @escaping () -> Bool) async -> Bool {
-+    private func waitFor(timeout: Duration = .seconds(10), interval: Duration = .milliseconds(20), _ condition: @escaping () -> Bool) async -> Bool {
-         
-         let clock = ContinuousClock()
-         let deadline = clock.now.advanced(by: timeout)

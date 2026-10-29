@@ -73,7 +73,7 @@ Each app is built from the patches up to the one you choose, and `scripts/build.
 | App | Patches | What you get | Bundle identifier |
 | --- | --- | --- | --- |
 | `CotEditor-Tabs.app` | 1 (`--through tabs`) | CotEditor with file tabs, sandboxed as upstream | `com.coteditor.CotEditor`, as upstream |
-| `CotEditor-Shell.app` | 1 and 2 (`--through shell`) | File tabs and shell tabs, **without the App Sandbox**, since a shell needs full access to your files and tools. The hardened runtime is kept. | `local.coteditor-tabs.CotEditor-Shell` |
+| `CotEditor-Shell.app` | 1 and 2 (`--through shell`) | File tabs and shell tabs, **without the App Sandbox**, since a shell needs full access to your files and tools. The hardened runtime is kept. Without iCloud, General settings offer no copy of the settings in iCloud; settings are exported and imported as files. | `local.coteditor-tabs.CotEditor-Shell` |
 | `CotEditor-Web.app` | 1 to 3 (`--through webpage`) | File tabs, shell tabs and webpage tabs, **without the App Sandbox**, as the Shell app. The hardened runtime is kept. | `local.coteditor-tabs.CotEditor-Web` |
 | `CotEditor-Remote.app` | all (`--through remote`, the default) | File tabs, shell tabs, webpage tabs and remote files, **without the App Sandbox**, since it runs `ssh` with your SSH configuration and keys. The hardened runtime is kept. | `local.coteditor-tabs.CotEditor-Remote` |
 
@@ -86,7 +86,7 @@ No Developer ID signed or notarized build exists.
 ## Requirements
 
 - macOS 26 or later (upstream CotEditor's requirement).
-- Xcode 27.0 or later.
+- Xcode 27.1 or later. Upstream builds with Xcode 27.2, and its project file uses the JSON project format (`project.xcproj`), which Xcode 27.1 reads.
 - For every app except the Tabs app, Xcode's optional **Metal Toolchain** component: `xcodebuild -downloadComponent MetalToolchain`. SwiftTerm, the terminal emulator, compiles a Metal shader.
 - For remote files: an SSH server with SFTP enabled that accepts your key, and the server's host key in your `known_hosts`. The system's `/usr/bin/ssh` is used.
 - About 6 GB of free disk space for a build.

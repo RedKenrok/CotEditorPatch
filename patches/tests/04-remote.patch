@@ -1,6 +1,6 @@
 diff --git a/Tests/Sources/Models/DirectoryTabTests+Remote.swift b/Tests/Sources/Models/DirectoryTabTests+Remote.swift
 new file mode 100644
-index 000000000..4aea7be82
+index 000000000..4f9d5a702
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+Remote.swift
 @@ -0,0 +1,473 @@
@@ -115,7 +115,7 @@ index 000000000..4aea7be82
 +            #expect(document.windowControllers.first?.window != directory.windowControllers.first?.window)
 +            #expect(document.textStorage.string == "edited")
 +            #expect(document.isDocumentEdited)
-+            #expect(RemoteDocumentRegistry.shared.document(for: document.identity) === document)
++            #expect(RemoteSSHDocumentRegistry.shared.document(for: document.identity) === document)
 +        }
 +    }
 +
@@ -211,7 +211,7 @@ index 000000000..4aea7be82
 +                try await self.wait { restored.tabState.entries.count == 2 }
 +                #expect(restored.tabState.entries.map(\.id) == ids)
 +                #expect(restored.activeWebPageSession?.id == page.id)
-+                let remote = try #require(restored.tabDocuments.first as? RemoteDocument)
++                let remote = try #require(restored.tabDocuments.first as? RemoteSSHDocument)
 +                #expect(remote.textStorage.string == "unsent")
 +                #expect(await bed.server.log.isEmpty, "restoring does not connect")
 +                remote.close()
@@ -242,7 +242,7 @@ index 000000000..4aea7be82
 +            try await self.withRestoredDirectory(at: urls[0].deletingLastPathComponent(), from: data) { restored in
 +                try await self.wait { restored.tabDocuments.count == 3 }
 +                #expect(restored.tabState.entries.map(\.id) == ids)
-+                let remote = try #require(restored.tabDocuments[1] as? RemoteDocument)
++                let remote = try #require(restored.tabDocuments[1] as? RemoteSSHDocument)
 +                #expect(restored.activeFileDocument === remote)
 +                #expect(remote.textStorage.string == "unsent")
 +                #expect(remote.isDocumentEdited)
@@ -266,7 +266,7 @@ index 000000000..4aea7be82
 +            await bed.server.clearLog()
 +
 +            try await self.withRestoredDirectory(at: urls[0].deletingLastPathComponent(), from: data) { restored in
-+                let placeholder = try #require(restored.tabDocuments.first as? RemoteDocument)
++                let placeholder = try #require(restored.tabDocuments.first as? RemoteSSHDocument)
 +                #expect(placeholder.role == .placeholder)
 +                #expect(!placeholder.isEditable)
 +                #expect(placeholder.displayName.contains("r.txt"))
@@ -274,7 +274,7 @@ index 000000000..4aea7be82
 +
 +                let id = try #require(restored.tabState.entry(for: placeholder)?.id)
 +                await RemoteOpenCoordinator.reconnect(placeholder)
-+                let reconnected = try #require(restored.tabDocuments.first as? RemoteDocument)
++                let reconnected = try #require(restored.tabDocuments.first as? RemoteSSHDocument)
 +                #expect(reconnected.role == .editor)
 +                #expect(reconnected.textStorage.string == "remote")
 +                #expect(restored.tabState.entries.first?.id == id, "the tab keeps its place and identity")
@@ -423,9 +423,9 @@ index 000000000..4aea7be82
 +                #expect(restored.tabState.entries.map(\.id) == order)
 +                #expect(restored.activeTerminalSession?.id == terminal.id, "the terminal keeps the selection")
 +                #expect(restored.activeTerminalSession?.isLive == false, "as a placeholder")
-+                #expect(restored.tabDocuments.compactMap { ($0 as? RemoteDocument)?.identity.path } == ["/srv/b.txt", "/srv/a.txt"])
++                #expect(restored.tabDocuments.compactMap { ($0 as? RemoteSSHDocument)?.identity.path } == ["/srv/b.txt", "/srv/a.txt"])
 +                #expect(await bed.server.log.isEmpty, "restoring does not connect")
-+                for case let document as RemoteDocument in restored.tabDocuments {
++                for case let document as RemoteSSHDocument in restored.tabDocuments {
 +                    bed.track(document)
 +                }
 +            }
@@ -455,7 +455,7 @@ index 000000000..4aea7be82
 +extension RemoteTestBed {
 +
 +    /// Opens a remote file in a directory window, as the tab strip's command does.
-+    func openInDirectory(_ path: String, _ directory: DirectoryDocument) async throws -> RemoteDocument {
++    func openInDirectory(_ path: String, _ directory: DirectoryDocument) async throws -> RemoteSSHDocument {
 +
 +        let document = try await RemoteOpenCoordinator.open(RemoteOpenRequest(profileID: nil, endpoint: self.endpoint, path: path),
 +                                                            in: directory, window: nil, environment: self.environment)
@@ -479,7 +479,7 @@ index 000000000..4aea7be82
 +}
 diff --git a/Tests/Sources/Models/DirectoryTabTests+RemoteFolders.swift b/Tests/Sources/Models/DirectoryTabTests+RemoteFolders.swift
 new file mode 100644
-index 000000000..3caac61cb
+index 000000000..8be6192a5
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+RemoteFolders.swift
 @@ -0,0 +1,857 @@
@@ -1082,7 +1082,7 @@ index 000000000..3caac61cb
 +            #expect(restored.windowID == session.windowID)
 +            #expect(restored.status == .offline(message: nil))
 +            #expect(restored.tree.node(atRelativePath: ["src", "app.js"])?.isStale == true)
-+            let restoredDocument = try #require(restoredDirectory.tabDocuments.first as? RemoteDocument)
++            let restoredDocument = try #require(restoredDirectory.tabDocuments.first as? RemoteSSHDocument)
 +            bed.track(restoredDocument)
 +            #expect(restoredDocument.documentID == documentID)
 +            #expect(restoredDocument.textStorage.string == "unsent")
@@ -1124,11 +1124,11 @@ index 000000000..3caac61cb
 +            let restoredDirectory = try #require(restored.directory)
 +            defer { restoredDirectory.close() }
 +
-+            let shown = try #require(restoredDirectory.activeFileDocument as? RemoteDocument)
++            let shown = try #require(restoredDirectory.activeFileDocument as? RemoteSSHDocument)
 +            bed.track(shown)
 +            #expect(shown.documentID == ids.index, "the file that was showing shows again")
 +            #expect(shown.textStorage.string == "unsent")
-+            let members = restoredDirectory.documents.compactMap { $0 as? RemoteDocument }
++            let members = restoredDirectory.documents.compactMap { $0 as? RemoteSSHDocument }
 +            members.forEach(bed.track)
 +            #expect(members.allSatisfy { [ids.about, ids.index].contains($0.documentID) }, "the window's members come back, without tabs")
 +            #expect(restoredDirectory.tabDocuments.isEmpty)
@@ -1298,10 +1298,10 @@ index 000000000..3caac61cb
 +
 +
 +    /// Waits until the window has the document of the remote file.
-+    func waitForDocument(at path: String, in directory: DirectoryDocument, bed: RemoteTestBed) async throws -> RemoteDocument {
++    func waitForDocument(at path: String, in directory: DirectoryDocument, bed: RemoteTestBed) async throws -> RemoteSSHDocument {
 +
-+        try await self.wait { directory.tabDocuments.contains { ($0 as? RemoteDocument)?.identity.path == path } || directory.documents.contains { ($0 as? RemoteDocument)?.identity.path == path } }
-+        let document = try #require((directory.documents.first { ($0 as? RemoteDocument)?.identity.path == path }) as? RemoteDocument)
++        try await self.wait { directory.tabDocuments.contains { ($0 as? RemoteSSHDocument)?.identity.path == path } || directory.documents.contains { ($0 as? RemoteSSHDocument)?.identity.path == path } }
++        let document = try #require((directory.documents.first { ($0 as? RemoteSSHDocument)?.identity.path == path }) as? RemoteSSHDocument)
 +        bed.track(document)
 +
 +        return document
@@ -2710,442 +2710,6 @@ index 000000000..a10d6c4dc
 +        return try result.get()
 +    }
 +}
-diff --git a/Tests/Sources/Models/RemoteDocumentTests.swift b/Tests/Sources/Models/RemoteDocumentTests.swift
-new file mode 100644
-index 000000000..91d164a56
---- /dev/null
-+++ b/Tests/Sources/Models/RemoteDocumentTests.swift
-@@ -0,0 +1,430 @@
-+//
-+//  RemoteDocumentTests.swift
-+//
-+//  CotEditor
-+//  https://coteditor.com
-+//
-+//  ---------------------------------------------------------------------------
-+//
-+//  © 2026 RedKenrok <rondekker.nl>
-+//
-+//  Licensed under the Apache License, Version 2.0 (the "License");
-+//  you may not use this file except in compliance with the License.
-+//  You may obtain a copy of the License at
-+//
-+//  https://www.apache.org/licenses/LICENSE-2.0
-+//
-+//  Unless required by applicable law or agreed to in writing, software
-+//  distributed under the License is distributed on an "AS IS" BASIS,
-+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-+//  See the License for the specific language governing permissions and
-+//  limitations under the License.
-+//
-+
-+import AppKit
-+import Foundation
-+import Observation
-+import Testing
-+import FileEncoding
-+@testable import CotEditor
-+
-+/// A remote document on its own: the overrides of a document without a file, recovery and the close review.
-+@MainActor struct RemoteDocumentTests {
-+
-+    // MARK: Being a Document Without a File
-+
-+    @Test(.timeLimit(.minutes(1))) func observationWorksOnTheSubclass() async throws {
-+
-+        let bed = await RemoteTestBed()
-+        await bed.server.addFile("/srv/a.txt", "text")
-+        let document = try await bed.open("/srv/a.txt")
-+
-+        let changed = RemoteLockedValue(false)
-+        withObservationTracking {
-+            _ = document.fileEncoding
-+        } onChange: {
-+            changed.withLock { $0 = true }
-+        }
-+        document.changeEncoding(to: FileEncoding(encoding: .utf16))
-+
-+        #expect(changed.withLock { $0 })
-+        await bed.tearDown()
-+    }
-+
-+
-+    @Test(.timeLimit(.minutes(1))) func theDocumentNeverHasAFileOrAnAutosaveDraft() async throws {
-+
-+        let bed = await RemoteTestBed()
-+        await bed.server.addFile("/srv/notes.md", "# Notes\n")
-+        let document = try await bed.open("/srv/notes.md")
-+        document.replaceText(with: "# Changed\n")
-+
-+        let drafts = try URL(for: .autosavedInformationDirectory, in: .userDomainMask, create: true)
-+        let draftsBefore = Set((try? FileManager.default.contentsOfDirectory(atPath: drafts.path(percentEncoded: false))) ?? [])
-+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
-+            document.autosave(withImplicitCancellability: false) { error in
-+                if let error { continuation.resume(throwing: error) } else { continuation.resume() }
-+            }
-+        }
-+        let draftsAfter = Set((try? FileManager.default.contentsOfDirectory(atPath: drafts.path(percentEncoded: false))) ?? [])
-+
-+        #expect(document.fileURL == nil)
-+        #expect(document.autosavedContentsFileURL == nil)
-+        #expect(!RemoteDocument.autosavesDrafts)
-+        #expect(draftsAfter.subtracting(draftsBefore).isEmpty, "no draft is written to Autosaved Information")
-+        #expect(try await document.record?.text()?.string == "# Changed\n", "autosaving writes the recovery record")
-+        #expect(document.isDocumentEdited, "recovery never clears the edited state")
-+        #expect(document.syntaxName == "Markdown", "the syntax comes from the remote name")
-+        await bed.tearDown()
-+    }
-+
-+
-+    @Test(.timeLimit(.minutes(1))) func routineAutosaveFailuresAreReportedOnceWithoutAppKitAlerts() async throws {
-+
-+        let bed = await RemoteTestBed()
-+        await bed.server.addFile("/srv/a.txt", "base")
-+        let document = try await bed.open("/srv/a.txt")
-+        await document.record?.setFaultInjector { step in
-+            if case .dataWritten = step { throw RemoteRecoveryError.fileSystem(ENOENT) }
-+        }
-+
-+        func autosave(cancellable: Bool) async -> (any Error)? {
-+
-+            await withCheckedContinuation { continuation in
-+                document.autosave(withImplicitCancellability: cancellable) { continuation.resume(returning: $0) }
-+            }
-+        }
-+
-+        document.replaceText(with: "one")
-+        #expect(await autosave(cancellable: true) == nil, "AppKit would show its own alert for an error")
-+        document.replaceText(with: "two")
-+        #expect(await autosave(cancellable: true) == nil)
-+        try await waitUntil { bed.prompts.asked.contains("recoveryFailure") }
-+        #expect(bed.prompts.asked.filter { $0 == "recoveryFailure" }.count == 1, "the document reports a failure streak once")
-+
-+        document.replaceText(with: "three")
-+        #expect(await autosave(cancellable: false) != nil, "an autosave that cannot be canceled, as at quit, gets the error")
-+        await bed.tearDown()
-+    }
-+
-+
-+    @Test(.timeLimit(.minutes(1))) func duplicateIsAnOrdinaryLocalDocument() async throws {
-+
-+        let bed = await RemoteTestBed()
-+        await bed.server.addFile("/srv/a.swift", "let a = 1\n")
-+        let document = try await bed.open("/srv/a.swift")
-+
-+        let duplicate = try document.duplicate()
-+        defer { duplicate.close() }
-+
-+        #expect(type(of: duplicate) == Document.self)
-+        #expect(duplicate.fileURL == nil)
-+        #expect((duplicate as? Document)?.textStorage.string == "let a = 1\n")
-+        #expect((duplicate as? Document)?.syntaxName == document.syntaxName)
-+        await bed.tearDown()
-+    }
-+
-+
-+    @Test(.timeLimit(.minutes(1))) func theDocumentDescribesItsRemoteFile() async throws {
-+
-+        let bed = await RemoteTestBed()
-+        await bed.server.addFile("/srv/www/index.html", "<p>")
-+        let document = try await bed.open("/srv/www/index.html")
-+
-+        #expect(document.displayName == "index.html")
-+        #expect(document.tabTitle == "index.html")
-+        #expect(document.tabToolTip == "editor@\(bed.endpoint.host):/srv/www/index.html")
-+        #expect(document.tabBadgeSymbolName == nil, "a remote tab looks like any file's tab")
-+        #expect(document.subtitleName == "index.html")
-+        #expect(document.standaloneWindowSubtitle == "editor@\(bed.endpoint.host)")
-+        #expect(document.identity.displayLocation == document.tabToolTip, "Copy Path copies this location")
-+        #expect(document.tabArchiveRepresentation?.kind == RemoteTabArchive.kind)
-+        #expect(document.tabArchiveRepresentation?.fields.values.contains { ($0 as? String)?.contains(NSTemporaryDirectory()) == true } == false,
-+                "no local path is archived")
-+        await bed.tearDown()
-+    }
-+
-+
-+    @Test(.timeLimit(.minutes(1))) func actionsOnLocalFilesAreDisabled() async throws {
-+
-+        let bed = await RemoteTestBed()
-+        await bed.server.addFile("/srv/a.txt", "a")
-+        let document = try await bed.open("/srv/a.txt")
-+
-+        for action in [#selector(DataDocument.showInFinder), #selector(DataDocument.shareDocument), #selector(NSDocument.rename(_:)),
-+                       #selector(NSDocument.move(_:)), #selector(NSDocument.lock(_:)), #selector(NSDocument.browseVersions(_:)),
-+                       #selector(NSDocument.revertToSaved(_:))]
-+        {
-+            #expect(!document.validateUserInterfaceItem(NSMenuItem(title: "", action: action, keyEquivalent: "")), "\(action)")
-+        }
-+        for action in [#selector(DataDocument.copyPath), #selector(RemoteDocument.saveLocalCopy(_:)), #selector(NSDocument.save(_:)),
-+                       #selector(NSDocument.saveAs(_:)), #selector(RemoteDocument.revertToRemoteVersion(_:))]
-+        {
-+            #expect(document.validateUserInterfaceItem(NSMenuItem(title: "", action: action, keyEquivalent: "")), "\(action)")
-+        }
-+        await bed.tearDown()
-+    }
-+
-+
-+    // MARK: Closing
-+
-+    @Test(.timeLimit(.minutes(1))) func closingAsksAboutEveryUnsentChange() async throws {
-+
-+        let bed = await RemoteTestBed()
-+        await bed.server.addFile("/srv/a.txt", "something")
-+        let document = try await bed.open("/srv/a.txt")
-+
-+        #expect(await document.canClose(), "a clean document closes without asking")
-+        #expect(bed.prompts.asked.isEmpty)
-+
-+        // Emptying the file is a change like any other, unlike an empty untitled document.
-+        document.replaceText(with: "")
-+        bed.prompts.closeChoices = [.cancel]
-+        #expect(await !document.canClose())
-+        #expect(bed.prompts.asked == ["close"])
-+        await bed.tearDown()
-+    }
-+
-+
-+    @Test(.timeLimit(.minutes(1))) func keepRecoveryCopyNeedsTheLatestEditsOnDisk() async throws {
-+
-+        let bed = await RemoteTestBed()
-+        await bed.server.addFile("/srv/a.txt", "base")
-+        let document = try await bed.open("/srv/a.txt")
-+        document.replaceText(with: "edited")
-+
-+        await document.record?.setFaultInjector { step in
-+            if case .dataWritten(let name) = step, name.hasPrefix("text") { throw RemoteRecoveryError.fileSystem(ENOSPC) }
-+        }
-+        bed.prompts.closeChoices = [.keepRecoveryCopy]
-+        #expect(await !document.canClose(), "a failed write of the latest edits blocks the close")
-+        #expect(document.recoveryError != nil)
-+
-+        await document.record?.setFaultInjector(nil)
-+        bed.prompts.closeChoices = [.keepRecoveryCopy]
-+        #expect(await document.canClose())
-+        let documentID = document.documentID
-+        document.close()
-+        try await bed.waitUntilReleased(documentID)
-+
-+        // The kept record comes back offline, with the edits and without connecting.
-+        await bed.server.clearLog()
-+        let restored = try RemoteOpenCoordinator.restore(documentID: documentID, environment: bed.environment)
-+        defer { restored.close() }
-+        #expect(restored.textStorage.string == "edited")
-+        #expect(restored.isDocumentEdited)
-+        #expect(await bed.server.log.isEmpty)
-+        await bed.tearDown()
-+    }
-+
-+
-+    @Test(.timeLimit(.minutes(1))) func discardingRemovesTheRecordOnlyWhenTheDocumentCloses() async throws {
-+
-+        let bed = await RemoteTestBed()
-+        await bed.server.addFile("/srv/a.txt", "base")
-+        let document = try await bed.open("/srv/a.txt")
-+        document.replaceText(with: "edited")
-+        let directory = try #require(document.record?.directory)
-+
-+        bed.prompts.closeChoices = [.discard]
-+        #expect(await document.canClose())
-+        #expect(FileManager.default.fileExists(atPath: directory.path(percentEncoded: false)), "approval alone deletes nothing")
-+
-+        document.close()
-+        try await waitUntil { !FileManager.default.fileExists(atPath: directory.path(percentEncoded: false)) }
-+        await bed.tearDown()
-+    }
-+
-+
-+    @Test(.timeLimit(.minutes(1))) func savingFromTheCloseReviewUploads() async throws {
-+
-+        let bed = await RemoteTestBed()
-+        await bed.server.addFile("/srv/a.txt", "base")
-+        let document = try await bed.open("/srv/a.txt")
-+        document.replaceText(with: "edited")
-+
-+        bed.prompts.closeChoices = [.save]
-+        #expect(await document.canClose())
-+        #expect(await bed.server.contents(of: "/srv/a.txt") == "edited")
-+        await bed.tearDown()
-+    }
-+
-+
-+    @Test(.timeLimit(.minutes(1))) func revertingDownloadsTheServerVersionAfterAsking() async throws {
-+
-+        let bed = await RemoteTestBed()
-+        await bed.server.addFile("/srv/a.txt", "base")
-+        let document = try await bed.open("/srv/a.txt")
-+        document.replaceText(with: "edited")
-+        await bed.server.overwrite("/srv/a.txt", with: "theirs")
-+
-+        bed.prompts.confirmsRevert = false
-+        await document.revertToRemote()
-+        #expect(document.textStorage.string == "edited")
-+
-+        bed.prompts.confirmsRevert = true
-+        await document.revertToRemote()
-+        #expect(document.textStorage.string == "theirs")
-+        #expect(!document.isDocumentEdited)
-+        #expect(try await document.record?.baselineData() == Data("theirs".utf8))
-+        #expect(try await document.record?.text() == nil)
-+        await bed.tearDown()
-+    }
-+
-+
-+    @Test(.timeLimit(.minutes(1))) func openingTwiceGivesTheSameDocument() async throws {
-+
-+        let bed = await RemoteTestBed()
-+        await bed.server.addFile("/srv/a.txt", "a")
-+        let first = try await bed.open("/srv/a.txt")
-+        await bed.server.addLink("/srv/alias.txt", target: "a.txt")
-+
-+        #expect(try await bed.open("/srv/a.txt") === first)
-+        #expect(try await bed.open("/srv/alias.txt") === first, "a link to the same file opens the same document")
-+        await bed.tearDown()
-+    }
-+
-+
-+    @Test(.timeLimit(.minutes(1))) func aDownloadCanBeCanceled() async throws {
-+
-+        let bed = await RemoteTestBed(limits: RemoteLimits(chunkSize: 4, requestsInFlight: 1))
-+        await bed.server.addFile("/srv/a.txt", "contents of several chunks")
-+        let gate = FakeGate()
-+        await bed.server.setHook { request in
-+            if case .read("/srv/a.txt", 8) = request { await gate.wait() }
-+            return .proceed
-+        }
-+        let control = RemoteOperationControl()
-+        let open = Task { try await RemoteOperationControl.$current.withValue(control) { try await bed.open("/srv/a.txt") } }
-+        try await waitUntil { await gate.hasArrived }
-+
-+        #expect(control.snapshot.totalBytes == 26)
-+        #expect(control.snapshot.completedBytes == 8)
-+        control.requestCancel()
-+        await gate.open()
-+        await #expect(throws: RemoteOperationCanceled.self) { try await open.value }
-+
-+        await bed.server.setHook(nil)
-+        let document = try await bed.open("/srv/a.txt")
-+        #expect(document.textStorage.string == "contents of several chunks", "a later open is not affected")
-+        await bed.tearDown()
-+    }
-+
-+
-+    @Test(.timeLimit(.minutes(1))) func theProgressSheetShowsOnlyWhileASlowOperationRuns() async throws {
-+
-+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 400, height: 300), styleMask: [.titled], backing: .buffered, defer: false)
-+        window.makeKeyAndOrderFront(nil)
-+        defer { window.close() }
-+
-+        // A quick operation shows nothing.
-+        await RemoteProgressSheet.run(title: "Quick", window: window) { }
-+        #expect(window.attachedSheet == nil)
-+
-+        let gate = FakeGate()
-+        let operation = Task { await RemoteProgressSheet.run(title: "Slow", window: window) { await gate.wait() } }
-+        try await waitUntil { window.attachedSheet != nil }
-+
-+        // A question takes its place, and the sheet comes back after it.
-+        let concealed = RemoteProgressSheet.conceal(on: window)
-+        #expect(concealed)
-+        try await waitUntil { window.attachedSheet == nil }
-+        RemoteProgressSheet.reveal(on: window, wasConcealed: concealed)
-+        try await waitUntil { window.attachedSheet != nil }
-+
-+        await gate.open()
-+        await operation.value
-+        try await waitUntil { window.attachedSheet == nil }
-+    }
-+
-+
-+    @Test(.timeLimit(.minutes(1))) func readsAreTriedAgainOnANewConnectionAFewTimes() async throws {
-+
-+        // One lost connection while downloading: the open goes on with a new one.
-+        do {
-+            let bed = await RemoteTestBed()
-+            await bed.server.addFile("/srv/a.txt", "contents")
-+            let dropped = FakeFlag()
-+            await bed.server.setHook { request in
-+                guard case .read = request, await !dropped.isSet else { return .proceed }
-+                await dropped.set()
-+                return .dropBeforeHandling
-+            }
-+            let document = try await bed.open("/srv/a.txt")
-+            #expect(document.textStorage.string == "contents")
-+            await bed.tearDown()
-+        }
-+
-+        // A connection that is lost every time: two more tries, then the error.
-+        do {
-+            let bed = await RemoteTestBed()
-+            await bed.server.addFile("/srv/a.txt", "contents")
-+            await bed.server.setHook { request in
-+                if case .read = request { return .dropBeforeHandling }
-+                return .proceed
-+            }
-+            await #expect(throws: RemoteConnectionError.connectionLost) { try await bed.open("/srv/a.txt") }
-+            // Each try opens the file once; its reads are pipelined, so they are not counted.
-+            #expect(await bed.server.log.count { if case .open("/srv/a.txt", _) = $0 { true } else { false } } == 3)
-+            await bed.tearDown()
-+        }
-+    }
-+
-+
-+    @Test(.timeLimit(.minutes(1))) func aWriteIsNeverTriedAgainAfterALostConnection() async throws {
-+
-+        let bed = await RemoteTestBed()
-+        await bed.server.addFile("/srv/a.txt", "old")
-+        let document = try await bed.open("/srv/a.txt")
-+        document.replaceText(with: "new")
-+        await bed.server.setHook { request in
-+            if case .write = request { return .dropBeforeHandling }
-+            return .proceed
-+        }
-+
-+        #expect(await document.saveCoordinator.perform(.save) != .saved)
-+        #expect(await bed.server.log.count { if case .write = $0 { true } else { false } } == 1)
-+        #expect(await bed.server.contents(of: "/srv/a.txt") == "old")
-+        await bed.tearDown()
-+    }
-+
-+
-+    @Test(.timeLimit(.minutes(1))) func namesThatDifferOnlyInNormalizationAreTwoFiles() async throws {
-+
-+        let composed = "/srv/caf\u{E9}.txt"
-+        let decomposed = "/srv/cafe\u{301}.txt"
-+        #expect(composed == decomposed, "Swift's String equality treats the two spellings as one")
-+
-+        // one after the other
-+        let bed = await RemoteTestBed()
-+        await bed.server.addFile(composed, "composed")
-+        await bed.server.addFile(decomposed, "decomposed")
-+        #expect(await bed.server.files(in: "/srv").count == 2)
-+
-+        let first = try await bed.open(composed)
-+        let second = try await bed.open(decomposed)
-+        #expect(first !== second)
-+        #expect(first.textStorage.string == "composed")
-+        #expect(second.textStorage.string == "decomposed")
-+
-+        first.replaceText(with: "edited composed")
-+        #expect(await first.saveCoordinator.perform(.save) == .saved)
-+        second.replaceText(with: "edited decomposed")
-+        #expect(await second.saveCoordinator.perform(.save) == .saved)
-+        #expect(await bed.server.contents(of: composed) == "edited composed", "each save writes only its own path")
-+        #expect(await bed.server.contents(of: decomposed) == "edited decomposed")
-+        await bed.tearDown()
-+
-+        // at the same time
-+        let concurrent = await RemoteTestBed()
-+        await concurrent.server.addFile(composed, "composed")
-+        await concurrent.server.addFile(decomposed, "decomposed")
-+        async let composedDocument = concurrent.open(composed)
-+        async let decomposedDocument = concurrent.open(decomposed)
-+        let (a, b) = try await (composedDocument, decomposedDocument)
-+        #expect(a !== b, "two opens under way at once are not joined")
-+        #expect(a.textStorage.string == "composed")
-+        #expect(b.textStorage.string == "decomposed")
-+        await concurrent.tearDown()
-+    }
-+}
 diff --git a/Tests/Sources/Models/RemoteFixtureRelay.swift b/Tests/Sources/Models/RemoteFixtureRelay.swift
 new file mode 100644
 index 000000000..f7fb5b66c
@@ -3318,7 +2882,7 @@ index 000000000..f7fb5b66c
 +}
 diff --git a/Tests/Sources/Models/RemoteFolderChangeTests.swift b/Tests/Sources/Models/RemoteFolderChangeTests.swift
 new file mode 100644
-index 000000000..fd55544d0
+index 000000000..28f72bdcf
 --- /dev/null
 +++ b/Tests/Sources/Models/RemoteFolderChangeTests.swift
 @@ -0,0 +1,509 @@
@@ -3695,8 +3259,8 @@ index 000000000..fd55544d0
 +        #expect(document.identity.path == "/srv/moved/a.txt")
 +        #expect(document.identity.requestedPath == "/srv/moved/a.txt")
 +        #expect(await document.record?.manifest.identity.path == "/srv/moved/a.txt", "the recovery record follows too")
-+        #expect(RemoteDocumentRegistry.shared.document(for: bed.identity("/srv/moved/a.txt")) === document)
-+        #expect(RemoteDocumentRegistry.shared.document(for: bed.identity("/srv/dir/a.txt")) == nil)
++        #expect(RemoteSSHDocumentRegistry.shared.document(for: bed.identity("/srv/moved/a.txt")) === document)
++        #expect(RemoteSSHDocumentRegistry.shared.document(for: bed.identity("/srv/dir/a.txt")) == nil)
 +
 +        document.replaceText(with: "B")
 +        #expect(await document.saveCoordinator.perform(.save) == .saved)
@@ -3750,7 +3314,7 @@ index 000000000..fd55544d0
 +
 +        try await session.delete(dir)
 +
-+        #expect(RemoteDocumentRegistry.shared.document(for: bed.identity("/srv/dir/a.txt")) == nil, "the document closed")
++        #expect(RemoteSSHDocumentRegistry.shared.document(for: bed.identity("/srv/dir/a.txt")) == nil, "the document closed")
 +        #expect(document.record != nil)
 +
 +        await session.waitForArchive()
@@ -4442,6 +4006,442 @@ index 000000000..9ed4f30a6
 +                try RemoteSFTPCodec.decodeResponse(type: type, payload: payload)
 +            }
 +        }
++    }
++}
+diff --git a/Tests/Sources/Models/RemoteSSHDocumentTests.swift b/Tests/Sources/Models/RemoteSSHDocumentTests.swift
+new file mode 100644
+index 000000000..a3242555e
+--- /dev/null
++++ b/Tests/Sources/Models/RemoteSSHDocumentTests.swift
+@@ -0,0 +1,430 @@
++//
++//  RemoteSSHDocumentTests.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import Foundation
++import Observation
++import Testing
++import FileEncoding
++@testable import CotEditor
++
++/// A remote document on its own: the overrides of a document without a file, recovery and the close review.
++@MainActor struct RemoteSSHDocumentTests {
++
++    // MARK: Being a Document Without a File
++
++    @Test(.timeLimit(.minutes(1))) func observationWorksOnTheSubclass() async throws {
++
++        let bed = await RemoteTestBed()
++        await bed.server.addFile("/srv/a.txt", "text")
++        let document = try await bed.open("/srv/a.txt")
++
++        let changed = RemoteLockedValue(false)
++        withObservationTracking {
++            _ = document.fileEncoding
++        } onChange: {
++            changed.withLock { $0 = true }
++        }
++        document.changeEncoding(to: FileEncoding(encoding: .utf16))
++
++        #expect(changed.withLock { $0 })
++        await bed.tearDown()
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func theDocumentNeverHasAFileOrAnAutosaveDraft() async throws {
++
++        let bed = await RemoteTestBed()
++        await bed.server.addFile("/srv/notes.md", "# Notes\n")
++        let document = try await bed.open("/srv/notes.md")
++        document.replaceText(with: "# Changed\n")
++
++        let drafts = try URL(for: .autosavedInformationDirectory, in: .userDomainMask, create: true)
++        let draftsBefore = Set((try? FileManager.default.contentsOfDirectory(atPath: drafts.path(percentEncoded: false))) ?? [])
++        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
++            document.autosave(withImplicitCancellability: false) { error in
++                if let error { continuation.resume(throwing: error) } else { continuation.resume() }
++            }
++        }
++        let draftsAfter = Set((try? FileManager.default.contentsOfDirectory(atPath: drafts.path(percentEncoded: false))) ?? [])
++
++        #expect(document.fileURL == nil)
++        #expect(document.autosavedContentsFileURL == nil)
++        #expect(!RemoteSSHDocument.autosavesDrafts)
++        #expect(draftsAfter.subtracting(draftsBefore).isEmpty, "no draft is written to Autosaved Information")
++        #expect(try await document.record?.text()?.string == "# Changed\n", "autosaving writes the recovery record")
++        #expect(document.isDocumentEdited, "recovery never clears the edited state")
++        #expect(document.syntaxName == "Markdown", "the syntax comes from the remote name")
++        await bed.tearDown()
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func routineAutosaveFailuresAreReportedOnceWithoutAppKitAlerts() async throws {
++
++        let bed = await RemoteTestBed()
++        await bed.server.addFile("/srv/a.txt", "base")
++        let document = try await bed.open("/srv/a.txt")
++        await document.record?.setFaultInjector { step in
++            if case .dataWritten = step { throw RemoteRecoveryError.fileSystem(ENOENT) }
++        }
++
++        func autosave(cancellable: Bool) async -> (any Error)? {
++
++            await withCheckedContinuation { continuation in
++                document.autosave(withImplicitCancellability: cancellable) { continuation.resume(returning: $0) }
++            }
++        }
++
++        document.replaceText(with: "one")
++        #expect(await autosave(cancellable: true) == nil, "AppKit would show its own alert for an error")
++        document.replaceText(with: "two")
++        #expect(await autosave(cancellable: true) == nil)
++        try await waitUntil { bed.prompts.asked.contains("recoveryFailure") }
++        #expect(bed.prompts.asked.filter { $0 == "recoveryFailure" }.count == 1, "the document reports a failure streak once")
++
++        document.replaceText(with: "three")
++        #expect(await autosave(cancellable: false) != nil, "an autosave that cannot be canceled, as at quit, gets the error")
++        await bed.tearDown()
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func duplicateIsAnOrdinaryLocalDocument() async throws {
++
++        let bed = await RemoteTestBed()
++        await bed.server.addFile("/srv/a.swift", "let a = 1\n")
++        let document = try await bed.open("/srv/a.swift")
++
++        let duplicate = try document.duplicate()
++        defer { duplicate.close() }
++
++        #expect(type(of: duplicate) == TextDocument.self)
++        #expect(duplicate.fileURL == nil)
++        #expect((duplicate as? TextDocument)?.textStorage.string == "let a = 1\n")
++        #expect((duplicate as? TextDocument)?.syntaxName == document.syntaxName)
++        await bed.tearDown()
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func theDocumentDescribesItsRemoteFile() async throws {
++
++        let bed = await RemoteTestBed()
++        await bed.server.addFile("/srv/www/index.html", "<p>")
++        let document = try await bed.open("/srv/www/index.html")
++
++        #expect(document.displayName == "index.html")
++        #expect(document.tabTitle == "index.html")
++        #expect(document.tabToolTip == "editor@\(bed.endpoint.host):/srv/www/index.html")
++        #expect(document.tabBadgeSymbolName == nil, "a remote tab looks like any file's tab")
++        #expect(document.subtitleName == "index.html")
++        #expect(document.standaloneWindowSubtitle == "editor@\(bed.endpoint.host)")
++        #expect(document.identity.displayLocation == document.tabToolTip, "Copy Path copies this location")
++        #expect(document.tabArchiveRepresentation?.kind == RemoteTabArchive.kind)
++        #expect(document.tabArchiveRepresentation?.fields.values.contains { ($0 as? String)?.contains(NSTemporaryDirectory()) == true } == false,
++                "no local path is archived")
++        await bed.tearDown()
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func actionsOnLocalFilesAreDisabled() async throws {
++
++        let bed = await RemoteTestBed()
++        await bed.server.addFile("/srv/a.txt", "a")
++        let document = try await bed.open("/srv/a.txt")
++
++        for action in [#selector(DataDocument.showInFinder), #selector(DataDocument.shareDocument), #selector(NSDocument.rename(_:)),
++                       #selector(NSDocument.move(_:)), #selector(NSDocument.lock(_:)), #selector(NSDocument.browseVersions(_:)),
++                       #selector(NSDocument.revertToSaved(_:))]
++        {
++            #expect(!document.validateUserInterfaceItem(NSMenuItem(title: "", action: action, keyEquivalent: "")), "\(action)")
++        }
++        for action in [#selector(DataDocument.copyPath), #selector(RemoteSSHDocument.saveLocalCopy(_:)), #selector(NSDocument.save(_:)),
++                       #selector(NSDocument.saveAs(_:)), #selector(RemoteSSHDocument.revertToRemoteVersion(_:))]
++        {
++            #expect(document.validateUserInterfaceItem(NSMenuItem(title: "", action: action, keyEquivalent: "")), "\(action)")
++        }
++        await bed.tearDown()
++    }
++
++
++    // MARK: Closing
++
++    @Test(.timeLimit(.minutes(1))) func closingAsksAboutEveryUnsentChange() async throws {
++
++        let bed = await RemoteTestBed()
++        await bed.server.addFile("/srv/a.txt", "something")
++        let document = try await bed.open("/srv/a.txt")
++
++        #expect(await document.canClose(), "a clean document closes without asking")
++        #expect(bed.prompts.asked.isEmpty)
++
++        // Emptying the file is a change like any other, unlike an empty untitled document.
++        document.replaceText(with: "")
++        bed.prompts.closeChoices = [.cancel]
++        #expect(await !document.canClose())
++        #expect(bed.prompts.asked == ["close"])
++        await bed.tearDown()
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func keepRecoveryCopyNeedsTheLatestEditsOnDisk() async throws {
++
++        let bed = await RemoteTestBed()
++        await bed.server.addFile("/srv/a.txt", "base")
++        let document = try await bed.open("/srv/a.txt")
++        document.replaceText(with: "edited")
++
++        await document.record?.setFaultInjector { step in
++            if case .dataWritten(let name) = step, name.hasPrefix("text") { throw RemoteRecoveryError.fileSystem(ENOSPC) }
++        }
++        bed.prompts.closeChoices = [.keepRecoveryCopy]
++        #expect(await !document.canClose(), "a failed write of the latest edits blocks the close")
++        #expect(document.recoveryError != nil)
++
++        await document.record?.setFaultInjector(nil)
++        bed.prompts.closeChoices = [.keepRecoveryCopy]
++        #expect(await document.canClose())
++        let documentID = document.documentID
++        document.close()
++        try await bed.waitUntilReleased(documentID)
++
++        // The kept record comes back offline, with the edits and without connecting.
++        await bed.server.clearLog()
++        let restored = try RemoteOpenCoordinator.restore(documentID: documentID, environment: bed.environment)
++        defer { restored.close() }
++        #expect(restored.textStorage.string == "edited")
++        #expect(restored.isDocumentEdited)
++        #expect(await bed.server.log.isEmpty)
++        await bed.tearDown()
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func discardingRemovesTheRecordOnlyWhenTheDocumentCloses() async throws {
++
++        let bed = await RemoteTestBed()
++        await bed.server.addFile("/srv/a.txt", "base")
++        let document = try await bed.open("/srv/a.txt")
++        document.replaceText(with: "edited")
++        let directory = try #require(document.record?.directory)
++
++        bed.prompts.closeChoices = [.discard]
++        #expect(await document.canClose())
++        #expect(FileManager.default.fileExists(atPath: directory.path(percentEncoded: false)), "approval alone deletes nothing")
++
++        document.close()
++        try await waitUntil { !FileManager.default.fileExists(atPath: directory.path(percentEncoded: false)) }
++        await bed.tearDown()
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func savingFromTheCloseReviewUploads() async throws {
++
++        let bed = await RemoteTestBed()
++        await bed.server.addFile("/srv/a.txt", "base")
++        let document = try await bed.open("/srv/a.txt")
++        document.replaceText(with: "edited")
++
++        bed.prompts.closeChoices = [.save]
++        #expect(await document.canClose())
++        #expect(await bed.server.contents(of: "/srv/a.txt") == "edited")
++        await bed.tearDown()
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func revertingDownloadsTheServerVersionAfterAsking() async throws {
++
++        let bed = await RemoteTestBed()
++        await bed.server.addFile("/srv/a.txt", "base")
++        let document = try await bed.open("/srv/a.txt")
++        document.replaceText(with: "edited")
++        await bed.server.overwrite("/srv/a.txt", with: "theirs")
++
++        bed.prompts.confirmsRevert = false
++        await document.revertToRemote()
++        #expect(document.textStorage.string == "edited")
++
++        bed.prompts.confirmsRevert = true
++        await document.revertToRemote()
++        #expect(document.textStorage.string == "theirs")
++        #expect(!document.isDocumentEdited)
++        #expect(try await document.record?.baselineData() == Data("theirs".utf8))
++        #expect(try await document.record?.text() == nil)
++        await bed.tearDown()
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func openingTwiceGivesTheSameDocument() async throws {
++
++        let bed = await RemoteTestBed()
++        await bed.server.addFile("/srv/a.txt", "a")
++        let first = try await bed.open("/srv/a.txt")
++        await bed.server.addLink("/srv/alias.txt", target: "a.txt")
++
++        #expect(try await bed.open("/srv/a.txt") === first)
++        #expect(try await bed.open("/srv/alias.txt") === first, "a link to the same file opens the same document")
++        await bed.tearDown()
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func aDownloadCanBeCanceled() async throws {
++
++        let bed = await RemoteTestBed(limits: RemoteLimits(chunkSize: 4, requestsInFlight: 1))
++        await bed.server.addFile("/srv/a.txt", "contents of several chunks")
++        let gate = FakeGate()
++        await bed.server.setHook { request in
++            if case .read("/srv/a.txt", 8) = request { await gate.wait() }
++            return .proceed
++        }
++        let control = RemoteOperationControl()
++        let open = Task { try await RemoteOperationControl.$current.withValue(control) { try await bed.open("/srv/a.txt") } }
++        try await waitUntil { await gate.hasArrived }
++
++        #expect(control.snapshot.totalBytes == 26)
++        #expect(control.snapshot.completedBytes == 8)
++        control.requestCancel()
++        await gate.open()
++        await #expect(throws: RemoteOperationCanceled.self) { try await open.value }
++
++        await bed.server.setHook(nil)
++        let document = try await bed.open("/srv/a.txt")
++        #expect(document.textStorage.string == "contents of several chunks", "a later open is not affected")
++        await bed.tearDown()
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func theProgressSheetShowsOnlyWhileASlowOperationRuns() async throws {
++
++        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 400, height: 300), styleMask: [.titled], backing: .buffered, defer: false)
++        window.makeKeyAndOrderFront(nil)
++        defer { window.close() }
++
++        // A quick operation shows nothing.
++        await RemoteProgressSheet.run(title: "Quick", window: window) { }
++        #expect(window.attachedSheet == nil)
++
++        let gate = FakeGate()
++        let operation = Task { await RemoteProgressSheet.run(title: "Slow", window: window) { await gate.wait() } }
++        try await waitUntil { window.attachedSheet != nil }
++
++        // A question takes its place, and the sheet comes back after it.
++        let concealed = RemoteProgressSheet.conceal(on: window)
++        #expect(concealed)
++        try await waitUntil { window.attachedSheet == nil }
++        RemoteProgressSheet.reveal(on: window, wasConcealed: concealed)
++        try await waitUntil { window.attachedSheet != nil }
++
++        await gate.open()
++        await operation.value
++        try await waitUntil { window.attachedSheet == nil }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func readsAreTriedAgainOnANewConnectionAFewTimes() async throws {
++
++        // One lost connection while downloading: the open goes on with a new one.
++        do {
++            let bed = await RemoteTestBed()
++            await bed.server.addFile("/srv/a.txt", "contents")
++            let dropped = FakeFlag()
++            await bed.server.setHook { request in
++                guard case .read = request, await !dropped.isSet else { return .proceed }
++                await dropped.set()
++                return .dropBeforeHandling
++            }
++            let document = try await bed.open("/srv/a.txt")
++            #expect(document.textStorage.string == "contents")
++            await bed.tearDown()
++        }
++
++        // A connection that is lost every time: two more tries, then the error.
++        do {
++            let bed = await RemoteTestBed()
++            await bed.server.addFile("/srv/a.txt", "contents")
++            await bed.server.setHook { request in
++                if case .read = request { return .dropBeforeHandling }
++                return .proceed
++            }
++            await #expect(throws: RemoteConnectionError.connectionLost) { try await bed.open("/srv/a.txt") }
++            // Each try opens the file once; its reads are pipelined, so they are not counted.
++            #expect(await bed.server.log.count { if case .open("/srv/a.txt", _) = $0 { true } else { false } } == 3)
++            await bed.tearDown()
++        }
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func aWriteIsNeverTriedAgainAfterALostConnection() async throws {
++
++        let bed = await RemoteTestBed()
++        await bed.server.addFile("/srv/a.txt", "old")
++        let document = try await bed.open("/srv/a.txt")
++        document.replaceText(with: "new")
++        await bed.server.setHook { request in
++            if case .write = request { return .dropBeforeHandling }
++            return .proceed
++        }
++
++        #expect(await document.saveCoordinator.perform(.save) != .saved)
++        #expect(await bed.server.log.count { if case .write = $0 { true } else { false } } == 1)
++        #expect(await bed.server.contents(of: "/srv/a.txt") == "old")
++        await bed.tearDown()
++    }
++
++
++    @Test(.timeLimit(.minutes(1))) func namesThatDifferOnlyInNormalizationAreTwoFiles() async throws {
++
++        let composed = "/srv/caf\u{E9}.txt"
++        let decomposed = "/srv/cafe\u{301}.txt"
++        #expect(composed == decomposed, "Swift's String equality treats the two spellings as one")
++
++        // one after the other
++        let bed = await RemoteTestBed()
++        await bed.server.addFile(composed, "composed")
++        await bed.server.addFile(decomposed, "decomposed")
++        #expect(await bed.server.files(in: "/srv").count == 2)
++
++        let first = try await bed.open(composed)
++        let second = try await bed.open(decomposed)
++        #expect(first !== second)
++        #expect(first.textStorage.string == "composed")
++        #expect(second.textStorage.string == "decomposed")
++
++        first.replaceText(with: "edited composed")
++        #expect(await first.saveCoordinator.perform(.save) == .saved)
++        second.replaceText(with: "edited decomposed")
++        #expect(await second.saveCoordinator.perform(.save) == .saved)
++        #expect(await bed.server.contents(of: composed) == "edited composed", "each save writes only its own path")
++        #expect(await bed.server.contents(of: decomposed) == "edited decomposed")
++        await bed.tearDown()
++
++        // at the same time
++        let concurrent = await RemoteTestBed()
++        await concurrent.server.addFile(composed, "composed")
++        await concurrent.server.addFile(decomposed, "decomposed")
++        async let composedDocument = concurrent.open(composed)
++        async let decomposedDocument = concurrent.open(decomposed)
++        let (a, b) = try await (composedDocument, decomposedDocument)
++        #expect(a !== b, "two opens under way at once are not joined")
++        #expect(a.textStorage.string == "composed")
++        #expect(b.textStorage.string == "decomposed")
++        await concurrent.tearDown()
 +    }
 +}
 diff --git a/Tests/Sources/Models/RemoteSaveTests.swift b/Tests/Sources/Models/RemoteSaveTests.swift
@@ -5603,7 +5603,7 @@ index 000000000..e395dba3b
 +}
 diff --git a/Tests/Sources/Models/RemoteTestSupport.swift b/Tests/Sources/Models/RemoteTestSupport.swift
 new file mode 100644
-index 000000000..88e03213d
+index 000000000..635422d99
 --- /dev/null
 +++ b/Tests/Sources/Models/RemoteTestSupport.swift
 @@ -0,0 +1,1170 @@
@@ -6639,7 +6639,7 @@ index 000000000..88e03213d
 +    /// An endpoint of this test's own, so that files of tests running at the same time are different files.
 +    let endpoint = RemoteEndpoint(host: "server-" + UUID().uuidString.prefix(8).lowercased(), user: nil, port: nil)
 +    private(set) var pool: RemoteConnectionPool!
-+    private var documents: [RemoteDocument] = []
++    private var documents: [RemoteSSHDocument] = []
 +
 +
 +    init(limits: RemoteLimits = RemoteLimits()) async {
@@ -6671,7 +6671,7 @@ index 000000000..88e03213d
 +
 +
 +    /// Opens a remote file as the open command does, without attaching it to a window.
-+    func open(_ path: String) async throws -> RemoteDocument {
++    func open(_ path: String) async throws -> RemoteSSHDocument {
 +
 +        let document = try await RemoteOpenCoordinator.open(RemoteOpenRequest(profileID: nil, endpoint: self.endpoint, path: path),
 +                                                            in: nil, window: nil, environment: self.environment, attach: false)
@@ -6689,7 +6689,7 @@ index 000000000..88e03213d
 +
 +
 +    /// Keeps a document so that `tearDown()` closes it before the recovery folder goes.
-+    func track(_ document: RemoteDocument) {
++    func track(_ document: RemoteSSHDocument) {
 +
 +        if !self.documents.contains(where: { $0 === document }) {
 +            self.documents.append(document)
@@ -6714,7 +6714,7 @@ index 000000000..88e03213d
 +}
 +
 +
-+extension RemoteDocument {
++extension RemoteSSHDocument {
 +
 +    /// Replaces the whole text, as typing would.
 +    func replaceText(with string: String) {

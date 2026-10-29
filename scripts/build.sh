@@ -88,7 +88,7 @@ focused_tests=()
 for suite in DirectoryTabTests DirectoryTabArchiveTests DirectoryDocumentTests \
     TerminalSessionTests TerminalColorsTests TerminalPTYTests \
     WebPageNavigationPolicyTests WebPageSessionTests \
-    RemoteSFTPCodecTests RemoteTransportTests RemoteRecoveryTests RemoteSaveTests RemoteDocumentTests \
+    RemoteSFTPCodecTests RemoteTransportTests RemoteRecoveryTests RemoteSaveTests RemoteSSHDocumentTests \
     RemoteDirectoryListingTests RemoteDirectoryTreeTests RemoteFolderPickerTests RemoteFolderChangeTests RemoteAskpassTests RemoteTerminalTests
 do
     [[ -f "$checkout/Tests/Sources/Models/$suite.swift" ]] && focused_tests+=("$suite")

@@ -12,13 +12,13 @@ index dd3b9db25..7aa31cd21 100644
  // Code signing may need to override any predefined values.
  // Therefore, it should be included at the end.
 diff --git a/CotEditor/Info.plist b/CotEditor/Info.plist
-index 7754ba670..6cd19518d 100644
+index bc2671b2a..659bd3513 100644
 --- a/CotEditor/Info.plist
 +++ b/CotEditor/Info.plist
-@@ -130,6 +130,14 @@
- 	<string>public.app-category.productivity</string>
- 	<key>LSMinimumSystemVersion</key>
- 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
+@@ -106,6 +106,14 @@
+ 	<string>$(PRODUCT_BUNDLE_IDENTIFIER).help</string>
+ 	<key>CFBundleSpokenName</key>
+ 	<string>Cot editor</string>
 +	<!-- Webpage tabs accept HTTP only for local development servers. App Transport Security already
 +	     allows IP addresses and localhost; this admits unqualified names and names under .local too.
 +	     Arbitrary loads stay disabled. -->
@@ -27,9 +27,9 @@ index 7754ba670..6cd19518d 100644
 +		<key>NSAllowsLocalNetworking</key>
 +		<true/>
 +	</dict>
- 	<key>NSAppleEventsUsageDescription</key>
- 	<string>${PRODUCT_NAME} needs your approval to control other applications with AppleScript.</string>
  	<key>NSAppleScriptEnabled</key>
+ 	<true/>
+ 	<key>NSServices</key>
 diff --git a/CotEditor/Localizables/WebPages.xcstrings b/CotEditor/Localizables/WebPages.xcstrings
 new file mode 100644
 index 000000000..d81526875
@@ -555,10 +555,10 @@ index 000000000..d81526875
 +}
 \ No newline at end of file
 diff --git a/CotEditor/Sources/Application/AppDelegate.swift b/CotEditor/Sources/Application/AppDelegate.swift
-index 360af83be..2e8f64979 100644
+index 6a39ac533..e3ad54cf1 100644
 --- a/CotEditor/Sources/Application/AppDelegate.swift
 +++ b/CotEditor/Sources/Application/AppDelegate.swift
-@@ -165,6 +165,7 @@ extension Logger {
+@@ -162,6 +162,7 @@ extension Logger {
          TerminalNotifications.install()
          TerminalSettings.registerDefaults()
          TerminalMenu.install(in: NSApp.mainMenu!)
@@ -567,7 +567,7 @@ index 360af83be..2e8f64979 100644
          #if SPARKLE
          UpdaterManager.shared.setup()
 diff --git a/CotEditor/Sources/Document/DirectoryDocument+Actions.swift b/CotEditor/Sources/Document/DirectoryDocument+Actions.swift
-index 9606b7714..8e6f8f32a 100644
+index a6696afbd..4cc27bdc7 100644
 --- a/CotEditor/Sources/Document/DirectoryDocument+Actions.swift
 +++ b/CotEditor/Sources/Document/DirectoryDocument+Actions.swift
 @@ -32,6 +32,7 @@ extension DirectoryDocument {

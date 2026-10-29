@@ -26,37 +26,35 @@ index 7aa31cd21..85efb7e42 100644
  
  // Code signing may need to override any predefined values.
  // Therefore, it should be included at the end.
-diff --git a/CotEditor.xcodeproj/project.pbxproj b/CotEditor.xcodeproj/project.pbxproj
-index 1ffdc2cb7..10dfea7bc 100644
---- a/CotEditor.xcodeproj/project.pbxproj
-+++ b/CotEditor.xcodeproj/project.pbxproj
-@@ -73,6 +73,7 @@
- 				CotEditor.storekit,
- 				Info.plist,
- 				Resources/cot,
-+				Sources/Remote/RemoteAskpass.sh,
- 			);
- 			target = 2A6F0D4E1B5500E100C2D03C /* CotEditor */;
- 		};
-@@ -84,6 +85,7 @@
- 			buildPhase = 2A94FC7A1BE225E900B454A8 /* Copy Command-Line Tools */;
- 			membershipExceptions = (
- 				Resources/cot,
-+				Sources/Remote/RemoteAskpass.sh,
- 			);
- 		};
- /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-@@ -107,6 +109,7 @@
- 			);
- 			explicitFileTypes = {
- 				Resources/cot = text.script.python;
-+				Sources/Remote/RemoteAskpass.sh = text.script.sh;
- 			};
- 			explicitFolders = (
- 				Resources/Licenses,
+diff --git a/CotEditor.xcodeproj/project.xcproj b/CotEditor.xcodeproj/project.xcproj
+index 0f5757230..92b6f7c73 100644
+--- a/CotEditor.xcodeproj/project.xcproj
++++ b/CotEditor.xcodeproj/project.xcproj
+@@ -74,6 +74,7 @@
+       "path": "CotEditor",
+       "file-types": {
+         "Resources/cot": "text.script.python",
++        "Sources/Remote/RemoteAskpass.sh": "text.script.sh",
+       },
+       "opaque-folders": [
+         "Resources/Licenses",
+@@ -90,11 +91,13 @@
+             "CotEditor.storekit",
+             "Info.plist",
+             "Resources/cot",
++            "Sources/Remote/RemoteAskpass.sh",
+           ],
+         }, {
+           "build-phase": "CotEditor/copy/Copy Command-Line Tools",
+           "inclusions": [
+             "Resources/cot",
++            "Sources/Remote/RemoteAskpass.sh",
+           ],
+         },
+       ],
 diff --git a/CotEditor/Localizables/Remote.xcstrings b/CotEditor/Localizables/Remote.xcstrings
 new file mode 100644
-index 000000000..76bb5ffcb
+index 000000000..3122b9d2e
 --- /dev/null
 +++ b/CotEditor/Localizables/Remote.xcstrings
 @@ -0,0 +1,3072 @@
@@ -276,7 +274,7 @@ index 000000000..76bb5ffcb
 +        }
 +      }
 +    },
-+    "RemoteDocument.placeholderName" : {
++    "RemoteSSHDocument.placeholderName" : {
 +      "comment" : "name of a restored remote tab whose local copy is gone (%@ is the file name)",
 +      "extractionState" : "extracted_with_value",
 +      "localizations" : {
@@ -288,7 +286,7 @@ index 000000000..76bb5ffcb
 +        }
 +      }
 +    },
-+    "RemoteDocument.remoteVersionName" : {
++    "RemoteSSHDocument.remoteVersionName" : {
 +      "comment" : "name of a read-only copy of the version on the server (%@ is the file name)",
 +      "extractionState" : "extracted_with_value",
 +      "localizations" : {
@@ -3134,10 +3132,10 @@ index 000000000..76bb5ffcb
 +}
 \ No newline at end of file
 diff --git a/CotEditor/Sources/Application/AppDelegate.swift b/CotEditor/Sources/Application/AppDelegate.swift
-index 2e8f64979..7b9adabc5 100644
+index e3ad54cf1..dbbab95e4 100644
 --- a/CotEditor/Sources/Application/AppDelegate.swift
 +++ b/CotEditor/Sources/Application/AppDelegate.swift
-@@ -166,6 +166,8 @@ extension Logger {
+@@ -163,6 +163,8 @@ extension Logger {
          TerminalSettings.registerDefaults()
          TerminalMenu.install(in: NSApp.mainMenu!)
          WebPageMenu.install(in: NSApp.mainMenu!)
@@ -3146,24 +3144,24 @@ index 2e8f64979..7b9adabc5 100644
          
          #if SPARKLE
          UpdaterManager.shared.setup()
-@@ -211,6 +213,8 @@ extension Logger {
+@@ -221,6 +223,8 @@ extension Logger {
      
      func applicationWillTerminate(_ notification: Notification) {
          
 +        // Documents closed from here on keep what restoring their windows needs.
 +        RemoteTermination.isInProgress = true
          TerminalTermination.stopAllSessions()
+         RemoteEditingController.shared.removeUnusedWorkingCopies()
          
-         if self.needsRelaunch {
 diff --git a/CotEditor/Sources/Document Window/Inspector/DocumentInspectorView.swift b/CotEditor/Sources/Document Window/Inspector/DocumentInspectorView.swift
-index 8a37b465a..b046661ed 100644
+index 566a06cdd..1e561f165 100644
 --- a/CotEditor/Sources/Document Window/Inspector/DocumentInspectorView.swift	
 +++ b/CotEditor/Sources/Document Window/Inspector/DocumentInspectorView.swift	
-@@ -142,6 +142,10 @@ struct DocumentInspectorView: View, HostedPaneView {
+@@ -145,6 +145,10 @@ struct DocumentInspectorView: View, HostedPaneView {
              VStack(spacing: 8) {
-                 DocumentFileView(attributes: self.model.attributes, fileURL: self.model.fileURL)
+                 DocumentFileView(attributes: self.model.attributes, fileURL: self.model.fileURL, remotePath: self.model.remotePath)
                  
-+                if let document = self.document as? RemoteDocument {
++                if let document = self.document as? RemoteSSHDocument {
 +                    RemoteInspectorView(document: document)
 +                }
 +                
@@ -3182,19 +3180,34 @@ index 48e0ff9f6..21293cbea 100644
 +        [.terminal, .webPage, .remoteFile]
      }
  }
-diff --git a/CotEditor/Sources/Document/Document.swift b/CotEditor/Sources/Document/Document.swift
-index c04e5eefe..8f3cda5ae 100644
---- a/CotEditor/Sources/Document/Document.swift
-+++ b/CotEditor/Sources/Document/Document.swift
-@@ -42,7 +42,7 @@ import URLUtils
- extension NSTextView: EditorCounter.Source { }
- 
- 
--@Observable final class Document: DataDocument, AdditionalDocumentPreparing, EncodingChanging {
-+@Observable class Document: DataDocument, AdditionalDocumentPreparing, EncodingChanging {
-     
-     // MARK: Notification Messages
-     
+diff --git a/CotEditor/Sources/Document/DocumentController.swift b/CotEditor/Sources/Document/DocumentController.swift
+index 3844dcf71..ee2a23056 100644
+--- a/CotEditor/Sources/Document/DocumentController.swift
++++ b/CotEditor/Sources/Document/DocumentController.swift
+@@ -282,8 +282,11 @@ protocol AdditionalDocumentPreparing: NSDocument {
+         // Quitting asks about running terminals before any document, and nothing is stopped until
+         // the app actually terminates. A later cancellation leaves every terminal running.
+         let context = DelegateContext(delegate: delegate, selector: didReviewAllSelector, contextInfo: contextInfo)
++        // Remote documents closed during the review keep what restoring their windows needs.
++        RemoteTermination.isInProgress = true
+         Task {
+             if cancellable, await !TerminalTermination.requestConsent() {
++                RemoteTermination.isInProgress = false
+                 return context.perform(from: self, flag: false)
+             }
+             super.reviewUnsavedDocuments(withAlertTitle: title, cancellable: cancellable, delegate: self,
+@@ -536,6 +539,7 @@ protocol AdditionalDocumentPreparing: NSDocument {
+         
+         if !didReviewAll {
+             TerminalTermination.revokeConsent()
++            RemoteTermination.isInProgress = false
+         }
+         
+         let context: DelegateContext = bridgeUnwrapped(contextInfo)
+diff --git a/CotEditor/Sources/Document/TextDocument.swift b/CotEditor/Sources/Document/TextDocument.swift
+index 9944bf885..9bc5e7f30 100644
+--- a/CotEditor/Sources/Document/TextDocument.swift
++++ b/CotEditor/Sources/Document/TextDocument.swift
 @@ -427,13 +427,7 @@ extension NSTextView: EditorCounter.Source { }
          
          // [caution] Despite lack of the `nonisolated` label, this method can be called from a background thread in async-saving.
@@ -3248,7 +3261,7 @@ index c04e5eefe..8f3cda5ae 100644
          // apply save panel options
          if let saveOptions {
              self.isExecutable = saveOptions.isExecutable
-@@ -1026,6 +1005,54 @@ extension NSTextView: EditorCounter.Source { }
+@@ -1056,6 +1035,54 @@ extension NSTextView: EditorCounter.Source { }
      }
      
      
@@ -3303,7 +3316,7 @@ index c04e5eefe..8f3cda5ae 100644
      /// Checks if the content can be converted in the given encoding without loss of information.
      ///
      /// - Parameter fileEncoding: The text encoding to test, or `nil` to test with the current file encoding.
-@@ -1276,7 +1303,9 @@ extension NSTextView: EditorCounter.Source { }
+@@ -1313,7 +1340,9 @@ extension NSTextView: EditorCounter.Source { }
      ///
      /// - Parameter saveOperation: The save operation.
      /// - Returns: The file attributes.
@@ -3314,30 +3327,6 @@ index c04e5eefe..8f3cda5ae 100644
          
          var attributes: [String: any Sendable] = [:]
          
-diff --git a/CotEditor/Sources/Document/DocumentController.swift b/CotEditor/Sources/Document/DocumentController.swift
-index 944d2ae05..8877a4de7 100644
---- a/CotEditor/Sources/Document/DocumentController.swift
-+++ b/CotEditor/Sources/Document/DocumentController.swift
-@@ -265,8 +265,11 @@ protocol AdditionalDocumentPreparing: NSDocument {
-         // Quitting asks about running terminals before any document, and nothing is stopped until
-         // the app actually terminates. A later cancellation leaves every terminal running.
-         let context = DelegateContext(delegate: delegate, selector: didReviewAllSelector, contextInfo: contextInfo)
-+        // Remote documents closed during the review keep what restoring their windows needs.
-+        RemoteTermination.isInProgress = true
-         Task {
-             if cancellable, await !TerminalTermination.requestConsent() {
-+                RemoteTermination.isInProgress = false
-                 return context.perform(from: self, flag: false)
-             }
-             super.reviewUnsavedDocuments(withAlertTitle: title, cancellable: cancellable, delegate: self,
-@@ -487,6 +490,7 @@ protocol AdditionalDocumentPreparing: NSDocument {
-         
-         if !didReviewAll {
-             TerminalTermination.revokeConsent()
-+            RemoteTermination.isInProgress = false
-         }
-         
-         let context: DelegateContext = bridgeUnwrapped(contextInfo)
 diff --git a/CotEditor/Sources/Remote/RemoteAskpass.sh b/CotEditor/Sources/Remote/RemoteAskpass.sh
 new file mode 100755
 index 000000000..a28512133
@@ -3627,7 +3616,7 @@ index 000000000..b9b4b6d92
 +
 diff --git a/CotEditor/Sources/Remote/RemoteCommands.swift b/CotEditor/Sources/Remote/RemoteCommands.swift
 new file mode 100644
-index 000000000..5f29efbe7
+index 000000000..c8671d3b2
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteCommands.swift
 @@ -0,0 +1,193 @@
@@ -3699,10 +3688,10 @@ index 000000000..5f29efbe7
 +        if let index = fileMenu.items.firstIndex(where: { $0.action == #selector(NSDocument.saveAs(_:)) }) {
 +            let localCopy = NSMenuItem(title: String(localized: "RemoteMenu.saveLocalCopy", defaultValue: "Save a local copy…", table: "Remote",
 +                                                     comment: "File menu item saving a remote document’s text to a file on this Mac"),
-+                                       action: #selector(RemoteDocument.saveLocalCopy(_:)), keyEquivalent: "")
++                                       action: #selector(RemoteSSHDocument.saveLocalCopy(_:)), keyEquivalent: "")
 +            let revert = NSMenuItem(title: String(localized: "RemoteMenu.revertToRemoteVersion", defaultValue: "Revert to remote version", table: "Remote",
 +                                                  comment: "menu item label"),
-+                                    action: #selector(RemoteDocument.revertToRemoteVersion(_:)), keyEquivalent: "")
++                                    action: #selector(RemoteSSHDocument.revertToRemoteVersion(_:)), keyEquivalent: "")
 +            fileMenu.insertItem(localCopy, at: index + 1)
 +            fileMenu.insertItem(revert, at: index + 2)
 +        }
@@ -6150,771 +6139,9 @@ index 000000000..96701ca87
 +        }
 +    }
 +}
-diff --git a/CotEditor/Sources/Remote/RemoteDocument.swift b/CotEditor/Sources/Remote/RemoteDocument.swift
-new file mode 100644
-index 000000000..814882212
---- /dev/null
-+++ b/CotEditor/Sources/Remote/RemoteDocument.swift
-@@ -0,0 +1,756 @@
-+//
-+//  RemoteDocument.swift
-+//
-+//  CotEditor
-+//  https://coteditor.com
-+//
-+//  ---------------------------------------------------------------------------
-+//
-+//  © 2026 RedKenrok <rondekker.nl>
-+//
-+//  Licensed under the Apache License, Version 2.0 (the "License");
-+//  you may not use this file except in compliance with the License.
-+//  You may obtain a copy of the License at
-+//
-+//  https://www.apache.org/licenses/LICENSE-2.0
-+//
-+//  Unless required by applicable law or agreed to in writing, software
-+//  distributed under the License is distributed on an "AS IS" BASIS,
-+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-+//  See the License for the specific language governing permissions and
-+//  limitations under the License.
-+//
-+
-+import AppKit
-+import OSLog
-+import UniformTypeIdentifiers
-+import FileEncoding
-+import LineEnding
-+
-+
-+/// When unsent edits are written to the recovery record.
-+struct RemoteRecoveryTiming: Sendable {
-+
-+    /// How long editing must pause before the edits are written.
-+    var debounce: Duration = .seconds(1)
-+
-+    /// The longest continuous editing may go without a write.
-+    var maximumDelay: Duration = .seconds(5)
-+
-+
-+    /// When to write, given when the first unwritten change and the latest change happened.
-+    func deadline(firstChange: ContinuousClock.Instant, latestChange: ContinuousClock.Instant) -> ContinuousClock.Instant {
-+
-+        min(latestChange + self.debounce, firstChange + self.maximumDelay)
-+    }
-+}
-+
-+
-+/// A document whose file is on an SSH server.
-+///
-+/// Its `fileURL` is always `nil`. With a local cache file as its URL, AppKit and CotEditor would treat
-+/// that cache as the real file: save to it, watch it, list it in Open Recent, and offer it to Reveal
-+/// in Finder, Rename, Move To, Lock, Versions and Share. Without a URL none of that applies, and the
-+/// few things that need a replacement are overridden here: the display name, saving, autosaving,
-+/// closing and reverting.
-+///
-+/// The editor's text is "edited" until the server has confirmed it. Unsent edits are kept in the
-+/// document's recovery record, never in AppKit's autosave files, and writing them there never clears
-+/// the edited state.
-+final class RemoteDocument: Document {
-+
-+    /// What the document is for.
-+    enum Role: Sendable {
-+
-+        /// Editing the remote file.
-+        case editor
-+        /// Showing a version of the remote file that the user wants to review, read-only.
-+        case remoteVersion
-+        /// Standing in for a restored tab whose recovery data is gone, until the user reconnects.
-+        case placeholder
-+    }
-+
-+
-+    /// How the user decided to close the document.
-+    enum CloseDecision {
-+
-+        case keep
-+        case discard
-+    }
-+
-+
-+    struct DidChangeStateMessage: NotificationCenter.MainActorMessage {
-+
-+        typealias Subject = RemoteDocument
-+    }
-+
-+
-+    // MARK: Public Properties
-+
-+    let documentID: UUID
-+    let role: Role
-+    let environment: RemoteEnvironment
-+    private(set) var identity: RemoteFileIdentity
-+    private(set) var record: RemoteRecoveryRecord?
-+
-+    /// The latest recorded state of the record, for display.
-+    private(set) var manifest: RemoteRecoveryManifest?
-+
-+    /// Counts every change of text or settings, including undo, so that recovery writes are ordered.
-+    private(set) var generation = 0
-+
-+    /// The latest generation that is durable in the recovery record.
-+    private(set) var durableGeneration = 0
-+
-+    /// Why the latest edits could not be made durable, if they could not.
-+    private(set) var recoveryError: (any Error)?
-+
-+    private(set) lazy var saveCoordinator = RemoteSaveCoordinator(document: self)
-+
-+
-+    // MARK: Private Properties
-+
-+    private var closeDecision: CloseDecision?
-+    private var firstUnwrittenChange: ContinuousClock.Instant?
-+    private var recoveryTask: Task<Void, Never>?
-+    private var settingsTask: Task<Void, Never>?
-+    private var textObserver: (any NSObjectProtocol)?
-+    private var hasReportedRecoveryFailure = false
-+    private var isClosing = false
-+
-+
-+    // MARK: Lifecycle
-+
-+    /// Creates a document for downloaded or recovered contents.
-+    ///
-+    /// - Parameters:
-+    ///   - identity: The remote file.
-+    ///   - documentID: The ID of the recovery record, or a new one for a remote version.
-+    ///   - record: The recovery record, or `nil` for a remote version, which has none.
-+    ///   - role: What the document is for.
-+    ///   - contents: The file's bytes, decoded as a local file would be.
-+    ///   - environment: The services the document works with.
-+    init(identity: RemoteFileIdentity, documentID: UUID, record: RemoteRecoveryRecord?, role: Role, contents: Data, environment: RemoteEnvironment) throws {
-+
-+        self.identity = identity
-+        self.documentID = documentID
-+        self.record = record
-+        self.role = role
-+        self.environment = environment
-+
-+        super.init()
-+
-+        try self.load(contents)
-+        if role != .editor {
-+            self.isEditable = false
-+        }
-+        self.startObservingChanges()
-+    }
-+
-+
-+    /// A stand-in for a restored tab whose recovery data is gone. Nothing is downloaded until the user reconnects.
-+    static func placeholder(identity: RemoteFileIdentity, documentID: UUID, environment: RemoteEnvironment) -> RemoteDocument? {
-+
-+        try? RemoteDocument(identity: identity, documentID: documentID, record: nil, role: .placeholder, contents: Data(), environment: environment)
-+    }
-+
-+
-+    // MARK: Document Methods
-+
-+
-+    // AppKit writes no draft for a document without a file; unsent edits live in the recovery record.
-+    override static var autosavesDrafts: Bool  { false }
-+
-+
-+    override var displayName: String! {
-+
-+        get {
-+            switch self.role {
-+                case .editor:
-+                    self.identity.fileName
-+                case .remoteVersion:
-+                    String(localized: "RemoteDocument.remoteVersionName", defaultValue: "\(self.identity.fileName) (Server Version)",
-+                           table: "Remote", comment: "name of a read-only copy of the version on the server (%@ is the file name)")
-+                case .placeholder:
-+                    String(localized: "RemoteDocument.placeholderName", defaultValue: "\(self.identity.fileName) (Not Downloaded)",
-+                           table: "Remote", comment: "name of a restored remote tab whose local copy is gone (%@ is the file name)")
-+            }
-+        }
-+        set { }
-+    }
-+
-+
-+    override func save(withDelegate delegate: Any?, didSave didSaveSelector: Selector?, contextInfo: UnsafeMutableRawPointer?) {
-+
-+        let context = DelegateContext(delegate: delegate, selector: didSaveSelector, contextInfo: contextInfo)
-+
-+        guard self.role == .editor else { return context.perform(from: self, flag: false) }
-+
-+        Task {
-+            context.perform(from: self, flag: await self.saveCoordinator.save())
-+        }
-+    }
-+
-+
-+    @IBAction override func saveAs(_ sender: Any?) {
-+
-+        guard self.role == .editor else { return }
-+
-+        Task {
-+            await self.saveCoordinator.saveAsRemote()
-+        }
-+    }
-+
-+
-+    override func autosave(withImplicitCancellability autosavingIsImplicitlyCancellable: Bool, completionHandler: @escaping (any Error?) -> Void) {
-+
-+        // Autosaving means local recovery; only an explicit Save uploads.
-+        //
-+        // A failure is reported by the document itself, once per streak of failures. Only an autosave
-+        // that cannot be canceled, such as when the app quits, also hands the error to AppKit, so that
-+        // AppKit can stop what it was doing; for routine autosaves it would show a second, generic alert.
-+        let reportsError = !autosavingIsImplicitlyCancellable
-+
-+        guard self.role == .editor, self.record != nil, self.generation > self.durableGeneration else {
-+            return completionHandler(reportsError ? self.recoveryError : nil)
-+        }
-+
-+        Task {
-+            let succeeded = await self.flushRecovery()
-+            completionHandler(succeeded || !reportsError ? nil : self.recoveryError)
-+        }
-+    }
-+
-+
-+    override func canClose(withDelegate delegate: Any, shouldClose shouldCloseSelector: Selector?, contextInfo: UnsafeMutableRawPointer?) {
-+
-+        let context = DelegateContext(delegate: delegate, selector: shouldCloseSelector, contextInfo: contextInfo)
-+
-+        Task {
-+            context.perform(from: self, flag: await self.reviewClose())
-+        }
-+    }
-+
-+
-+    override func makeWindowControllers() {
-+
-+        super.makeWindowControllers()
-+
-+        // AppKit can reopen only documents with a file or an autosave draft. A window of its own is
-+        // reopened from the recovery record instead, so AppKit must not try to restore it.
-+        for windowController in self.windowControllers {
-+            windowController.window?.isRestorable = false
-+        }
-+    }
-+
-+
-+    override func close() {
-+
-+        // Closing the document's own window closes the document again from within `super.close()`.
-+        guard !self.isClosing else { return super.close() }
-+        self.isClosing = true
-+
-+        let decision = self.closeDecision
-+        let hasUnsentChanges = self.hasUnsentChanges
-+
-+        super.close()
-+
-+        self.recoveryTask?.cancel()
-+        self.settingsTask?.cancel()
-+        if let textObserver {
-+            NotificationCenter.default.removeObserver(textObserver)
-+        }
-+        RemoteDocumentRegistry.shared.unregister(self)
-+
-+        guard let record else { return }
-+
-+        Task {
-+            await Self.dispose(record, decision: decision, hasUnsentChanges: hasUnsentChanges)
-+        }
-+    }
-+
-+
-+    override func duplicate() throws -> NSDocument {
-+
-+        // The document controller makes the duplicate from the document class of the file type, so it is
-+        // an ordinary untitled document with the text and editor settings, without a link to the server.
-+        let duplicate = try super.duplicate()
-+        assert(!(duplicate is RemoteDocument))
-+
-+        return duplicate
-+    }
-+
-+
-+    override func validateUserInterfaceItem(_ item: any NSValidatedUserInterfaceItem) -> Bool {
-+
-+        switch item.action {
-+            case #selector(showInFinder),
-+                 #selector(shareDocument),
-+                 #selector(NSDocument.rename(_:)),
-+                 #selector(NSDocument.move(_:)),
-+                 #selector(NSDocument.lock(_:)),
-+                 #selector(NSDocument.unlock(_:)),
-+                 #selector(NSDocument.browseVersions(_:)),
-+                 #selector(NSDocument.revertToSaved(_:)):
-+                return false
-+
-+            case #selector(copyPath):
-+                return true
-+
-+            case #selector(NSDocument.save(_:)),
-+                 #selector(NSDocument.saveAs(_:)):
-+                return self.role == .editor
-+
-+            case #selector(revertToRemoteVersion):
-+                if let item = item as? NSMenuItem {
-+                    item.title = (self.role == .placeholder)
-+                        ? String(localized: "RemoteMenu.reconnect", defaultValue: "Reconnect", table: "Remote", comment: "menu item label")
-+                        : String(localized: "RemoteMenu.revertToRemoteVersion", defaultValue: "Revert to remote version", table: "Remote",
-+                                 comment: "menu item label")
-+                }
-+                return self.role != .remoteVersion && !self.saveCoordinator.isBusy
-+
-+            case #selector(saveLocalCopy):
-+                return true
-+
-+            default:
-+                return super.validateUserInterfaceItem(item)
-+        }
-+    }
-+
-+
-+    // MARK: Presentation
-+
-+    override var tabToolTip: String  { self.identity.displayLocation }
-+
-+    override var tabIcon: NSImage?  { NSWorkspace.shared.icon(for: self.contentType) }
-+
-+    override var subtitleName: String  { self.displayName }
-+
-+    override var standaloneWindowSubtitle: String?  { self.identity.connectionName }
-+
-+    override var tabArchiveRepresentation: (kind: String, fields: [String: Any])? {
-+
-+        guard self.role != .remoteVersion else { return nil }
-+
-+        return (RemoteTabArchive.kind, RemoteTabArchive.fields(for: self))
-+    }
-+
-+
-+    // MARK: Actions
-+
-+    /// Copies the location in the form `user@host:/path`.
-+    @IBAction override func copyPath(_ sender: Any?) {
-+
-+        NSPasteboard.general.clearContents()
-+        NSPasteboard.general.setString(self.identity.displayLocation, forType: .string)
-+    }
-+
-+
-+    /// Discards the edits, after asking, and downloads the file again; a placeholder downloads it for the first time.
-+    @IBAction func revertToRemoteVersion(_ sender: Any?) {
-+
-+        Task {
-+            if self.role == .placeholder {
-+                await RemoteOpenCoordinator.reconnect(self)
-+            } else {
-+                await self.revertToRemote()
-+            }
-+        }
-+    }
-+
-+
-+    /// Saves the text to a local file, leaving the remote file and the unsent edits as they are.
-+    @IBAction func saveLocalCopy(_ sender: Any?) {
-+
-+        self.saveTo(sender)
-+    }
-+
-+
-+    // MARK: Recovery
-+
-+    /// The settings that decide how the text is encoded.
-+    var textSettings: RemoteTextSettings {
-+
-+        RemoteTextSettings(encoding: self.fileEncoding.encoding.rawValue, hasUTF8BOM: self.fileEncoding.withUTF8BOM,
-+                           lineEnding: self.lineEnding.index, syntaxName: self.syntaxName)
-+    }
-+
-+
-+    /// Whether anything is not confirmed on the server: edits, or an operation whose outcome is unknown.
-+    var hasUnsentChanges: Bool {
-+
-+        self.role == .editor && (self.isDocumentEdited || self.hasUnresolvedOperation)
-+    }
-+
-+
-+    /// Whether a save's outcome is unknown, for this file or for one the document edited before Save As Remote.
-+    var hasUnresolvedOperation: Bool {
-+
-+        self.manifest?.operation?.mayHaveChangedTarget == true || self.manifest?.detachedOperations.isEmpty == false
-+    }
-+
-+
-+    /// Writes the latest text generation to the recovery record.
-+    ///
-+    /// - Returns: `true` if the generation current when this returns is durable.
-+    @discardableResult func flushRecovery() async -> Bool {
-+
-+        guard self.role == .editor, let record = self.record else { return true }
-+
-+        self.firstUnwrittenChange = nil
-+        self.recoveryTask?.cancel()
-+
-+        let generation = self.generation
-+        guard generation > self.durableGeneration else { return self.recoveryError == nil }
-+
-+        let string = self.textStorage.string
-+        let settings = self.textSettings
-+        do {
-+            try await record.writeText(string, settings: settings, generation: generation)
-+            self.durableGeneration = max(self.durableGeneration, generation)
-+            if self.durableGeneration >= self.generation {
-+                self.recoveryError = nil
-+                self.hasReportedRecoveryFailure = false
-+            }
-+            await self.refreshManifest()
-+        } catch {
-+            self.recoveryError = error
-+            self.saveStateDidChange()
-+            self.reportRecoveryFailure(error)
-+            return false
-+        }
-+
-+        return self.durableGeneration >= self.generation
-+    }
-+
-+
-+    /// Writes generations until the latest one is durable, as closing with Keep Recovery Copy requires.
-+    ///
-+    /// - Returns: `false` if a write failed; the previous durable generation is then still intact.
-+    func persistLatestGeneration() async -> Bool {
-+
-+        while self.durableGeneration < self.generation {
-+            guard await self.flushRecovery() else { return false }
-+        }
-+
-+        return true
-+    }
-+
-+
-+    // MARK: Internal Methods
-+
-+    /// Asks what to do with unsent changes before closing.
-+    ///
-+    /// - Returns: `true` if the document may close.
-+    func reviewClose() async -> Bool {
-+
-+        guard self.role == .editor else { return true }
-+
-+        // A save that runs now decides whether anything is still unsent.
-+        await self.saveCoordinator.waitUntilIdle()
-+        await self.refreshManifest()
-+
-+        while self.hasUnsentChanges {
-+            let hasUnresolvedOperation = self.hasUnresolvedOperation
-+
-+            let choice = await self.environment.prompts.reviewClose(fileName: self.identity.fileName, hasUnresolvedOperation: hasUnresolvedOperation, window: self.windowForSheet)
-+            switch choice {
-+                case .save:
-+                    guard await self.saveCoordinator.save() else { return false }
-+                    // Edits made during the save are asked about again.
-+                    await self.refreshManifest()
-+
-+                case .keepRecoveryCopy:
-+                    guard await self.persistLatestGeneration() else { return false }
-+                    self.closeDecision = .keep
-+                    return true
-+
-+                case .discard:
-+                    // The record goes only when the close actually happens; a later Cancel keeps it.
-+                    self.closeDecision = .discard
-+                    return true
-+
-+                case .cancel:
-+                    self.closeDecision = nil
-+                    return false
-+            }
-+        }
-+
-+        self.closeDecision = nil
-+        return true
-+    }
-+
-+
-+    /// Makes the document edit the file at a new identity, after Save As Remote or a destination change.
-+    func adoptIdentity(_ identity: RemoteFileIdentity) {
-+
-+        RemoteDocumentRegistry.shared.unregister(self)
-+        self.identity = identity
-+        RemoteDocumentRegistry.shared.register(self)
-+
-+        self.windowController?.synchronizeWindowTitleWithDocumentName()
-+        self.directoryDocument?.windowController?.synchronizeWindowTitleWithDocumentName()
-+        self.directoryDocument?.invalidateRestorableState()
-+        self.saveStateDidChange()
-+    }
-+
-+
-+    /// Marks the editor saved if its text encodes to the baseline, as after reconciling following a relaunch.
-+    func synchronizeEditedStateWithBaseline() {
-+
-+        Task {
-+            guard let data = try? await self.record?.baselineData() else { return }
-+            if self.encodedContents() == data {
-+                self.updateChangeCount(.changeCleared)
-+            }
-+        }
-+    }
-+
-+
-+    /// Notes that a save reached the server.
-+    func didConfirmSave() {
-+
-+        self.closeDecision = nil
-+        Task { await self.refreshManifest() }
-+    }
-+
-+
-+    /// Updates the displayed state after a save started or ended.
-+    func saveStateDidChange() {
-+
-+        NotificationCenter.default.post(DidChangeStateMessage(), subject: self)
-+    }
-+
-+
-+    /// Presents an error whose recovery options may allow saving anyway.
-+    ///
-+    /// - Returns: `true` if the user chose a recovery option that allows trying again.
-+    func presentErrorForRecovery(_ error: any Error) async -> Bool {
-+
-+        await withCheckedContinuation { continuation in
-+            self.presentErrorAsSheet(error) { didRecover in
-+                continuation.resume(returning: didRecover)
-+            }
-+        }
-+    }
-+
-+
-+    /// Stores the conflicting remote version as reviewed and opens it read-only next to the document.
-+    func openRemoteVersion(_ conflict: RemoteConflict) async {
-+
-+        guard let data = conflict.remoteData else { return }
-+
-+        do {
-+            try await self.markReviewed(data)
-+            let version = try RemoteDocument(identity: self.identity, documentID: UUID(), record: nil, role: .remoteVersion, contents: data, environment: self.environment)
-+            RemoteOpenCoordinator.present(version, beside: self)
-+        } catch {
-+            self.presentErrorAsSheet(error)
-+        }
-+    }
-+
-+
-+    /// Records that the user reviewed a remote version, which a later Replace or repair may then overwrite.
-+    ///
-+    /// The bytes are kept on this Mac before anything overwrites them.
-+    func markReviewed(_ data: Data) async throws {
-+
-+        _ = try await self.record?.storeReviewedVersion(data)
-+        await self.refreshManifest()
-+    }
-+
-+
-+    /// Discards the edits, after asking, and downloads the file again.
-+    func revertToRemote() async {
-+
-+        guard self.role == .editor, let record else { return }
-+
-+        await self.refreshManifest()
-+        guard self.manifest?.operation?.mayHaveChangedTarget != true else {
-+            return self.presentErrorAsSheet(RemoteSaveError.outcomeUnknown)
-+        }
-+        if self.isDocumentEdited {
-+            guard await self.environment.prompts.confirmRevert(fileName: self.identity.fileName, window: self.windowForSheet) else { return }
-+        }
-+
-+        do {
-+            let title = String(localized: "RemoteProgress.reverting", defaultValue: "Downloading “\(self.identity.fileName)”…", table: "Remote",
-+                               comment: "title of the progress sheet while the server's version of a remote file is downloaded (%@ is the file name)")
-+            let contents = try await RemoteProgressSheet.run(title: title, window: self.windowForSheet) {
-+                try await self.saveCoordinator.downloadCurrentVersion()
-+            }
-+            try await record.adoptRemoteVersion(contents.data, attributes: contents.attributesAfter)
-+            self.undoManager?.removeAllActions()
-+            try self.load(contents.data)
-+            self.updateChangeCount(.changeCleared)
-+            self.durableGeneration = self.generation
-+            await self.refreshManifest()
-+        } catch is RemoteOperationCanceled {
-+            return
-+        } catch {
-+            self.presentErrorAsSheet(error)
-+        }
-+    }
-+
-+
-+    /// Applies recovered text and settings on top of the loaded baseline.
-+    ///
-+    /// The document is edited if the recovered text encodes to something other than the baseline.
-+    func applyRecoveredText(_ string: String, settings: RemoteTextSettings, generation: Int, baseline: Data) {
-+
-+        self.undoManager?.disableUndoRegistration()
-+        defer { self.undoManager?.enableUndoRegistration() }
-+
-+        let encoding = FileEncoding(encoding: String.Encoding(rawValue: settings.encoding),
-+                                    withUTF8BOM: settings.hasUTF8BOM && String.Encoding(rawValue: settings.encoding) == .utf8)
-+        if encoding != self.fileEncoding {
-+            self.changeEncoding(to: encoding)
-+        }
-+        if let lineEnding = LineEnding.allCases[safe: settings.lineEnding], lineEnding != self.lineEnding {
-+            self.changeLineEnding(to: lineEnding)
-+        }
-+        if settings.syntaxName != self.syntaxName {
-+            self.setSyntax(name: settings.syntaxName)
-+        }
-+        if string != self.textStorage.string {
-+            self.textStorage.replaceCharacters(in: NSRange(location: 0, length: (self.textStorage.string as NSString).length), with: string)
-+        }
-+
-+        self.generation = max(self.generation, generation)
-+        self.durableGeneration = self.generation
-+        if self.encodedContents() != baseline {
-+            self.updateChangeCount(.changeDone)
-+        }
-+    }
-+
-+
-+    /// Reads the record's manifest again for display.
-+    func refreshManifest() async {
-+
-+        self.manifest = await self.record?.manifest
-+        self.saveStateDidChange()
-+    }
-+
-+
-+    // MARK: Private Methods
-+
-+    /// The content type that the remote file name suggests.
-+    private var contentType: UTType {
-+
-+        UTType(filenameExtension: (self.identity.fileName as NSString).pathExtension) ?? .plainText
-+    }
-+
-+
-+    /// Decodes bytes into the editor as upstream decodes a file, choosing the syntax from the remote name.
-+    ///
-+    /// The bytes go through a private temporary file named after the remote file, because the decoding
-+    /// reads from a URL and takes the syntax from its name. The file is removed right away and is never
-+    /// the document's file.
-+    private func load(_ contents: Data) throws {
-+
-+        let folder = FileManager.default.temporaryDirectory.appending(component: "RemoteDocument-" + UUID().uuidString, directoryHint: .isDirectory)
-+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
-+        defer { try? FileManager.default.removeItem(at: folder) }
-+
-+        let url = folder.appending(component: RemotePath.localFileName(for: self.identity.fileName), directoryHint: .notDirectory)
-+        try contents.write(to: url, options: .withoutOverwriting)
-+
-+        self.fileType = self.contentType.identifier
-+        try self.read(from: url, ofType: self.contentType.identifier)
-+    }
-+
-+
-+    private func startObservingChanges() {
-+
-+        guard self.role == .editor else { return }
-+
-+        self.textObserver = NotificationCenter.default.addObserver(forName: NSTextStorage.didProcessEditingNotification,
-+                                                                   object: self.textStorage, queue: .main)
-+        { [weak self] notification in
-+            guard (notification.object as? NSTextStorage)?.editedMask.contains(.editedCharacters) == true else { return }
-+            MainActor.assumeIsolated {
-+                self?.noteChange()
-+            }
-+        }
-+
-+        self.settingsTask = Task { [weak self] in
-+            guard let self else { return }
-+            var isFirst = true
-+            for await _ in Observations({ (self.fileEncoding, self.lineEnding, self.syntaxName) }) {
-+                // the first value is the current one, not a change
-+                if isFirst {
-+                    isFirst = false
-+                    continue
-+                }
-+                self.noteChange()
-+            }
-+        }
-+    }
-+
-+
-+    /// Counts a change of text or settings and schedules writing it to the recovery record.
-+    private func noteChange() {
-+
-+        self.generation += 1
-+        self.closeDecision = nil
-+
-+        let now = ContinuousClock.now
-+        let firstChange = self.firstUnwrittenChange ?? now
-+        self.firstUnwrittenChange = firstChange
-+        let deadline = self.environment.recoveryTiming.deadline(firstChange: firstChange, latestChange: now)
-+
-+        self.recoveryTask?.cancel()
-+        self.recoveryTask = Task { [weak self] in
-+            try? await Task.sleep(until: deadline)
-+            guard !Task.isCancelled else { return }
-+            await self?.flushRecovery()
-+        }
-+    }
-+
-+
-+    /// Tells the user once per failure streak that newer edits are not protected.
-+    private func reportRecoveryFailure(_ error: any Error) {
-+
-+        guard !self.hasReportedRecoveryFailure else { return }
-+
-+        // Reported again only after a write has succeeded in between.
-+        self.hasReportedRecoveryFailure = true
-+        Task {
-+            await self.environment.prompts.reportRecoveryFailure(error, fileName: self.identity.fileName, window: self.windowForSheet)
-+        }
-+    }
-+
-+
-+    /// Deletes or keeps a closed document's record.
-+    ///
-+    /// A record is deleted only when it holds nothing unsent and no operation with an unknown outcome,
-+    /// or when the user discarded its changes. A clean record of a document closed while the app quits
-+    /// is kept, so that the window can come back.
-+    private static func dispose(_ record: RemoteRecoveryRecord, decision: CloseDecision?, hasUnsentChanges: Bool) async {
-+
-+        let manifest = await record.manifest
-+        let isUnresolved = manifest.operation?.mayHaveChangedTarget == true || !manifest.detachedOperations.isEmpty
-+        let removes = !isUnresolved && (decision == .discard || (!hasUnsentChanges && !RemoteTermination.isInProgress))
-+
-+        do {
-+            if removes {
-+                try await record.remove()
-+            } else {
-+                try await record.setPresentation(isOpen: RemoteTermination.isInProgress && decision == nil,
-+                                                 keepsAfterClose: hasUnsentChanges || isUnresolved)
-+                await record.relinquish()
-+            }
-+        } catch {
-+            Logger.app.error("Failed to dispose of a remote recovery record: \(error)")
-+            await record.relinquish()
-+        }
-+    }
-+}
-+
-+
-+/// Whether the app is quitting, so that closing documents keeps what restoration needs.
-+@MainActor enum RemoteTermination {
-+
-+    static var isInProgress = false
-+}
 diff --git a/CotEditor/Sources/Remote/RemoteFileBrowserViewController.swift b/CotEditor/Sources/Remote/RemoteFileBrowserViewController.swift
 new file mode 100644
-index 000000000..c99ab4d99
+index 000000000..00bd37efe
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteFileBrowserViewController.swift
 @@ -0,0 +1,1661 @@
@@ -8122,13 +7349,13 @@ index 000000000..c99ab4d99
 +            guard let directory else { return }
 +            for await _ in Observations({ (directory.tabState.selectedID, directory.activeFileDocument?.displayName) }) {
 +                guard let self, !Task.isCancelled else { return }
-+                self.selectRow(of: directory.activeFileDocument as? RemoteDocument)
++                self.selectRow(of: directory.activeFileDocument as? RemoteSSHDocument)
 +            }
 +        }
 +    }
 +
 +
-+    private func selectRow(of document: RemoteDocument?) {
++    private func selectRow(of document: RemoteSSHDocument?) {
 +
 +        guard
 +            let document,
@@ -11189,7 +10416,7 @@ index 000000000..848ee660e
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteFolderSession.swift b/CotEditor/Sources/Remote/RemoteFolderSession.swift
 new file mode 100644
-index 000000000..25aff19fc
+index 000000000..e22332013
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteFolderSession.swift
 @@ -0,0 +1,1178 @@
@@ -11582,12 +10809,12 @@ index 000000000..25aff19fc
 +
 +
 +    /// The open document of the node's file, if its path is known to lead to one.
-+    func openDocument(at node: RemoteDirectoryNode) -> RemoteDocument? {
++    func openDocument(at node: RemoteDirectoryNode) -> RemoteSSHDocument? {
 +
 +        let identity = RemoteFileIdentity(profileID: self.identity.profileID, endpoint: self.identity.endpoint, destination: self.identity.destination,
 +                                          requestedPath: node.path, path: node.canonicalPath)
 +
-+        return RemoteDocumentRegistry.shared.document(for: identity)
++        return RemoteSSHDocumentRegistry.shared.document(for: identity)
 +    }
 +
 +
@@ -11815,7 +11042,7 @@ index 000000000..25aff19fc
 +    func createFileInNewTab(in directory: DirectoryDocument) async {
 +
 +        var folder = self.tree.root
-+        if let document = directory.activeFileDocument as? RemoteDocument,
++        if let document = directory.activeFileDocument as? RemoteSSHDocument,
 +           let components = RemotePath.relativePath(of: RemotePath.parent(of: document.identity.requestedPath), in: self.identity.path),
 +           let node = self.tree.node(atRelativePath: components), node.isFolder
 +        {
@@ -12024,7 +11251,7 @@ index 000000000..25aff19fc
 +    /// - Throws: `RemoteItemChangeError.fileInUse` before anything is sent, if such a file has changes that
 +    ///   are not on the server, is being saved or opened; `changeUnderWay` if the item, or one above or
 +    ///   below it, is being changed already.
-+    private func whileChanging<T>(_ node: RemoteDirectoryNode, _ change: ([RemoteDocument]) async throws -> T) async throws -> T {
++    private func whileChanging<T>(_ node: RemoteDirectoryNode, _ change: ([RemoteSSHDocument]) async throws -> T) async throws -> T {
 +
 +        let key = Array(node.path.utf8)
 +        let isOverlapping = self.changingPaths.contains { path in
@@ -12050,7 +11277,7 @@ index 000000000..25aff19fc
 +    }
 +
 +
-+    private func holdingSaves<T>(of documents: ArraySlice<RemoteDocument>, _ work: () async throws -> T) async throws -> T {
++    private func holdingSaves<T>(of documents: ArraySlice<RemoteSSHDocument>, _ work: () async throws -> T) async throws -> T {
 +
 +        guard let document = documents.first else { return try await work() }
 +
@@ -12060,7 +11287,7 @@ index 000000000..25aff19fc
 +    }
 +
 +
-+    private func checkNotInUse(_ node: RemoteDirectoryNode, documents: [RemoteDocument]) throws(RemoteItemChangeError) {
++    private func checkNotInUse(_ node: RemoteDirectoryNode, documents: [RemoteSSHDocument]) throws(RemoteItemChangeError) {
 +
 +        if let document = documents.first(where: { $0.hasUnsentChanges || $0.saveCoordinator.isBusy }) {
 +            throw .fileInUse(document.identity.fileName)
@@ -12074,11 +11301,11 @@ index 000000000..25aff19fc
 +
 +    /// The open files at or below an item, through this window's connection: those whose file is there,
 +    /// and those opened through a path that goes through it, such as through a link.
-+    private func openDocuments(atOrBelow node: RemoteDirectoryNode) -> [RemoteDocument] {
++    private func openDocuments(atOrBelow node: RemoteDirectoryNode) -> [RemoteSSHDocument] {
 +
 +        let canonicalPath = node.parent.map { RemotePath.appending(node.name, to: $0.canonicalPath) } ?? node.path
 +
-+        return RemoteDocumentRegistry.shared.documents.filter { document in
++        return RemoteSSHDocumentRegistry.shared.documents.filter { document in
 +            document.identity.endpoint == self.identity.endpoint
 +                && document.identity.destination == self.identity.destination
 +                && (RemotePath.isAncestor(canonicalPath, of: document.identity.path) || RemotePath.isAncestor(node.path, of: document.identity.requestedPath))
@@ -12087,7 +11314,7 @@ index 000000000..25aff19fc
 +
 +
 +    /// Makes the open files follow an item that moved: each recovery record takes the new path first, then the document.
-+    private func follow(_ documents: [RemoteDocument], from old: (path: String, canonicalPath: String), to new: (path: String, canonicalPath: String)) async throws {
++    private func follow(_ documents: [RemoteSSHDocument], from old: (path: String, canonicalPath: String), to new: (path: String, canonicalPath: String)) async throws {
 +
 +        func moved(_ path: String, from folder: String, to newFolder: String) -> String? {
 +            RemotePath.relativePath(of: path, in: folder)?.reduce(newFolder) { RemotePath.appending($1, to: $0) }
@@ -12183,7 +11410,7 @@ index 000000000..25aff19fc
 +    /// Shows a document that the tree opened: selects it here, or brings forward the window that has it.
 +    ///
 +    /// A document is never moved between windows.
-+    private func show(_ document: RemoteDocument, in directory: DirectoryDocument, selects: Bool = true) {
++    private func show(_ document: RemoteSSHDocument, in directory: DirectoryDocument, selects: Bool = true) {
 +
 +        if let owner = document.directoryDocument {
 +            guard selects else { return }
@@ -12573,7 +11800,7 @@ index 000000000..b46fbbd75
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteInspectorView.swift b/CotEditor/Sources/Remote/RemoteInspectorView.swift
 new file mode 100644
-index 000000000..aa3a5f2f8
+index 000000000..ae9160f18
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteInspectorView.swift
 @@ -0,0 +1,134 @@
@@ -12607,7 +11834,7 @@ index 000000000..aa3a5f2f8
 +/// The document inspector's section about a remote file: where it is and whether the server has the editor's text.
 +struct RemoteInspectorView: View {
 +
-+    var document: RemoteDocument
++    var document: RemoteSSHDocument
 +
 +    @State private var model = RemoteInspectorModel()
 +    @State private var isExpanded = true
@@ -12669,14 +11896,14 @@ index 000000000..aa3a5f2f8
 +    @ObservationIgnored private var observers: [NotificationCenter.ObservationToken] = []
 +
 +
-+    func observe(_ document: RemoteDocument) {
++    func observe(_ document: RemoteSSHDocument) {
 +
 +        self.observers = [
-+            NotificationCenter.default.addObserver(of: document, for: RemoteDocument.DidChangeStateMessage.self) { [weak self, weak document] _ in
++            NotificationCenter.default.addObserver(of: document, for: RemoteSSHDocument.DidChangeStateMessage.self) { [weak self, weak document] _ in
 +                guard let document else { return }
 +                self?.update(from: document)
 +            },
-+            NotificationCenter.default.addObserver(of: document, for: Document.DidUpdateChangeMessage.self) { [weak self, weak document] _ in
++            NotificationCenter.default.addObserver(of: document, for: TextDocument.DidUpdateChangeMessage.self) { [weak self, weak document] _ in
 +                guard let document else { return }
 +                self?.update(from: document)
 +            },
@@ -12685,7 +11912,7 @@ index 000000000..aa3a5f2f8
 +    }
 +
 +
-+    private func update(from document: RemoteDocument) {
++    private func update(from document: RemoteSSHDocument) {
 +
 +        self.connection = document.identity.connectionName
 +        self.path = document.identity.path
@@ -12713,7 +11940,7 @@ index 000000000..aa3a5f2f8
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteOpenCoordinator.swift b/CotEditor/Sources/Remote/RemoteOpenCoordinator.swift
 new file mode 100644
-index 000000000..b5647687c
+index 000000000..92d7560c0
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteOpenCoordinator.swift
 @@ -0,0 +1,351 @@
@@ -12745,40 +11972,40 @@ index 000000000..b5647687c
 +
 +
 +/// The open remote documents, by identity, so that a file is never open twice.
-+@MainActor final class RemoteDocumentRegistry {
++@MainActor final class RemoteSSHDocumentRegistry {
 +
-+    static let shared = RemoteDocumentRegistry()
++    static let shared = RemoteSSHDocumentRegistry()
 +
 +    private struct Entry {
 +
-+        weak var document: RemoteDocument?
++        weak var document: RemoteSSHDocument?
 +    }
 +
 +    private var entries: [RemoteFileIdentity: Entry] = [:]
 +
 +
 +    /// The document editing the file, if one is open.
-+    func document(for identity: RemoteFileIdentity) -> RemoteDocument? {
++    func document(for identity: RemoteFileIdentity) -> RemoteSSHDocument? {
 +
 +        self.entries[identity]?.document
 +    }
 +
 +
 +    /// The document with the recovery record, if one is open.
-+    func document(documentID: UUID) -> RemoteDocument? {
++    func document(documentID: UUID) -> RemoteSSHDocument? {
 +
 +        self.entries.values.lazy.compactMap(\.document).first { $0.documentID == documentID }
 +    }
 +
 +
 +    /// Every open document that edits a remote file.
-+    var documents: [RemoteDocument] {
++    var documents: [RemoteSSHDocument] {
 +
 +        self.entries.values.compactMap(\.document)
 +    }
 +
 +
-+    func register(_ document: RemoteDocument) {
++    func register(_ document: RemoteSSHDocument) {
 +
 +        guard document.role == .editor else { return }
 +
@@ -12786,7 +12013,7 @@ index 000000000..b5647687c
 +    }
 +
 +
-+    func unregister(_ document: RemoteDocument) {
++    func unregister(_ document: RemoteSSHDocument) {
 +
 +        guard self.entries[document.identity]?.document === document else { return }
 +
@@ -12840,7 +12067,7 @@ index 000000000..b5647687c
 +
 +
 +    /// Opens that are under way, so that asking twice at once opens the file once.
-+    private static var pending: [PendingKey: Task<RemoteDocument, any Error>] = [:]
++    private static var pending: [PendingKey: Task<RemoteSSHDocument, any Error>] = [:]
 +
 +
 +    // MARK: Opening
@@ -12856,7 +12083,7 @@ index 000000000..b5647687c
 +    ///   - asMember: Whether the caller makes a new document a member of the directory itself, as a
 +    ///     folder window does with its files, whatever the file tabs preference.
 +    /// - Returns: The document showing the file.
-+    @discardableResult static func open(_ request: RemoteOpenRequest, in directory: DirectoryDocument?, window: NSWindow?, environment: RemoteEnvironment = .current, attach: Bool = true, asMember: Bool = false) async throws -> RemoteDocument {
++    @discardableResult static func open(_ request: RemoteOpenRequest, in directory: DirectoryDocument?, window: NSWindow?, environment: RemoteEnvironment = .current, attach: Bool = true, asMember: Bool = false) async throws -> RemoteSSHDocument {
 +
 +        let endpoint = try request.endpoint.validated()
 +        let path = try RemotePath.validated(request.path)
@@ -12882,7 +12109,7 @@ index 000000000..b5647687c
 +
 +
 +    /// Shows an open document, selecting its tab if it has one.
-+    static func show(_ document: RemoteDocument) {
++    static func show(_ document: RemoteSSHDocument) {
 +
 +        if let directory = document.directoryDocument {
 +            directory.selectDocument(document)
@@ -12894,7 +12121,7 @@ index 000000000..b5647687c
 +
 +
 +    /// Attaches a document to the directory window as a tab, or else gives it a window of its own.
-+    static func present(_ document: RemoteDocument, in directory: DirectoryDocument?) {
++    static func present(_ document: RemoteSSHDocument, in directory: DirectoryDocument?) {
 +
 +        if let directory, UserDefaults.standard[.usesDirectoryFileTabs], directory.adoptMember(document, select: true) {
 +            directory.windowController?.showWindow(nil)
@@ -12909,7 +12136,7 @@ index 000000000..b5647687c
 +
 +
 +    /// Shows a document next to another one: in the same directory window, or in a window of its own.
-+    static func present(_ document: RemoteDocument, beside other: RemoteDocument) {
++    static func present(_ document: RemoteSSHDocument, beside other: RemoteSSHDocument) {
 +
 +        self.present(document, in: other.directoryDocument)
 +    }
@@ -12923,17 +12150,17 @@ index 000000000..b5647687c
 +    ///   - documentID: The ID of the recovery record.
 +    ///   - environment: The services the document works with.
 +    /// - Returns: The document; an already open one if the record belongs to one.
-+    static func restore(documentID: UUID, environment: RemoteEnvironment = .current) throws -> RemoteDocument {
++    static func restore(documentID: UUID, environment: RemoteEnvironment = .current) throws -> RemoteSSHDocument {
 +
-+        if let document = RemoteDocumentRegistry.shared.document(documentID: documentID) { return document }
++        if let document = RemoteSSHDocumentRegistry.shared.document(documentID: documentID) { return document }
 +
 +        let record = try RemoteRecoveryRecord.open(in: environment.recoveryRoot, documentID: documentID)
 +        let manifest = record.initialManifest
 +
-+        let document: RemoteDocument
++        let document: RemoteSSHDocument
 +        do {
 +            let baseline = try record.data(of: manifest.baseline.file)
-+            document = try RemoteDocument(identity: manifest.identity, documentID: documentID, record: record, role: .editor, contents: baseline, environment: environment)
++            document = try RemoteSSHDocument(identity: manifest.identity, documentID: documentID, record: record, role: .editor, contents: baseline, environment: environment)
 +            if let text = manifest.text {
 +                let string = try RemoteRecoveryManifest.decodeText(try record.data(of: text.file))
 +                document.applyRecoveredText(string, settings: text.settings, generation: text.generation, baseline: baseline)
@@ -12943,7 +12170,7 @@ index 000000000..b5647687c
 +            throw error
 +        }
 +
-+        RemoteDocumentRegistry.shared.register(document)
++        RemoteSSHDocumentRegistry.shared.register(document)
 +        Task {
 +            try? await record.setPresentation(isOpen: true, keepsAfterClose: false)
 +            await document.refreshManifest()
@@ -12954,7 +12181,7 @@ index 000000000..b5647687c
 +
 +
 +    /// Replaces a placeholder, whose recovery data was gone, with the file downloaded again.
-+    static func reconnect(_ placeholder: RemoteDocument) async {
++    static func reconnect(_ placeholder: RemoteSSHDocument) async {
 +
 +        let identity = placeholder.identity
 +        let directory = placeholder.directoryDocument
@@ -12986,7 +12213,7 @@ index 000000000..b5647687c
 +    // MARK: Private Methods
 +
 +    /// Downloads a file without attaching it to a window.
-+    private static func open(_ request: RemoteOpenRequest, window: NSWindow?, environment: RemoteEnvironment) async throws -> RemoteDocument {
++    private static func open(_ request: RemoteOpenRequest, window: NSWindow?, environment: RemoteEnvironment) async throws -> RemoteSSHDocument {
 +
 +        let endpoint = try request.endpoint.validated()
 +        let path = try RemotePath.validated(request.path)
@@ -13006,7 +12233,7 @@ index 000000000..b5647687c
 +    ///   - environment: The services the document works with.
 +    ///   - attach: Whether to show the document in a window.
 +    ///   - isStandalone: Whether a new document is shown in a window of its own rather than in a folder window.
-+    private static func download(_ requested: RemoteFileIdentity, directory: DirectoryDocument?, window: NSWindow?, environment: RemoteEnvironment, attach: Bool = true, isStandalone: Bool) async throws -> RemoteDocument {
++    private static func download(_ requested: RemoteFileIdentity, directory: DirectoryDocument?, window: NSWindow?, environment: RemoteEnvironment, attach: Bool = true, isStandalone: Bool) async throws -> RemoteSSHDocument {
 +
 +        let (profileID, endpoint, destination, path) = (requested.profileID, requested.endpoint, requested.destination, requested.requestedPath)
 +        let pool = environment.pool
@@ -13022,7 +12249,7 @@ index 000000000..b5647687c
 +        }
 +
 +        let identity = RemoteFileIdentity(profileID: profileID, endpoint: endpoint, destination: destination, requestedPath: path, path: resolvedPath)
-+        if let document = RemoteDocumentRegistry.shared.document(for: identity) {
++        if let document = RemoteSSHDocumentRegistry.shared.document(for: identity) {
 +            if attach { self.show(document) }
 +            return document
 +        }
@@ -13041,7 +12268,7 @@ index 000000000..b5647687c
 +        }
 +
 +        // Another open of the same file may have finished during the download.
-+        if let document = RemoteDocumentRegistry.shared.document(for: identity) {
++        if let document = RemoteSSHDocumentRegistry.shared.document(for: identity) {
 +            if attach { self.show(document) }
 +            return document
 +        }
@@ -13049,15 +12276,15 @@ index 000000000..b5647687c
 +        let documentID = UUID()
 +        let record = try RemoteRecoveryRecord.create(in: environment.recoveryRoot, documentID: documentID, identity: identity,
 +                                                     baseline: contents.data, attributes: contents.attributesAfter, isStandalone: isStandalone)
-+        let document: RemoteDocument
++        let document: RemoteSSHDocument
 +        do {
-+            document = try RemoteDocument(identity: identity, documentID: documentID, record: record, role: .editor, contents: contents.data, environment: environment)
++            document = try RemoteSSHDocument(identity: identity, documentID: documentID, record: record, role: .editor, contents: contents.data, environment: environment)
 +        } catch {
 +            try? await record.remove()
 +            throw error
 +        }
 +
-+        RemoteDocumentRegistry.shared.register(document)
++        RemoteSSHDocumentRegistry.shared.register(document)
 +        RemoteConnectionLibrary.shared.noteRecentPath(path, for: endpoint)
 +        await document.refreshManifest()
 +
@@ -16412,6 +15639,768 @@ index 000000000..751d88524
 +            .map { URL(filePath: $0, directoryHint: .notDirectory) }
 +    }
 +}
+diff --git a/CotEditor/Sources/Remote/RemoteSSHDocument.swift b/CotEditor/Sources/Remote/RemoteSSHDocument.swift
+new file mode 100644
+index 000000000..23c3bf63c
+--- /dev/null
++++ b/CotEditor/Sources/Remote/RemoteSSHDocument.swift
+@@ -0,0 +1,756 @@
++//
++//  RemoteSSHDocument.swift
++//
++//  CotEditor
++//  https://coteditor.com
++//
++//  ---------------------------------------------------------------------------
++//
++//  © 2026 RedKenrok <rondekker.nl>
++//
++//  Licensed under the Apache License, Version 2.0 (the "License");
++//  you may not use this file except in compliance with the License.
++//  You may obtain a copy of the License at
++//
++//  https://www.apache.org/licenses/LICENSE-2.0
++//
++//  Unless required by applicable law or agreed to in writing, software
++//  distributed under the License is distributed on an "AS IS" BASIS,
++//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++//  See the License for the specific language governing permissions and
++//  limitations under the License.
++//
++
++import AppKit
++import OSLog
++import UniformTypeIdentifiers
++import FileEncoding
++import LineEnding
++
++
++/// When unsent edits are written to the recovery record.
++struct RemoteRecoveryTiming: Sendable {
++
++    /// How long editing must pause before the edits are written.
++    var debounce: Duration = .seconds(1)
++
++    /// The longest continuous editing may go without a write.
++    var maximumDelay: Duration = .seconds(5)
++
++
++    /// When to write, given when the first unwritten change and the latest change happened.
++    func deadline(firstChange: ContinuousClock.Instant, latestChange: ContinuousClock.Instant) -> ContinuousClock.Instant {
++
++        min(latestChange + self.debounce, firstChange + self.maximumDelay)
++    }
++}
++
++
++/// A document whose file is on an SSH server.
++///
++/// Its `fileURL` is always `nil`. With a local cache file as its URL, AppKit and CotEditor would treat
++/// that cache as the real file: save to it, watch it, list it in Open Recent, and offer it to Reveal
++/// in Finder, Rename, Move To, Lock, Versions and Share. Without a URL none of that applies, and the
++/// few things that need a replacement are overridden here: the display name, saving, autosaving,
++/// closing and reverting.
++///
++/// The editor's text is "edited" until the server has confirmed it. Unsent edits are kept in the
++/// document's recovery record, never in AppKit's autosave files, and writing them there never clears
++/// the edited state.
++final class RemoteSSHDocument: TextDocument {
++
++    /// What the document is for.
++    enum Role: Sendable {
++
++        /// Editing the remote file.
++        case editor
++        /// Showing a version of the remote file that the user wants to review, read-only.
++        case remoteVersion
++        /// Standing in for a restored tab whose recovery data is gone, until the user reconnects.
++        case placeholder
++    }
++
++
++    /// How the user decided to close the document.
++    enum CloseDecision {
++
++        case keep
++        case discard
++    }
++
++
++    struct DidChangeStateMessage: NotificationCenter.MainActorMessage {
++
++        typealias Subject = RemoteSSHDocument
++    }
++
++
++    // MARK: Public Properties
++
++    let documentID: UUID
++    let role: Role
++    let environment: RemoteEnvironment
++    private(set) var identity: RemoteFileIdentity
++    private(set) var record: RemoteRecoveryRecord?
++
++    /// The latest recorded state of the record, for display.
++    private(set) var manifest: RemoteRecoveryManifest?
++
++    /// Counts every change of text or settings, including undo, so that recovery writes are ordered.
++    private(set) var generation = 0
++
++    /// The latest generation that is durable in the recovery record.
++    private(set) var durableGeneration = 0
++
++    /// Why the latest edits could not be made durable, if they could not.
++    private(set) var recoveryError: (any Error)?
++
++    private(set) lazy var saveCoordinator = RemoteSaveCoordinator(document: self)
++
++
++    // MARK: Private Properties
++
++    private var closeDecision: CloseDecision?
++    private var firstUnwrittenChange: ContinuousClock.Instant?
++    private var recoveryTask: Task<Void, Never>?
++    private var settingsTask: Task<Void, Never>?
++    private var textObserver: (any NSObjectProtocol)?
++    private var hasReportedRecoveryFailure = false
++    private var isClosing = false
++
++
++    // MARK: Lifecycle
++
++    /// Creates a document for downloaded or recovered contents.
++    ///
++    /// - Parameters:
++    ///   - identity: The remote file.
++    ///   - documentID: The ID of the recovery record, or a new one for a remote version.
++    ///   - record: The recovery record, or `nil` for a remote version, which has none.
++    ///   - role: What the document is for.
++    ///   - contents: The file's bytes, decoded as a local file would be.
++    ///   - environment: The services the document works with.
++    init(identity: RemoteFileIdentity, documentID: UUID, record: RemoteRecoveryRecord?, role: Role, contents: Data, environment: RemoteEnvironment) throws {
++
++        self.identity = identity
++        self.documentID = documentID
++        self.record = record
++        self.role = role
++        self.environment = environment
++
++        super.init()
++
++        try self.load(contents)
++        if role != .editor {
++            self.isEditable = false
++        }
++        self.startObservingChanges()
++    }
++
++
++    /// A stand-in for a restored tab whose recovery data is gone. Nothing is downloaded until the user reconnects.
++    static func placeholder(identity: RemoteFileIdentity, documentID: UUID, environment: RemoteEnvironment) -> RemoteSSHDocument? {
++
++        try? RemoteSSHDocument(identity: identity, documentID: documentID, record: nil, role: .placeholder, contents: Data(), environment: environment)
++    }
++
++
++    // MARK: Document Methods
++
++
++    // AppKit writes no draft for a document without a file; unsent edits live in the recovery record.
++    override static var autosavesDrafts: Bool  { false }
++
++
++    override var displayName: String! {
++
++        get {
++            switch self.role {
++                case .editor:
++                    self.identity.fileName
++                case .remoteVersion:
++                    String(localized: "RemoteSSHDocument.remoteVersionName", defaultValue: "\(self.identity.fileName) (Server Version)",
++                           table: "Remote", comment: "name of a read-only copy of the version on the server (%@ is the file name)")
++                case .placeholder:
++                    String(localized: "RemoteSSHDocument.placeholderName", defaultValue: "\(self.identity.fileName) (Not Downloaded)",
++                           table: "Remote", comment: "name of a restored remote tab whose local copy is gone (%@ is the file name)")
++            }
++        }
++        set { }
++    }
++
++
++    override func save(withDelegate delegate: Any?, didSave didSaveSelector: Selector?, contextInfo: UnsafeMutableRawPointer?) {
++
++        let context = DelegateContext(delegate: delegate, selector: didSaveSelector, contextInfo: contextInfo)
++
++        guard self.role == .editor else { return context.perform(from: self, flag: false) }
++
++        Task {
++            context.perform(from: self, flag: await self.saveCoordinator.save())
++        }
++    }
++
++
++    @IBAction override func saveAs(_ sender: Any?) {
++
++        guard self.role == .editor else { return }
++
++        Task {
++            await self.saveCoordinator.saveAsRemote()
++        }
++    }
++
++
++    override func autosave(withImplicitCancellability autosavingIsImplicitlyCancellable: Bool, completionHandler: @escaping (any Error?) -> Void) {
++
++        // Autosaving means local recovery; only an explicit Save uploads.
++        //
++        // A failure is reported by the document itself, once per streak of failures. Only an autosave
++        // that cannot be canceled, such as when the app quits, also hands the error to AppKit, so that
++        // AppKit can stop what it was doing; for routine autosaves it would show a second, generic alert.
++        let reportsError = !autosavingIsImplicitlyCancellable
++
++        guard self.role == .editor, self.record != nil, self.generation > self.durableGeneration else {
++            return completionHandler(reportsError ? self.recoveryError : nil)
++        }
++
++        Task {
++            let succeeded = await self.flushRecovery()
++            completionHandler(succeeded || !reportsError ? nil : self.recoveryError)
++        }
++    }
++
++
++    override func canClose(withDelegate delegate: Any, shouldClose shouldCloseSelector: Selector?, contextInfo: UnsafeMutableRawPointer?) {
++
++        let context = DelegateContext(delegate: delegate, selector: shouldCloseSelector, contextInfo: contextInfo)
++
++        Task {
++            context.perform(from: self, flag: await self.reviewClose())
++        }
++    }
++
++
++    override func makeWindowControllers() {
++
++        super.makeWindowControllers()
++
++        // AppKit can reopen only documents with a file or an autosave draft. A window of its own is
++        // reopened from the recovery record instead, so AppKit must not try to restore it.
++        for windowController in self.windowControllers {
++            windowController.window?.isRestorable = false
++        }
++    }
++
++
++    override func close() {
++
++        // Closing the document's own window closes the document again from within `super.close()`.
++        guard !self.isClosing else { return super.close() }
++        self.isClosing = true
++
++        let decision = self.closeDecision
++        let hasUnsentChanges = self.hasUnsentChanges
++
++        super.close()
++
++        self.recoveryTask?.cancel()
++        self.settingsTask?.cancel()
++        if let textObserver {
++            NotificationCenter.default.removeObserver(textObserver)
++        }
++        RemoteSSHDocumentRegistry.shared.unregister(self)
++
++        guard let record else { return }
++
++        Task {
++            await Self.dispose(record, decision: decision, hasUnsentChanges: hasUnsentChanges)
++        }
++    }
++
++
++    override func duplicate() throws -> NSDocument {
++
++        // The document controller makes the duplicate from the document class of the file type, so it is
++        // an ordinary untitled document with the text and editor settings, without a link to the server.
++        let duplicate = try super.duplicate()
++        assert(!(duplicate is RemoteSSHDocument))
++
++        return duplicate
++    }
++
++
++    override func validateUserInterfaceItem(_ item: any NSValidatedUserInterfaceItem) -> Bool {
++
++        switch item.action {
++            case #selector(showInFinder),
++                 #selector(shareDocument),
++                 #selector(NSDocument.rename(_:)),
++                 #selector(NSDocument.move(_:)),
++                 #selector(NSDocument.lock(_:)),
++                 #selector(NSDocument.unlock(_:)),
++                 #selector(NSDocument.browseVersions(_:)),
++                 #selector(NSDocument.revertToSaved(_:)):
++                return false
++
++            case #selector(copyPath):
++                return true
++
++            case #selector(NSDocument.save(_:)),
++                 #selector(NSDocument.saveAs(_:)):
++                return self.role == .editor
++
++            case #selector(revertToRemoteVersion):
++                if let item = item as? NSMenuItem {
++                    item.title = (self.role == .placeholder)
++                        ? String(localized: "RemoteMenu.reconnect", defaultValue: "Reconnect", table: "Remote", comment: "menu item label")
++                        : String(localized: "RemoteMenu.revertToRemoteVersion", defaultValue: "Revert to remote version", table: "Remote",
++                                 comment: "menu item label")
++                }
++                return self.role != .remoteVersion && !self.saveCoordinator.isBusy
++
++            case #selector(saveLocalCopy):
++                return true
++
++            default:
++                return super.validateUserInterfaceItem(item)
++        }
++    }
++
++
++    // MARK: Presentation
++
++    override var tabToolTip: String  { self.identity.displayLocation }
++
++    override var tabIcon: NSImage?  { NSWorkspace.shared.icon(for: self.contentType) }
++
++    override var subtitleName: String  { self.displayName }
++
++    override var standaloneWindowSubtitle: String?  { self.identity.connectionName }
++
++    override var tabArchiveRepresentation: (kind: String, fields: [String: Any])? {
++
++        guard self.role != .remoteVersion else { return nil }
++
++        return (RemoteTabArchive.kind, RemoteTabArchive.fields(for: self))
++    }
++
++
++    // MARK: Actions
++
++    /// Copies the location in the form `user@host:/path`.
++    @IBAction override func copyPath(_ sender: Any?) {
++
++        NSPasteboard.general.clearContents()
++        NSPasteboard.general.setString(self.identity.displayLocation, forType: .string)
++    }
++
++
++    /// Discards the edits, after asking, and downloads the file again; a placeholder downloads it for the first time.
++    @IBAction func revertToRemoteVersion(_ sender: Any?) {
++
++        Task {
++            if self.role == .placeholder {
++                await RemoteOpenCoordinator.reconnect(self)
++            } else {
++                await self.revertToRemote()
++            }
++        }
++    }
++
++
++    /// Saves the text to a local file, leaving the remote file and the unsent edits as they are.
++    @IBAction func saveLocalCopy(_ sender: Any?) {
++
++        self.saveTo(sender)
++    }
++
++
++    // MARK: Recovery
++
++    /// The settings that decide how the text is encoded.
++    var textSettings: RemoteTextSettings {
++
++        RemoteTextSettings(encoding: self.fileEncoding.encoding.rawValue, hasUTF8BOM: self.fileEncoding.withUTF8BOM,
++                           lineEnding: self.lineEnding.index, syntaxName: self.syntaxName)
++    }
++
++
++    /// Whether anything is not confirmed on the server: edits, or an operation whose outcome is unknown.
++    var hasUnsentChanges: Bool {
++
++        self.role == .editor && (self.isDocumentEdited || self.hasUnresolvedOperation)
++    }
++
++
++    /// Whether a save's outcome is unknown, for this file or for one the document edited before Save As Remote.
++    var hasUnresolvedOperation: Bool {
++
++        self.manifest?.operation?.mayHaveChangedTarget == true || self.manifest?.detachedOperations.isEmpty == false
++    }
++
++
++    /// Writes the latest text generation to the recovery record.
++    ///
++    /// - Returns: `true` if the generation current when this returns is durable.
++    @discardableResult func flushRecovery() async -> Bool {
++
++        guard self.role == .editor, let record = self.record else { return true }
++
++        self.firstUnwrittenChange = nil
++        self.recoveryTask?.cancel()
++
++        let generation = self.generation
++        guard generation > self.durableGeneration else { return self.recoveryError == nil }
++
++        let string = self.textStorage.string
++        let settings = self.textSettings
++        do {
++            try await record.writeText(string, settings: settings, generation: generation)
++            self.durableGeneration = max(self.durableGeneration, generation)
++            if self.durableGeneration >= self.generation {
++                self.recoveryError = nil
++                self.hasReportedRecoveryFailure = false
++            }
++            await self.refreshManifest()
++        } catch {
++            self.recoveryError = error
++            self.saveStateDidChange()
++            self.reportRecoveryFailure(error)
++            return false
++        }
++
++        return self.durableGeneration >= self.generation
++    }
++
++
++    /// Writes generations until the latest one is durable, as closing with Keep Recovery Copy requires.
++    ///
++    /// - Returns: `false` if a write failed; the previous durable generation is then still intact.
++    func persistLatestGeneration() async -> Bool {
++
++        while self.durableGeneration < self.generation {
++            guard await self.flushRecovery() else { return false }
++        }
++
++        return true
++    }
++
++
++    // MARK: Internal Methods
++
++    /// Asks what to do with unsent changes before closing.
++    ///
++    /// - Returns: `true` if the document may close.
++    func reviewClose() async -> Bool {
++
++        guard self.role == .editor else { return true }
++
++        // A save that runs now decides whether anything is still unsent.
++        await self.saveCoordinator.waitUntilIdle()
++        await self.refreshManifest()
++
++        while self.hasUnsentChanges {
++            let hasUnresolvedOperation = self.hasUnresolvedOperation
++
++            let choice = await self.environment.prompts.reviewClose(fileName: self.identity.fileName, hasUnresolvedOperation: hasUnresolvedOperation, window: self.windowForSheet)
++            switch choice {
++                case .save:
++                    guard await self.saveCoordinator.save() else { return false }
++                    // Edits made during the save are asked about again.
++                    await self.refreshManifest()
++
++                case .keepRecoveryCopy:
++                    guard await self.persistLatestGeneration() else { return false }
++                    self.closeDecision = .keep
++                    return true
++
++                case .discard:
++                    // The record goes only when the close actually happens; a later Cancel keeps it.
++                    self.closeDecision = .discard
++                    return true
++
++                case .cancel:
++                    self.closeDecision = nil
++                    return false
++            }
++        }
++
++        self.closeDecision = nil
++        return true
++    }
++
++
++    /// Makes the document edit the file at a new identity, after Save As Remote or a destination change.
++    func adoptIdentity(_ identity: RemoteFileIdentity) {
++
++        RemoteSSHDocumentRegistry.shared.unregister(self)
++        self.identity = identity
++        RemoteSSHDocumentRegistry.shared.register(self)
++
++        self.windowController?.synchronizeWindowTitleWithDocumentName()
++        self.directoryDocument?.windowController?.synchronizeWindowTitleWithDocumentName()
++        self.directoryDocument?.invalidateRestorableState()
++        self.saveStateDidChange()
++    }
++
++
++    /// Marks the editor saved if its text encodes to the baseline, as after reconciling following a relaunch.
++    func synchronizeEditedStateWithBaseline() {
++
++        Task {
++            guard let data = try? await self.record?.baselineData() else { return }
++            if self.encodedContents() == data {
++                self.updateChangeCount(.changeCleared)
++            }
++        }
++    }
++
++
++    /// Notes that a save reached the server.
++    func didConfirmSave() {
++
++        self.closeDecision = nil
++        Task { await self.refreshManifest() }
++    }
++
++
++    /// Updates the displayed state after a save started or ended.
++    func saveStateDidChange() {
++
++        NotificationCenter.default.post(DidChangeStateMessage(), subject: self)
++    }
++
++
++    /// Presents an error whose recovery options may allow saving anyway.
++    ///
++    /// - Returns: `true` if the user chose a recovery option that allows trying again.
++    func presentErrorForRecovery(_ error: any Error) async -> Bool {
++
++        await withCheckedContinuation { continuation in
++            self.presentErrorAsSheet(error) { didRecover in
++                continuation.resume(returning: didRecover)
++            }
++        }
++    }
++
++
++    /// Stores the conflicting remote version as reviewed and opens it read-only next to the document.
++    func openRemoteVersion(_ conflict: RemoteConflict) async {
++
++        guard let data = conflict.remoteData else { return }
++
++        do {
++            try await self.markReviewed(data)
++            let version = try RemoteSSHDocument(identity: self.identity, documentID: UUID(), record: nil, role: .remoteVersion, contents: data, environment: self.environment)
++            RemoteOpenCoordinator.present(version, beside: self)
++        } catch {
++            self.presentErrorAsSheet(error)
++        }
++    }
++
++
++    /// Records that the user reviewed a remote version, which a later Replace or repair may then overwrite.
++    ///
++    /// The bytes are kept on this Mac before anything overwrites them.
++    func markReviewed(_ data: Data) async throws {
++
++        _ = try await self.record?.storeReviewedVersion(data)
++        await self.refreshManifest()
++    }
++
++
++    /// Discards the edits, after asking, and downloads the file again.
++    func revertToRemote() async {
++
++        guard self.role == .editor, let record else { return }
++
++        await self.refreshManifest()
++        guard self.manifest?.operation?.mayHaveChangedTarget != true else {
++            return self.presentErrorAsSheet(RemoteSaveError.outcomeUnknown)
++        }
++        if self.isDocumentEdited {
++            guard await self.environment.prompts.confirmRevert(fileName: self.identity.fileName, window: self.windowForSheet) else { return }
++        }
++
++        do {
++            let title = String(localized: "RemoteProgress.reverting", defaultValue: "Downloading “\(self.identity.fileName)”…", table: "Remote",
++                               comment: "title of the progress sheet while the server's version of a remote file is downloaded (%@ is the file name)")
++            let contents = try await RemoteProgressSheet.run(title: title, window: self.windowForSheet) {
++                try await self.saveCoordinator.downloadCurrentVersion()
++            }
++            try await record.adoptRemoteVersion(contents.data, attributes: contents.attributesAfter)
++            self.undoManager?.removeAllActions()
++            try self.load(contents.data)
++            self.updateChangeCount(.changeCleared)
++            self.durableGeneration = self.generation
++            await self.refreshManifest()
++        } catch is RemoteOperationCanceled {
++            return
++        } catch {
++            self.presentErrorAsSheet(error)
++        }
++    }
++
++
++    /// Applies recovered text and settings on top of the loaded baseline.
++    ///
++    /// The document is edited if the recovered text encodes to something other than the baseline.
++    func applyRecoveredText(_ string: String, settings: RemoteTextSettings, generation: Int, baseline: Data) {
++
++        self.undoManager?.disableUndoRegistration()
++        defer { self.undoManager?.enableUndoRegistration() }
++
++        let encoding = FileEncoding(encoding: String.Encoding(rawValue: settings.encoding),
++                                    withUTF8BOM: settings.hasUTF8BOM && String.Encoding(rawValue: settings.encoding) == .utf8)
++        if encoding != self.fileEncoding {
++            self.changeEncoding(to: encoding)
++        }
++        if let lineEnding = LineEnding.allCases[safe: settings.lineEnding], lineEnding != self.lineEnding {
++            self.changeLineEnding(to: lineEnding)
++        }
++        if settings.syntaxName != self.syntaxName {
++            self.setSyntax(name: settings.syntaxName)
++        }
++        if string != self.textStorage.string {
++            self.textStorage.replaceCharacters(in: NSRange(location: 0, length: (self.textStorage.string as NSString).length), with: string)
++        }
++
++        self.generation = max(self.generation, generation)
++        self.durableGeneration = self.generation
++        if self.encodedContents() != baseline {
++            self.updateChangeCount(.changeDone)
++        }
++    }
++
++
++    /// Reads the record's manifest again for display.
++    func refreshManifest() async {
++
++        self.manifest = await self.record?.manifest
++        self.saveStateDidChange()
++    }
++
++
++    // MARK: Private Methods
++
++    /// The content type that the remote file name suggests.
++    private var contentType: UTType {
++
++        UTType(filenameExtension: (self.identity.fileName as NSString).pathExtension) ?? .plainText
++    }
++
++
++    /// Decodes bytes into the editor as upstream decodes a file, choosing the syntax from the remote name.
++    ///
++    /// The bytes go through a private temporary file named after the remote file, because the decoding
++    /// reads from a URL and takes the syntax from its name. The file is removed right away and is never
++    /// the document's file.
++    private func load(_ contents: Data) throws {
++
++        let folder = FileManager.default.temporaryDirectory.appending(component: "RemoteSSHDocument-" + UUID().uuidString, directoryHint: .isDirectory)
++        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
++        defer { try? FileManager.default.removeItem(at: folder) }
++
++        let url = folder.appending(component: RemotePath.localFileName(for: self.identity.fileName), directoryHint: .notDirectory)
++        try contents.write(to: url, options: .withoutOverwriting)
++
++        self.fileType = self.contentType.identifier
++        try self.read(from: url, ofType: self.contentType.identifier)
++    }
++
++
++    private func startObservingChanges() {
++
++        guard self.role == .editor else { return }
++
++        self.textObserver = NotificationCenter.default.addObserver(forName: NSTextStorage.didProcessEditingNotification,
++                                                                   object: self.textStorage, queue: .main)
++        { [weak self] notification in
++            guard (notification.object as? NSTextStorage)?.editedMask.contains(.editedCharacters) == true else { return }
++            MainActor.assumeIsolated {
++                self?.noteChange()
++            }
++        }
++
++        self.settingsTask = Task { [weak self] in
++            guard let self else { return }
++            var isFirst = true
++            for await _ in Observations({ (self.fileEncoding, self.lineEnding, self.syntaxName) }) {
++                // the first value is the current one, not a change
++                if isFirst {
++                    isFirst = false
++                    continue
++                }
++                self.noteChange()
++            }
++        }
++    }
++
++
++    /// Counts a change of text or settings and schedules writing it to the recovery record.
++    private func noteChange() {
++
++        self.generation += 1
++        self.closeDecision = nil
++
++        let now = ContinuousClock.now
++        let firstChange = self.firstUnwrittenChange ?? now
++        self.firstUnwrittenChange = firstChange
++        let deadline = self.environment.recoveryTiming.deadline(firstChange: firstChange, latestChange: now)
++
++        self.recoveryTask?.cancel()
++        self.recoveryTask = Task { [weak self] in
++            try? await Task.sleep(until: deadline)
++            guard !Task.isCancelled else { return }
++            await self?.flushRecovery()
++        }
++    }
++
++
++    /// Tells the user once per failure streak that newer edits are not protected.
++    private func reportRecoveryFailure(_ error: any Error) {
++
++        guard !self.hasReportedRecoveryFailure else { return }
++
++        // Reported again only after a write has succeeded in between.
++        self.hasReportedRecoveryFailure = true
++        Task {
++            await self.environment.prompts.reportRecoveryFailure(error, fileName: self.identity.fileName, window: self.windowForSheet)
++        }
++    }
++
++
++    /// Deletes or keeps a closed document's record.
++    ///
++    /// A record is deleted only when it holds nothing unsent and no operation with an unknown outcome,
++    /// or when the user discarded its changes. A clean record of a document closed while the app quits
++    /// is kept, so that the window can come back.
++    private static func dispose(_ record: RemoteRecoveryRecord, decision: CloseDecision?, hasUnsentChanges: Bool) async {
++
++        let manifest = await record.manifest
++        let isUnresolved = manifest.operation?.mayHaveChangedTarget == true || !manifest.detachedOperations.isEmpty
++        let removes = !isUnresolved && (decision == .discard || (!hasUnsentChanges && !RemoteTermination.isInProgress))
++
++        do {
++            if removes {
++                try await record.remove()
++            } else {
++                try await record.setPresentation(isOpen: RemoteTermination.isInProgress && decision == nil,
++                                                 keepsAfterClose: hasUnsentChanges || isUnresolved)
++                await record.relinquish()
++            }
++        } catch {
++            Logger.app.error("Failed to dispose of a remote recovery record: \(error)")
++            await record.relinquish()
++        }
++    }
++}
++
++
++/// Whether the app is quitting, so that closing documents keeps what restoration needs.
++@MainActor enum RemoteTermination {
++
++    static var isInProgress = false
++}
 diff --git a/CotEditor/Sources/Remote/RemoteSSHProcess.swift b/CotEditor/Sources/Remote/RemoteSSHProcess.swift
 new file mode 100644
 index 000000000..3979a68e3
@@ -17203,7 +17192,7 @@ index 000000000..3979a68e3
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteSaveCoordinator.swift b/CotEditor/Sources/Remote/RemoteSaveCoordinator.swift
 new file mode 100644
-index 000000000..14bd79954
+index 000000000..8252bc862
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteSaveCoordinator.swift
 @@ -0,0 +1,1176 @@
@@ -17465,7 +17454,7 @@ index 000000000..14bd79954
 +    }
 +
 +
-+    private unowned let document: RemoteDocument
++    private unowned let document: RemoteSSHDocument
 +    private let lock = RemoteAsyncLock()
 +
 +    /// The change-count tokens of operations under way, applied only if their snapshot reaches the server.
@@ -17474,7 +17463,7 @@ index 000000000..14bd79954
 +    private(set) var isBusy = false
 +
 +
-+    init(document: RemoteDocument) {
++    init(document: RemoteSSHDocument) {
 +
 +        self.document = document
 +    }
@@ -18385,7 +18374,7 @@ index 000000000..14bd79954
 +}
 diff --git a/CotEditor/Sources/Remote/RemoteTabArchive.swift b/CotEditor/Sources/Remote/RemoteTabArchive.swift
 new file mode 100644
-index 000000000..3a04844c8
+index 000000000..262380a72
 --- /dev/null
 +++ b/CotEditor/Sources/Remote/RemoteTabArchive.swift
 @@ -0,0 +1,118 @@
@@ -18436,7 +18425,7 @@ index 000000000..3a04844c8
 +
 +
 +    /// The archive fields of a document's tab.
-+    @MainActor static func fields(for document: RemoteDocument) -> [String: Any] {
++    @MainActor static func fields(for document: RemoteSSHDocument) -> [String: Any] {
 +
 +        let identity = document.identity
 +        var fields: [String: Any] = [
@@ -18501,7 +18490,7 @@ index 000000000..3a04844c8
 +            RemoteTabArchive.entries(in: entries).compactMap { entry in
 +                // The record, which holds the edits, is the authority on what the tab shows; the archive only points to it.
 +                let document = (try? RemoteOpenCoordinator.restore(documentID: entry.documentID))
-+                    ?? RemoteDocument.placeholder(identity: entry.identity, documentID: entry.documentID, environment: .current)
++                    ?? RemoteSSHDocument.placeholder(identity: entry.identity, documentID: entry.documentID, environment: .current)
 +                return document.map { (tabID: entry.tabID, document: $0) }
 +            }
 +        },

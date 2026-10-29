@@ -106,7 +106,7 @@ git -C CotEditor fetch origin && git -C CotEditor checkout --detach <new commit>
 git add CotEditor                                   # stage the new gitlink; the scripts read the staged one
 git -C .work/CotEditor fetch "$PWD/CotEditor" <new commit>
 git -C .work/CotEditor rebase --onto <new commit> <old commit> patches
-# resolve conflicts patch by patch; the project file (project.pbxproj) is the usual one
+# resolve conflicts patch by patch; the project file (project.xcproj) is the usual one
 scripts/export-patches.sh
 scripts/verify-patches.sh --workspace .work/CotEditor --test
 scripts/build.sh --checkout .work/CotEditor --test-all
@@ -144,7 +144,7 @@ Those in the README, plus:
 - **Comments.** Write for someone reading the code months later without context. Explain why, not what the code does. Don't refer to changes, requests, alternatives, dates, tickets or people; describe the code as if it had always been this way. The same goes for the documentation.
 - **Punctuation.** Don't use em dashes or en dashes in code, comments, strings or documentation.
 - **Global state in tests.** Tests that change the global file-tabs preference, `TerminalSession.defaultEngineFactory`, `TerminalPrompts.current`, `TerminalNotifications.current`, `WebPagePrompts.current`, `RemoteEnvironment.current` or `RemoteTermination.isInProgress`, or open remote folder windows (whose registry is app-wide), must live in the serialized `DirectoryTabTests` suite, or an extension of it (see `DirectoryTabTests+Terminal.swift`, `DirectoryTabTests+WebPage.swift`, `DirectoryTabTests+Remote.swift` and `DirectoryTabTests+RemoteFolders.swift`). Swift Testing runs separate suites in parallel, and tests within a suite in parallel too unless it is serialized.
-- **Remote documents carry their services.** A `RemoteDocument` keeps the `RemoteEnvironment` (connection pool, prompts, recovery folder, timing) it was created with. Tests of remote documents create a `RemoteTestBed`, which has its own fake server, scripted prompts, recovery folder and endpoint, so they need no global state. The endpoint is unique per test bed because the registry of open remote files is app-wide.
+- **Remote documents carry their services.** A `RemoteSSHDocument` keeps the `RemoteEnvironment` (connection pool, prompts, recovery folder, timing) it was created with. Tests of remote documents create a `RemoteTestBed`, which has its own fake server, scripted prompts, recovery folder and endpoint, so they need no global state. The endpoint is unique per test bed because the registry of open remote files is app-wide.
 - **Close what a test opens.** A document left open keeps autosaving; if its recovery folder is gone, AppKit shows alerts in the test host. `RemoteTestBed.tearDown()` closes every document the bed opened (`track(_:)` for others) before removing the folder.
 - **Deterministic waits.** Don't rely on timing. Give the code a seam and control it from the test: `approveMemberClose` for member close approval, fake engines and scripted prompts for terminals. Holding an NSDocument's file access does not work for this: its close-time autosave waits for it synchronously on the main thread.
 - **PTY tests** (`TerminalPTYTests`):
@@ -162,6 +162,7 @@ Those in the README, plus:
 
 ## Pitfalls
 
+- **The project file is JSON** (`CotEditor.xcodeproj/project.xcproj`, Xcode's newer project format). Folders are synchronized, so new source files need no entry; only file types, target exclusions and copy-phase inclusions do, as for `RemoteAskpass.sh`. An exact package version is written `"version": { "version": "1.20.0" }`, and a setting for some configurations only as `"NAME[config=Debug-Sparkle]"`. Xcode refuses to open a project with an unknown key.
 - **Swift Testing IDs:** `-only-testing` needs the trailing parentheses for a single test, for example `-only-testing:"Tests/TerminalPTYTests/runsInItsOwnDirectoryWithUnicode()"`.
 - **Don't pipe `xcodebuild` into `head`:** closing the pipe kills the build. Send it to a log (as `build.sh` does) and read the log.
 - **Plugin validation:** `-skipPackagePluginValidation` is needed for SwiftLint's and SwiftTerm's build plugins.
@@ -173,7 +174,7 @@ Those in the README, plus:
 - **Measuring a view that is moved by `.offset`:** measure outside the offset, or the measurement feeds back into the offset and the view jitters. Tests cannot see where SwiftUI draws a moved view, so check such drags by hand. See "Dragging to reorder" in [`docs/01-tabs.md`](docs/01-tabs.md).
 - **Restorable state in tests:** a helper that encodes a document's restorable state must wait for the background queue it passes before finishing the archive (`queue.waitUntilAllOperationsAreFinished()`), as AppKit does. For documents without a file, AppKit adds work to that queue, and an archive finished early makes it throw and crash the test host.
 - **Remote paths are compared byte by byte** (`RemotePath.isSame`). Swift's `String` equality treats composed and decomposed characters as equal, but a server's file system generally does not.
-- **Subclassing `Document`:** a private method of a non-final class stays in its dispatch table, and a subclass in another file then fails to link against it. Mark such a method `final`.
+- **Subclassing `TextDocument`:** a private method of a non-final class stays in its dispatch table, and a subclass in another file then fails to link against it. Mark such a method `final`.
 - **`ssh` and `sshd` refuse key paths with spaces**, even quoted. The fixture's configurations reach its folder through a link in the temporary folder.
 - **Undo groups never close in tests.** The test host has no event loop to end them, so a change made through the undo manager, such as `changeEncoding(to:)`, does not mark a document as edited there. Test what depends on the change itself instead, such as a remote document's recovery record.
 - **Remote operations carry a control.** A save or open runs with `RemoteOperationControl.current`; tests that cancel or extend one wrap the call in `RemoteOperationControl.$current.withValue(_:)`.

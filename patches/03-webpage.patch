@@ -32,7 +32,7 @@ index bc2671b2a..659bd3513 100644
  	<key>NSServices</key>
 diff --git a/CotEditor/Localizables/WebPages.xcstrings b/CotEditor/Localizables/WebPages.xcstrings
 new file mode 100644
-index 000000000..d81526875
+index 000000000..bdfa702c7
 --- /dev/null
 +++ b/CotEditor/Localizables/WebPages.xcstrings
 @@ -0,0 +1,517 @@
@@ -106,7 +106,7 @@ index 000000000..d81526875
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Clear website data…"
++            "value" : "Clear Website Data…"
 +          }
 +        }
 +      }
@@ -118,7 +118,7 @@ index 000000000..d81526875
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "New webpage"
++            "value" : "New Webpage"
 +          }
 +        }
 +      }
@@ -130,7 +130,7 @@ index 000000000..d81526875
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "New webpage tab"
++            "value" : "New Webpage Tab"
 +          }
 +        }
 +      }
@@ -142,7 +142,7 @@ index 000000000..d81526875
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Edit address"
++            "value" : "Edit Address"
 +          }
 +        }
 +      }
@@ -187,7 +187,7 @@ index 000000000..d81526875
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Load webpage"
++            "value" : "Load Webpage"
 +          }
 +        }
 +      }
@@ -244,7 +244,7 @@ index 000000000..d81526875
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Clear website data"
++            "value" : "Clear Website Data"
 +          }
 +        }
 +      }
@@ -278,7 +278,7 @@ index 000000000..d81526875
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Enable tabs and open webpage"
++            "value" : "Enable Tabs and Open Webpage"
 +          }
 +        }
 +      }
@@ -312,7 +312,7 @@ index 000000000..d81526875
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Send again"
++            "value" : "Send Again"
 +          }
 +        }
 +      }
@@ -533,7 +533,7 @@ index 000000000..d81526875
 +        "en" : {
 +          "stringUnit" : {
 +            "state" : "new",
-+            "value" : "Try again"
++            "value" : "Try Again"
 +          }
 +        }
 +      }
@@ -592,7 +592,7 @@ index 7ec8a7083..48e0ff9f6 100644
  }
 diff --git a/CotEditor/Sources/WebPages/WebPage+DirectoryDocument.swift b/CotEditor/Sources/WebPages/WebPage+DirectoryDocument.swift
 new file mode 100644
-index 000000000..963843946
+index 000000000..11194f23a
 --- /dev/null
 +++ b/CotEditor/Sources/WebPages/WebPage+DirectoryDocument.swift
 @@ -0,0 +1,225 @@
@@ -733,7 +733,7 @@ index 000000000..963843946
 +    func tabContextMenuItems(in directory: DirectoryDocument) -> [DirectoryTabBar.MenuItem] {
 +
 +        [
-+            .init(title: String(localized: "WebPageMenu.clearWebsiteData", defaultValue: "Clear website data…", table: "WebPages",
++            .init(title: String(localized: "WebPageMenu.clearWebsiteData", defaultValue: "Clear Website Data…", table: "WebPages",
 +                                comment: "context menu item of a webpage tab"),
 +                  systemImage: "trash") { [weak directory] in
 +                Task { await directory?.clearWebsiteData() }
@@ -778,7 +778,7 @@ index 000000000..963843946
 +            ?? fileMenu.items.firstIndex { $0.action == Selector(("newDocumentAsTab:")) }
 +        guard let anchor else { return }
 +
-+        let item = NSMenuItem(title: String(localized: "WebPageMenu.newWebPageTab", defaultValue: "New webpage tab", table: "WebPages",
++        let item = NSMenuItem(title: String(localized: "WebPageMenu.newWebPageTab", defaultValue: "New Webpage Tab", table: "WebPages",
 +                                            comment: "File menu item opening a webpage tab in the folder window"),
 +                              action: #selector(DirectoryDocument.newWebPageTab(_:)), keyEquivalent: "")
 +        item.image = NSImage(systemSymbolName: "globe", accessibilityDescription: nil)
@@ -814,7 +814,7 @@ index 000000000..963843946
 +    /// The entry of the tab strip's “+” menu that opens a webpage tab.
 +    var newWebPageMenuItem: DirectoryTabBar.MenuItem {
 +
-+        .init(title: String(localized: "WebPageMenu.newWebPage", defaultValue: "New webpage", table: "WebPages",
++        .init(title: String(localized: "WebPageMenu.newWebPage", defaultValue: "New Webpage", table: "WebPages",
 +                            comment: "menu item in the tab strip’s add menu"),
 +              systemImage: "globe") { [weak self] in
 +            Task { await self?.requestWebPageTab() }
@@ -1080,7 +1080,7 @@ index 000000000..9ce0ef2da
 +}
 diff --git a/CotEditor/Sources/WebPages/WebPagePrompts.swift b/CotEditor/Sources/WebPages/WebPagePrompts.swift
 new file mode 100644
-index 000000000..f89b5c5ef
+index 000000000..7123a9c77
 --- /dev/null
 +++ b/CotEditor/Sources/WebPages/WebPagePrompts.swift
 @@ -0,0 +1,304 @@
@@ -1225,7 +1225,7 @@ index 000000000..f89b5c5ef
 +        alert.informativeText = String(localized: "WebPagePrompt.enableTabs.information",
 +                                       defaultValue: "Webpage tabs appear next to file tabs, which are turned off. Turning on file tabs applies to all folder windows.",
 +                                       table: "WebPages")
-+        alert.addButton(withTitle: String(localized: "WebPagePrompt.enableTabs.button", defaultValue: "Enable tabs and open webpage", table: "WebPages",
++        alert.addButton(withTitle: String(localized: "WebPagePrompt.enableTabs.button", defaultValue: "Enable Tabs and Open Webpage", table: "WebPages",
 +                                          comment: "button label"))
 +        alert.addButton(withTitle: Self.cancelLabel)
 +
@@ -1246,7 +1246,7 @@ index 000000000..f89b5c5ef
 +        alert.informativeText = String(localized: "WebPagePrompt.resubmit.information",
 +                                       defaultValue: "This page was made by submitting a form. Showing it again sends the form again, which may repeat an action such as a purchase.",
 +                                       table: "WebPages")
-+        alert.addButton(withTitle: String(localized: "WebPagePrompt.resubmit.button", defaultValue: "Send again", table: "WebPages", comment: "button label"))
++        alert.addButton(withTitle: String(localized: "WebPagePrompt.resubmit.button", defaultValue: "Send Again", table: "WebPages", comment: "button label"))
 +        alert.addButton(withTitle: Self.cancelLabel)
 +
 +        return await Self.run(alert, window: window) == .alertFirstButtonReturn
@@ -1261,7 +1261,7 @@ index 000000000..f89b5c5ef
 +        alert.informativeText = String(localized: "WebPagePrompt.clearData.information",
 +                                       defaultValue: "Cookies and data stored by every website are removed, including websites open in other tabs. You may be signed out of them.",
 +                                       table: "WebPages")
-+        alert.addButton(withTitle: String(localized: "WebPagePrompt.clearData.button", defaultValue: "Clear website data", table: "WebPages", comment: "button label"))
++        alert.addButton(withTitle: String(localized: "WebPagePrompt.clearData.button", defaultValue: "Clear Website Data", table: "WebPages", comment: "button label"))
 +        alert.addButton(withTitle: Self.cancelLabel)
 +
 +        return await Self.run(alert, window: window) == .alertFirstButtonReturn
@@ -1875,7 +1875,7 @@ index 000000000..fe000a613
 +}
 diff --git a/CotEditor/Sources/WebPages/WebPageViewController.swift b/CotEditor/Sources/WebPages/WebPageViewController.swift
 new file mode 100644
-index 000000000..b03384c39
+index 000000000..cc099e2a9
 --- /dev/null
 +++ b/CotEditor/Sources/WebPages/WebPageViewController.swift
 @@ -0,0 +1,848 @@
@@ -2524,7 +2524,7 @@ index 000000000..b03384c39
 +        icon.contentTintColor = .systemOrange
 +        icon.setContentHuggingPriority(.required, for: .horizontal)
 +
-+        self.retryButton.title = String(localized: "WebPageView.retry", defaultValue: "Try again", table: "WebPages", comment: "button label")
++        self.retryButton.title = String(localized: "WebPageView.retry", defaultValue: "Try Again", table: "WebPages", comment: "button label")
 +        self.retryButton.bezelStyle = .push
 +        self.retryButton.controlSize = .small
 +        self.retryButton.target = self
@@ -2672,7 +2672,7 @@ index 000000000..b03384c39
 +                            .textSelection(.enabled)
 +                            .lineLimit(3)
 +                    }
-+                    Button(String(localized: "WebPagePlaceholder.load", defaultValue: "Load webpage", table: "WebPages", comment: "button label"),
++                    Button(String(localized: "WebPagePlaceholder.load", defaultValue: "Load Webpage", table: "WebPages", comment: "button label"),
 +                           action: self.load)
 +                        .keyboardShortcut(.defaultAction)
 +
@@ -2690,7 +2690,7 @@ index 000000000..b03384c39
 +                                title: String(localized: "WebPagePlaceholder.failed.title", defaultValue: "The webpage couldn’t be opened", table: "WebPages"),
 +                                message: failure.description)
 +                    if failure.isRetryable {
-+                        Button(String(localized: "WebPageView.retry", defaultValue: "Try again", table: "WebPages", comment: "button label"),
++                        Button(String(localized: "WebPageView.retry", defaultValue: "Try Again", table: "WebPages", comment: "button label"),
 +                               action: self.retry)
 +                    }
 +
@@ -2700,7 +2700,7 @@ index 000000000..b03384c39
 +                                message: String(localized: "WebPagePlaceholder.empty.message",
 +                                                defaultValue: "HTTPS addresses open anywhere. HTTP works for local development servers, such as http://localhost:3000.",
 +                                                table: "WebPages"))
-+                    Button(String(localized: "WebPagePlaceholder.editAddress", defaultValue: "Edit address", table: "WebPages", comment: "button label"),
++                    Button(String(localized: "WebPagePlaceholder.editAddress", defaultValue: "Edit Address", table: "WebPages", comment: "button label"),
 +                           action: self.editAddress)
 +            }
 +        }

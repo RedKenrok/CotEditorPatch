@@ -837,7 +837,7 @@ index 000000000..d98a8ab77
 +}
 diff --git a/Tests/Sources/Models/DirectoryTabTests+Root.swift b/Tests/Sources/Models/DirectoryTabTests+Root.swift
 new file mode 100644
-index 000000000..4ed2a41a9
+index 000000000..7cd351708
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+Root.swift
 @@ -0,0 +1,202 @@
@@ -889,7 +889,7 @@ index 000000000..4ed2a41a9
 +            #expect(directory.fileBrowserViewController == nil)
 +
 +            let tabBar = try #require(directory.windowContentViewController?.makeTabBar(for: directory))
-+            #expect(!tabBar.addMenuItems.map(\.title).contains("New file"), "there is no local folder for a new file")
++            #expect(!tabBar.addMenuItems.map(\.title).contains("New File"), "there is no local folder for a new file")
 +        }
 +    }
 +
@@ -900,7 +900,7 @@ index 000000000..4ed2a41a9
 +            root.canCreateFiles = true
 +
 +            let tabBar = try #require(directory.windowContentViewController?.makeTabBar(for: directory))
-+            #expect(tabBar.addMenuItems.map(\.title).contains("New file"))
++            #expect(tabBar.addMenuItems.map(\.title).contains("New File"))
 +
 +            await directory.createFileInNewTab()
 +            #expect(root.createdFileCount == 1, "the root creates the file, since there is no local folder")

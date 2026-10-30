@@ -1,6 +1,6 @@
 diff --git a/Tests/Sources/Models/DirectoryTabTests+WebPage.swift b/Tests/Sources/Models/DirectoryTabTests+WebPage.swift
 new file mode 100644
-index 000000000..c90da64dc
+index 000000000..cde7c7b24
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+WebPage.swift
 @@ -0,0 +1,656 @@
@@ -92,8 +92,8 @@ index 000000000..c90da64dc
 +            #expect(!directory.canMoveTabToNewWindow(id: session.id))
 +
 +            let tabBar = try #require(directory.windowContentViewController?.makeTabBar(for: directory))
-+            #expect(tabBar.addMenuItems.map(\.title).contains("New webpage"))
-+            #expect(tabBar.contextMenuItems(session.id).map(\.title) == ["Clear website data…"])
++            #expect(tabBar.addMenuItems.map(\.title).contains("New Webpage"))
++            #expect(tabBar.contextMenuItems(session.id).map(\.title) == ["Clear Website Data…"])
 +            #expect(server.count("/") == 0, "a new tab loads nothing")
 +        }
 +    }

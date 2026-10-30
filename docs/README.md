@@ -1,6 +1,6 @@
 # Design
 
-Each patch has its own design document, with its evidence:
+Each patch has a document of its own, which describes what the patch does, how it works, what its tests cover and what it does not do:
 
 - [Patch 1: directory file tabs](01-tabs.md), the tab-system foundation. It applies to plain upstream.
 - [Patch 2: shell tabs](02-shell.md), a new kind of tab, in an unsandboxed app. It applies on top of patch 1.
@@ -9,9 +9,7 @@ Each patch has its own design document, with its evidence:
 
 Each app is built from a prefix of the series, as described in [AGENTS.md](../AGENTS.md#layout), so a patch's code needs no compilation condition. Each patch's test changes are in a file of their own, in `patches/tests/`.
 
-Everything planned for patch 4 is implemented, including opening remote folders, changing their items and terminals in them; what was decided against is listed under [its known limitations](04-remote.md#known-limitations).
-
-Patch 1 is the complete foundation of the tab system and stays buildable and usable on its own. It includes the contract for tabs that are not files, which every later kind of tab goes through, proven in its tests with a fake kind. Patch 2 only adds a new kind of tab on top of it, and changes 135 existing lines, 125 of them in leaving the iCloud copy of the settings out of the General pane. Patch 3 adds another kind of tab the same way, and changes 2 existing lines: the registered kinds and the bundle identifier. Patch 4 adds a new kind of document, not a new kind of tab: a remote file is a `TextDocument` in an ordinary file tab. It changes 27 existing lines, most of them in splitting two helpers out of `TextDocument`'s save path. Its remote folder windows are directory windows with a root, patch 1's hook for a folder that is not on this Mac.
+Patch 1 is the complete foundation of the tab system and stays buildable and usable on its own. It includes the contract for tabs that are not files, which every later kind of tab goes through, proven in its tests with a fake kind. Patch 2 only adds a new kind of tab on top of it, and changes few existing lines, most of them to leave the iCloud copy of the settings out of the General pane. Patch 3 adds another kind of tab the same way, and changes only the registered kinds and the bundle identifier among the existing lines. Patch 4 adds a new kind of document, not a new kind of tab: a remote file is a `TextDocument` in an ordinary file tab. Most of the existing lines it changes split two helpers out of `TextDocument`'s save path. Its remote folder windows are directory windows with a root, patch 1's hook for a folder that is not on this Mac.
 
 ## Which patch is responsible for what
 

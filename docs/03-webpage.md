@@ -1,10 +1,20 @@
 # Patch 3: web pages
 
-`patches/03-webpage.patch` adds **webpage tabs beside file and shell tabs in folder windows**, and makes the app the `CotEditor-Web` app. It is the delta from the exact exported state of [patch 2](02-shell.md) and does not apply to plain upstream or to patch 1 alone. The Tabs and Terminal apps are built from shorter prefixes, so they contain no WebKit use and no webpage command.
+`patches/03-webpage.patch` adds **webpage tabs beside file and shell tabs in folder windows**, and makes the app the `CotEditor-Web` app. It is the delta from the exact exported state of [patch 2](02-shell.md) and does not apply to plain upstream or to patch 1 alone. The Tabs and Shell apps are built from shorter prefixes, so they contain no WebKit use and no webpage command.
 
 A webpage tab is a kind of tab through patch 1's [contract for tabs that are not files](01-tabs.md#tabs-that-are-not-files). This patch adds no branch to patch 1's tab state, content host, close handling or archive.
 
 See [the overview](README.md) for how this patch divides the work with the others.
+
+## What it does
+
+- **New Webpage** in the **+** menu, or File > **New Webpage Tab**, opens an empty tab with its address field ready. Nothing loads until an address is entered and Return pressed.
+- HTTPS addresses work everywhere. HTTP works for local development servers: `localhost`, local and private IP addresses, names without a dot such as `devbox`, and names ending in `.local`. HTTP must be typed, as in `http://localhost:3000`; an address without a scheme gets HTTPS. The field takes addresses only; it does not search.
+- Back, Forward, Reload (Stop while loading) and the address are in a bar above the page. The tab shows the page's title, and its tooltip the address. Switching tabs keeps the page and its history.
+- A page that fails to load leaves the previous page as it was, and says which address failed. **Try Again** is offered only when the request can be sent again safely: a form that failed to send is never sent again by itself, and reloading or going back to a page made by a form asks first.
+- Website alerts and questions appear as sheets that name the website that asked. Only the tab on screen can show them.
+- **Clear Website Data…** in a webpage tab's context menu removes the cookies and data of every website, after asking.
+- Closing a webpage tab, its window or the app never asks. After a relaunch, webpage tabs come back with their title and address, and load when **Load Webpage** is clicked.
 
 ## Changes to shared code
 
@@ -65,7 +75,7 @@ The camera and microphone are refused (`webView(_:decideMediaCapturePermissionsF
 
 ### Website dialogs
 
-- JavaScript alerts, confirmations and prompts are sheets on the window. Their title names the origin of the frame that asked, from `WKFrameInfo.securityOrigin`, as website content (`The website “https://example.com” says:`); the message is the informative text. Neither the page title nor the message can supply the origin. An origin WebKit does not give is labelled unknown.
+- JavaScript alerts, confirmations and prompts are sheets on the window. Their title names the origin of the frame that asked, from `WKFrameInfo.securityOrigin`, as website content (`The website “https://example.com” says:`); the message is the informative text. Neither the page title nor the message can supply the origin. An origin WebKit does not give is labelled unknown. `WKSecurityOrigin.host` already brackets an IPv6 address, so the label brackets only a bare one.
 - `WebPageDialogPresenter` shows a dialog only while the tab is selected in the active window, the window has no sheet, no application-modal window is up, and the directory is not reviewing a close or waiting for a tab's close approval. The active window is the key or main window, or, while the app has no main window, its frontmost window. Other requests are answered at once with the safe response (alerts acknowledged, confirmations cancelled, prompts without a value), and are not queued; no tab is selected to show them.
 - A shown dialog is dismissed, and answered with the safe response, when a close review starts (patch 1's `directoryWillShowReview()`), when its tab is switched away from or closed, when its window closes and when the web content process ends. Every request is answered exactly once, including when the sheet's own late callback arrives after a dismissal. A question is shown on a later turn than its request; if the tab takes it away in between, or stops being the tab the user looks at, it is never shown. Dismissal neither closes nor navigates the page.
 
@@ -97,25 +107,14 @@ The new strings are in `CotEditor/Localizables/WebPages.xcstrings`, in English o
 - `DirectoryTabTests+WebPage` extends patch 1's serialized suite, because it changes the global preference and webpage prompts. It uses real WebKit against `WebPageTestServer`, a small HTTP server on a loopback address that counts requests per path and method (a second one on `::1` provides another origin). No test contacts another website. It covers mixed tabs without a file, the tabs-off prompt, titles and redirects, switching without reloading or losing history, an address being edited, a failed navigation keeping a form's value and Retry asking only for the failed page, a failed POST never being retried as POST or GET, the resubmission confirmation with request counts (Cancel sends nothing; going back never resends), refused links, redirects and typed public HTTP, popups without a gesture, process failure reloading nothing, closing never asking and a cancelled window close keeping every page, restoration in mixed order without a request before Load Webpage, dialogs naming a child frame's own origin, dialogs of a hidden tab and during a review answered safely, a pending dialog dismissed once before a review and when switching away, a dialog taken away before it shows never showing, the address staying the committed page's during a navigation that hangs (with `WebPageTestServer`'s `.hang` route) and following `pushState` and fragments, a failed first navigation showing the placeholder, resubmission never asked in a background tab and taken away when switching away or closing, a frame's new-window request loading nothing while the page's own does, the camera and microphone refused (asked directly with a real frame, since pages in these web views cannot reach the capture API), a closed tab's page unloaded and unable to navigate, Clear Website Data with its confirmation, and the app's `Info.plist` transport settings.
 
 - `webPageTabBorderFollowsTheContentEdge` checks [patch 1's bar/content separator contract](01-tabs.md#tests) while switching between a file and a webpage.
+- A script's `location.reload()` of a page made by a POST form reloads it with GET in this WebKit, so the resubmission tests use `WKWebView.reload()` and history navigation, which do reach the confirmation.
+- Not covered by tests: how often the views update (that a hidden tab skips its view updates, and the placeholder is made once); HTTPS and secure WebSockets, which need a certificate the test host trusts; and App Transport Security for a development server's WebSocket, a LAN address or a `.local` name, beyond `onlyLocalNetworkingIsAllowed`'s check of the built `Info.plist`.
 
-## Evidence
+## Protections
 
-Environment: Xcode 27.0 (27A266a), macOS 27.0 (Darwin 27.0.0) on arm64, locale `en_NL`.
+Each protection below has a test that fails without it: disabling the protection makes the named tests fail.
 
-- **Tests and signing, Xcode 27.1 (27A9275).** `scripts/build.sh --workspace --through webpage --test` ran 167 tests in 8 suites; the only failures are the three tab-border tests (5 issues). The Shell and Web apps on the test Mac show the navigation bar (their own `showNavigationBar` preference), and the tab-border tests sample the edge where it is drawn, so they fail with those apps' preferences and pass with the bar hidden. `scripts/check-signing.sh --workspace --through webpage` passed: no App Sandbox, no iCloud, only `arm64`, strict verification passes.
-- **Focused tests.** `scripts/verify-patches.sh --workspace .work/CotEditor --test` passed 155 tests in 8 suites after patches 1 to 3.
-- **Export and application.** `scripts/export-patches.sh` wrote patches 1 to 3 from the workspace, and its verification applied every prefix to fresh clones: patch 3 is refused on plain upstream and on upstream with patch 1, and applies after patches 1 and 2. [Patch 4](04-remote.md) was then rebased onto this patch; its document has the results.
-- **Focused tests per prefix** (`scripts/verify-patches.sh --workspace .work/CotEditor --test`, fresh clones): 58 tests in 3 suites after patch 1, 110 in 6 after patches 1 and 2, and 147 in 8 after patches 1 to 3, all passed.
-- **Full test plan** (`scripts/build.sh --workspace --through webpage --test-all`): 287 tests in 43 suites passed.
-- **Signing.** `scripts/check-signing.sh --workspace --through webpage` built an ad-hoc signed Release `CotEditor-Web-arm64.app`: hardened runtime on, no App Sandbox, no iCloud, only `arm64`, strict verification passes. `scripts/build.sh --workspace --through webpage --release --adhoc --arch x86_64` built `CotEditor-Web-x86_64.app`: only `x86_64`, `flags=0x10002(adhoc,runtime)`, and `codesign --verify --deep --strict` passes. It was not launched, since the build Mac is Apple Silicon.
-- **Built transport settings.** The built `CotEditor-Web-arm64.app` has `NSAppTransportSecurity = { NSAllowsLocalNetworking = true }` and no other transport key; `onlyLocalNetworkingIsAllowed` checks the same in the test host.
-- **Found while testing.** WebKit already brackets an IPv6 host in `WKSecurityOrigin.host`, so the origin label adds brackets only to a bare address. A test host that is not the active app has no key or main window, which led to the active-window rule above. A script's `location.reload()` of a page made by a POST form reloads it with GET in this WebKit, so it does not reach the resubmission confirmation; `WKWebView.reload()` and history navigation do. `navigator.mediaDevices` is not available to pages in these web views, so the capture refusal is defence in depth.
-
-- **Hardening of the address, questions, frames, devices, teardown and archive** (workspace with every patch, uncommitted): `scripts/build.sh --checkout .work/CotEditor --test` passed 386 tests in 19 suites; a scratch tree of patches 1 to 3 with the same changes passed 180 tests in 8 suites.
-
-**Mutation checks.** Each protection below was disabled on purpose, and its test failed:
-
-| Protection disabled | Test that failed |
+| Protection | Tests that fail without it |
 | --- | --- |
 | Space above the address field (top inset reduced to 4 points) | `webPageTabBorderFollowsTheContentEdge` |
 | Navigation generation (events of older navigations ignored) | `onlyTheNewestNavigationChangesTheState`, `stopEndsLoadingWithoutAFailure`, `processTerminationRetriesNothing`, `closedSessionsIgnoreLateCallbacks` |
@@ -142,29 +141,12 @@ Environment: Xcode 27.0 (27A266a), macOS 27.0 (Darwin 27.0.0) on arm64, locale `
 | Refusing a closed tab's navigations | `closingWebPagesNeverAsksAndACancelledCloseKeepsThem` |
 | Archiving without query and fragment | `archiveKeepsOnlyAnAllowedAddressAndTitle`, `archiveDecodingSkipsMalformedEntries` |
 | Dropping query and fragment when decoding | `archiveDecodingSkipsMalformedEntries` |
-
-These were run one at a time, each with only the tests it concerns.
-
-The control-label mutation was checked with every patch applied:
-
-| Protection disabled | Test that failed |
-| --- | --- |
-| Title-case New Webpage label (changed to sentence case) | `webPageTabsJoinTheTabsWithoutAFile` |
-
-With an error document whose base is `about:blank`, the policy itself refused the error document, so the first form of that check failed only `refusedDestinationsKeepThePage`; the error document now uses the failed address as its base.
-
-**Not done:**
-
-- Tests for how often the views update: that a hidden tab skips its view updates and the placeholder is made once is only covered by the suite still passing.
-- Manual checks: keyboard focus, VoiceOver labels, resizing, page interaction, JavaScript dialogs and the resubmission confirmation as sheets, HTTPS against a real certificate, and the exact **+ > New Webpage** workflow.
-- HTTPS and secure WebSocket tests: they need a certificate the test host trusts, and no test-only trust decision exists yet. A development server's WebSocket, a LAN address and a `.local` name were not tried against App Transport Security; only the built `Info.plist` was inspected.
-- How WebKit handles `beforeunload` on navigation without the private UI delegate method was not recorded.
-- The quit review across two windows with webpages was not tested separately; it is patch 1's and patch 2's unchanged review.
-- On quit, patch 2 asks about running terminals before any window's review starts, so a website dialog still showing at that moment is dismissed only when its own window's review begins.
+| The title-case New Webpage label | `webPageTabsJoinTheTabsWithoutAFile` |
 
 ## Known limitations
 
 - Websites cannot ask before their tab closes: closing a webpage tab, its window or the app never runs the page's `beforeunload` handler.
+- On quit, patch 2 asks about running terminals before any window's review starts, so a website dialog still showing then is dismissed only when its own window's review begins.
 - A link that asks for a new window opens in the same tab, so sign-in flows that rely on a popup talking back to its opener (`window.opener`) do not work.
 - Links in a frame of a page that ask for a new window do nothing.
 - A restored tab offers its page without the address's query and fragment.

@@ -198,10 +198,10 @@ index 000000000..3ee0ae05f
 +}
 diff --git a/Tests/Sources/Models/DirectoryTabTests+Items.swift b/Tests/Sources/Models/DirectoryTabTests+Items.swift
 new file mode 100644
-index 000000000..d98a8ab77
+index 000000000..0538ff7b8
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+Items.swift
-@@ -0,0 +1,633 @@
+@@ -0,0 +1,654 @@
 +//
 +//  DirectoryTabTests+Items.swift
 +//  Tests
@@ -433,29 +433,50 @@ index 000000000..d98a8ab77
 +
 +    @Test(.timeLimit(.minutes(1))) func tabBorderFollowsTheContentEdge() async throws {
 +
-+        try await self.withDirectory(makesWindow: true) { directory, urls in
-+            try self.checkBarContentSeparator(in: directory)
-+            #expect(await directory.openDocument(at: urls[0]))
-+            try self.checkBarContentSeparator(in: directory)
-+            #expect(directory.openTabItem(FakeTabItem()))
-+            try self.checkBarContentSeparator(in: directory)
++        try await self.withoutNavigationBar {
++            try await self.withDirectory(makesWindow: true) { directory, urls in
++                try self.checkBarContentSeparator(in: directory)
++                #expect(await directory.openDocument(at: urls[0]))
++                try self.checkBarContentSeparator(in: directory)
++                #expect(directory.openTabItem(FakeTabItem()))
++                try self.checkBarContentSeparator(in: directory)
 +
-+            let content = try #require(directory.windowContentViewController)
-+            let pane = try #require(content.splitViewItems.first { $0.behavior == .default })
-+            let accessory = try #require(pane.topAlignedAccessoryViewControllers.first)
-+            let window = try #require(content.view.window)
-+            window.setContentSize(NSSize(width: 960, height: 640))
-+            try self.checkBarContentSeparator(in: directory)
-+            UserDefaults.standard[.usesDirectoryFileTabs] = false
-+            #expect(accessory.isHidden)
-+            #expect(pane.titlebarSeparatorStyle == .automatic)
-+            UserDefaults.standard[.usesDirectoryFileTabs] = true
-+            try self.checkBarContentSeparator(in: directory)
++                let content = try #require(directory.windowContentViewController)
++                let pane = try #require(content.splitViewItems.first { $0.behavior == .default })
++                let accessory = try #require(pane.topAlignedAccessoryViewControllers.first)
++                let window = try #require(content.view.window)
++                window.setContentSize(NSSize(width: 960, height: 640))
++                try self.checkBarContentSeparator(in: directory)
++                UserDefaults.standard[.usesDirectoryFileTabs] = false
++                #expect(accessory.isHidden)
++                #expect(pane.titlebarSeparatorStyle == .automatic)
++                UserDefaults.standard[.usesDirectoryFileTabs] = true
++                try self.checkBarContentSeparator(in: directory)
++            }
 +        }
 +    }
 +
 +
++    /// Runs `body` with the editor's navigation bar hidden, restoring the preference afterwards.
++    ///
++    /// `checkBarContentSeparator(in:)` measures the native hairline at the editor's scroll edge. The
++    /// navigation bar, which is shown by default, sits on that edge and draws its own one-point divider
++    /// instead, so the check would depend on whatever the test host's preferences hold. An editor
++    /// reads the preference when it loads, so it is set before any file opens.
++    func withoutNavigationBar(_ body: () async throws -> Void) async throws {
++
++        let key = DefaultKeys.showNavigationBar.rawValue
++        let original = UserDefaults.standard.object(forKey: key)
++        UserDefaults.standard[.showNavigationBar] = false
++        defer { UserDefaults.standard.set(original, forKey: key) }
++
++        try await body()
++    }
++
++
 +    /// Checks the native scroll-pocket border, including its rendered pixel row and thickness.
++    ///
++    /// For an editor, call it within `withoutNavigationBar(_:)`.
 +    func checkBarContentSeparator(in directory: DirectoryDocument) throws {
 +
 +        let content = try #require(directory.windowContentViewController)
@@ -1045,10 +1066,10 @@ index 000000000..7cd351708
 +}
 diff --git a/Tests/Sources/Models/DirectoryTabTests+Viewport.swift b/Tests/Sources/Models/DirectoryTabTests+Viewport.swift
 new file mode 100644
-index 000000000..ef2fbf062
+index 000000000..286df2ec8
 --- /dev/null
 +++ b/Tests/Sources/Models/DirectoryTabTests+Viewport.swift
-@@ -0,0 +1,395 @@
+@@ -0,0 +1,402 @@
 +//
 +//  DirectoryTabTests+Viewport.swift
 +//  Tests
@@ -1333,11 +1354,18 @@ index 000000000..ef2fbf062
 +    /// Opens two long files in a visible directory window with file tabs enabled.
 +    private func withDirectoryWindow(defaults overrides: [DefaultKey<Bool>: Bool] = [:], _ body: (DirectoryWindowFixture) async throws -> Void) async throws {
 +
-+        let keys = [DefaultKeys.usesDirectoryFileTabs] + overrides.keys
-+        let originals = keys.map { UserDefaults.standard.object(forKey: $0.rawValue) }
++        // The edge checks expect the first line at its default position. With some fonts, upstream's
++        // editor settles a few points further down in any window, so the editor's text metrics use
++        // their defaults rather than whatever the test host's preferences hold.
++        let metricKeys = [DefaultKeys.font.rawValue, DefaultKeys.monospacedFont.rawValue, DefaultKeys.lineHeight.rawValue]
++        let keys = [DefaultKeys.usesDirectoryFileTabs.rawValue] + overrides.keys.map(\.rawValue) + metricKeys
++        let originals = keys.map { UserDefaults.standard.object(forKey: $0) }
 +        UserDefaults.standard[.usesDirectoryFileTabs] = true
 +        for (key, value) in overrides {
 +            UserDefaults.standard[key] = value
++        }
++        for key in metricKeys {
++            UserDefaults.standard.removeObject(forKey: key)
 +        }
 +
 +        let rootURL = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
@@ -1353,7 +1381,7 @@ index 000000000..ef2fbf062
 +        defer {
 +            directory.close()
 +            for (key, original) in zip(keys, originals) {
-+                UserDefaults.standard.set(original, forKey: key.rawValue)
++                UserDefaults.standard.set(original, forKey: key)
 +            }
 +            try? FileManager.default.removeItem(at: rootURL)
 +        }

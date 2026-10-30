@@ -3,7 +3,7 @@
 How to develop and maintain this repository, for people and coding agents alike. Read these first:
 
 - [`README.md`](README.md): what the project does for users, the builds, requirements, and how to build and test.
-- [`docs/`](docs/README.md): how each patch works, which patch is responsible for what, and the recorded evidence.
+- [`docs/`](docs/README.md): what each patch does and how it works, which patch is responsible for what, and what the tests cover.
 
 This file only covers how to work on the patches.
 
@@ -33,10 +33,11 @@ All scripts are in `scripts/`, with shared helpers in `scripts/lib.sh` (sourced,
 5. **Build settings go into upstream's own configurations.** A patch that changes the app's identity or entitlements edits `Configurations/CotEditor.xcconfig` and upstream's `CotEditor.entitlements` and `CotEditor-AdHoc.entitlements`, with a comment explaining why. It adds no scheme, build configuration or xcconfig. Each app after patch 1 has its own bundle identifier (`local.coteditor-tabs.CotEditor-<Name>`), from which `build.sh` names the copy. Upstream's `CotEditor-Sparkle` scheme is left as it is; this project does not build it.
 6. **Never reset or overwrite someone's work.** The scripts refuse dirty checkouts and existing target folders, and `reset-submodule.sh` stashes before resetting. Keep it that way in any new script.
 7. **Record changes in one place each.**
-   - How a patch works, and its evidence: that patch's file in `docs/`. The responsibility table: `docs/README.md`.
-   - What users see, the builds, requirements, and build and test commands: `README.md`.
+   - What a patch does, how it works, what its tests cover and the protections they check: that patch's file in `docs/`. The responsibility table: `docs/README.md`.
+   - An introduction to the project, a short summary of each feature, the apps, requirements, and build and test commands: `README.md`.
    - Scripts, workflows, rules and conventions for development: this file.
-   - Don't copy text between these files; link to it. Report test results as they are, including known failures.
+   - Don't copy text between these files; link to it.
+   - The documentation describes the patches as they are. It is not a log: no test counts, runs, environments, earlier versions or the story of a change, which belong in the commit message. Report test results as they are, including known failures, when you report on your work.
 
 ## Scripts
 
@@ -86,8 +87,8 @@ If a rebase conflicts in a later patch, the change altered something that patch 
 ### Add a patch
 
 1. Add a commit named `05-name` (increasing two-digit numbers, then a short lower-case name with hyphens, which `--through` also accepts) at the end of the workspace history, then export. For a reserved number such as `03`, insert the commit before the later patches instead: commit it on top of the patch it follows, then move the later commits onto it with `git rebase --onto`, resolving conflicts in those later patches.
-2. Write `docs/05-name.md`, following the existing patch documents, and add it to the list and a column to the table in `docs/README.md`.
-3. Describe what users get in the README's Features section, and add a row to its apps table.
+2. Write `docs/05-name.md`, following the existing patch documents (what it does, how it works, tests, protections, known limitations), and add it to the list and a column to the table in `docs/README.md`.
+3. Add a short summary to the README's Features list, linking to the document's "What it does", and a row to its apps table.
 4. Give the new app its own bundle identifier in `Configurations/CotEditor.xcconfig` (see rule 5), and add its suites to the list of focused tests in `build.sh`.
 
 ### Strings
@@ -112,7 +113,7 @@ scripts/verify-patches.sh --workspace .work/CotEditor --test
 scripts/build.sh --checkout .work/CotEditor --test-all
 ```
 
-Then update the pinned commit in `README.md` and the evidence in `docs/`, and commit them together with the gitlink and the patches.
+Then update `docs/` wherever the patches now work differently, and commit it together with the gitlink and the patches.
 
 ### Check signing after entitlement or build-setting changes
 
@@ -143,7 +144,7 @@ Those in the README, plus:
 - **Control labels.** English labels added by the patches follow Apple's Human Interface Guidelines, as upstream's do. Title case for menu items (in the main menu, context menus and the tab strip's **+** menu), push buttons, pop-up menu choices and menu section headers, window titles and inspector section titles: `Open Remote Folder…`, `Save a Local Copy…`, `Same as Editor`. Sentence case for checkboxes, field labels, placeholders, tooltips, accessibility labels, status text and alert messages: `Save this connection`, `Recent paths`, `Shell not running`. In title case, articles, coordinating conjunctions and prepositions of up to four letters stay lowercase unless they come first or last or belong to the verb (`Move to New Window`, but `Turn Off and Close Shells` and `Look Up`). Keep proper names and acronyms capitalized, and leave upstream's own labels unchanged. A string used both ways, such as `Show hidden files` as a checkbox and as a menu item, gets a key for each.
 - **Comments.** Write for someone reading the code months later without context. Explain why, not what the code does. Don't refer to changes, requests, alternatives, dates, tickets or people; describe the code as if it had always been this way. The same goes for the documentation.
 - **Punctuation.** Don't use em dashes or en dashes in code, comments, strings or documentation.
-- **Global state in tests.** Tests that change the global file-tabs preference, `TerminalSession.defaultEngineFactory`, `TerminalPrompts.current`, `TerminalNotifications.current`, `WebPagePrompts.current`, `RemoteEnvironment.current` or `RemoteTermination.isInProgress`, or open remote folder windows (whose registry is app-wide), must live in the serialized `DirectoryTabTests` suite, or an extension of it (see `DirectoryTabTests+Terminal.swift`, `DirectoryTabTests+WebPage.swift`, `DirectoryTabTests+Remote.swift` and `DirectoryTabTests+RemoteFolders.swift`). Swift Testing runs separate suites in parallel, and tests within a suite in parallel too unless it is serialized.
+- **Global state in tests.** Tests that change the global file-tabs preference, the editor's navigation bar, font or line height preferences, `TerminalSession.defaultEngineFactory`, `TerminalPrompts.current`, `TerminalNotifications.current`, `WebPagePrompts.current`, `RemoteEnvironment.current` or `RemoteTermination.isInProgress`, or open remote folder windows (whose registry is app-wide), must live in the serialized `DirectoryTabTests` suite, or an extension of it (see `DirectoryTabTests+Terminal.swift`, `DirectoryTabTests+WebPage.swift`, `DirectoryTabTests+Remote.swift` and `DirectoryTabTests+RemoteFolders.swift`). Swift Testing runs separate suites in parallel, and tests within a suite in parallel too unless it is serialized.
 - **Remote documents carry their services.** A `RemoteSSHDocument` keeps the `RemoteEnvironment` (connection pool, prompts, recovery folder, timing) it was created with. Tests of remote documents create a `RemoteTestBed`, which has its own fake server, scripted prompts, recovery folder and endpoint, so they need no global state. The endpoint is unique per test bed because the registry of open remote files is app-wide.
 - **Close what a test opens.** A document left open keeps autosaving; if its recovery folder is gone, AppKit shows alerts in the test host. `RemoteTestBed.tearDown()` closes every document the bed opened (`track(_:)` for others) before removing the folder.
 - **Deterministic waits.** Don't rely on timing. Give the code a seam and control it from the test: `approveMemberClose` for member close approval, fake engines and scripted prompts for terminals. Holding an NSDocument's file access does not work for this: its close-time autosave waits for it synchronously on the main thread.
@@ -158,7 +159,7 @@ Those in the README, plus:
 - **Questions of `ssh`** are answered by a `RemoteAskpass` server. `RemoteSSHCommand.TestOverrides` gives each test one of its own, which nobody answers unless the test sets an answerer, so `ssh` runs in batch mode; never use the app's (`RemoteAskpass.shared`), which the test host's launch sets up to ask with alerts.
 - **Folder trees** are tested with `ScriptedTreeSource` (`RemoteDirectoryTreeTests.swift`), whose listings and resolutions the test sets and can hold until it lets them go. A held reply ignores cancellation, as a reply already on its way would, so that only the tree's own generation checks can drop it.
 - **Directories without a local folder** are tested through the root contract with `FakeDirectoryRoot` (`DirectoryTabTests+Root.swift`), as tabs that are not files are with `FakeTabItem`.
-- **Prove that a new test catches the bug.** After adding a test for a bug or safety property, temporarily disable the code it protects and confirm the test fails. Record the check in the mutation table of that patch's document in `docs/`. If you break process cleanup this way, kill any leftover test shells afterwards.
+- **Prove that a new test catches the bug.** After adding a test for a bug or safety property, temporarily disable the code it protects and confirm the test fails. Record the protection and its test in the Protections table of that patch's document in `docs/`. If you break process cleanup this way, kill any leftover test shells afterwards.
 
 ## Pitfalls
 
@@ -170,7 +171,7 @@ Those in the README, plus:
 - **SwiftTerm's source** at the pinned revision is in `.build/DerivedData/SourcePackages/checkouts/SwiftTerm` after a build. Read the actual APIs there before relying on them. For example, its `LocalProcess.terminate()` never reaps the shell, which is why `TerminalProcessReaper` exists.
 - **Locale in tests.** Tests run in the developer's locale (for example `en_NL`, which groups thousands with a period). Compare formatted numbers with the value's own `formatted()` rather than with US-style text; patch 1 fixes upstream's `EditorCounterTests.formatCountValue()` this way.
 - **Test host signing:** Xcode signs test hosts without the hardened runtime. Use `check-signing.sh --pty` when that matters.
-- **Remembered layouts in tests.** Tests share the app's preferences, including remembered window layouts such as the split-view divider (`NSSplitView Subview Frames DirectoryWindowContentSplitView`). Layout tests must set the geometry they depend on rather than trust what earlier runs left behind.
+- **Preferences in tests.** Tests share the preferences of the app with the same bundle identifier, so each app's test host sees whatever someone set while using that app, and remembered window layouts such as the split-view divider (`NSSplitView Subview Frames DirectoryWindowContentSplitView`). Layout and rendering tests must set what they depend on rather than trust what they find: the editor's navigation bar (`showNavigationBar`, shown by default) draws its own divider where the tab-border tests look for the native hairline, and some editor fonts move the first line of every editor down by a few points. See `withoutNavigationBar(_:)` and the viewport tests' `withDirectoryWindow`.
 - **Measuring a view that is moved by `.offset`:** measure outside the offset, or the measurement feeds back into the offset and the view jitters. Tests cannot see where SwiftUI draws a moved view, so check such drags by hand. See "Dragging to reorder" in [`docs/01-tabs.md`](docs/01-tabs.md).
 - **Restorable state in tests:** a helper that encodes a document's restorable state must wait for the background queue it passes before finishing the archive (`queue.waitUntilAllOperationsAreFinished()`), as AppKit does. For documents without a file, AppKit adds work to that queue, and an archive finished early makes it throw and crash the test host.
 - **Remote paths are compared byte by byte** (`RemotePath.isSame`). Swift's `String` equality treats composed and decomposed characters as equal, but a server's file system generally does not.
